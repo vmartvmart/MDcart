@@ -1,0 +1,502 @@
+/* "Persian TV Box"-inspired storefront theme — cinematic near-black, streaming-red accent, pill CTAs.
+   Self-hosted, no external dependency, no third-party branding/copy. */
+
+:root {
+  --theme-ptv-bg: #0a0a0a;
+  --theme-ptv-bg-2: #161616;
+  --theme-ptv-border: #2c2c2c;
+  --theme-ptv-text: #ffffff;
+  --theme-ptv-muted: #a3a3a3;
+  --theme-ptv-accent: #e50914;
+  --theme-ptv-accent-2: #b0060f;
+}
+
+body.theme-persiantvbox {
+  background: var(--theme-ptv-bg);
+  --mb-surface: var(--theme-ptv-bg-2);
+  --mb-surface-2: var(--theme-ptv-bg);
+  --mb-text: var(--theme-ptv-text);
+  --mb-muted: var(--theme-ptv-muted);
+  --mb-border: var(--theme-ptv-border);
+  --mb-accent: var(--theme-ptv-accent);
+  --mb-accent-text: #ffffff;
+}
+
+body.theme-persiantvbox .theme-ptv-nav {
+  background: var(--theme-ptv-bg-2);
+  border-bottom: 1px solid var(--theme-ptv-border);
+}
+
+.theme-ptv-nav-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem 1.5rem;
+  padding: .75rem 0;
+}
+
+@media (max-width: 767.98px) {
+  .theme-ptv-nav-row {
+    gap: .5rem;
+  }
+
+  .theme-ptv-nav-menu {
+    order: 3;
+    flex: 1 0 100%;
+  }
+
+  .theme-ptv-nav-actions {
+    gap: .5rem;
+    margin-inline-start: auto;
+  }
+}
+
+body.theme-persiantvbox .theme-ptv-nav #logo h1 a,
+body.theme-persiantvbox .theme-ptv-nav #logo h1 a:hover {
+  color: var(--theme-ptv-text);
+  font-weight: 700;
+}
+
+.theme-ptv-nav-menu {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.theme-ptv-nav-menu #menu,
+.theme-ptv-nav-menu .container {
+  padding: 0;
+  margin: 0;
+  max-width: none;
+  background: transparent !important;
+}
+
+.theme-ptv-nav-menu .navbar {
+  padding: 0;
+}
+
+body.theme-persiantvbox .theme-ptv-nav-menu #menu .nav-link {
+  color: var(--theme-ptv-text) !important;
+  padding-top: .5rem !important;
+  padding-bottom: .5rem !important;
+}
+
+body.theme-persiantvbox .theme-ptv-nav-menu #menu .nav-link:hover {
+  color: var(--theme-ptv-accent) !important;
+}
+
+.theme-ptv-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex: 0 0 auto;
+}
+
+.theme-ptv-nav-actions #form-currency .dropdown-toggle span.d-md-inline,
+.theme-ptv-nav-actions #form-language .dropdown-toggle span.d-md-inline {
+  display: none !important;
+}
+
+.theme-ptv-search-toggle,
+.theme-ptv-nav-actions .dropdown-toggle {
+  color: var(--theme-ptv-text);
+  cursor: pointer;
+}
+
+.theme-ptv-nav-actions #cart .btn {
+  background: transparent;
+  border: none;
+  color: var(--theme-ptv-text);
+  padding: 0;
+  font-size: 0;
+}
+
+.theme-ptv-nav-actions #cart .btn i {
+  font-size: 1rem;
+}
+
+.theme-ptv-pill-btn {
+  background: var(--theme-ptv-accent) !important;
+  color: #fff !important;
+  border-radius: 4px;
+  padding: .4rem 1.1rem !important;
+  font-weight: 700;
+}
+
+#theme-ptv-search {
+  padding: 1rem 0;
+  border-top: 1px solid var(--theme-ptv-border);
+}
+
+#theme-ptv-search .input-group {
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+body.theme-persiantvbox .btn-primary {
+  background: linear-gradient(90deg, var(--theme-ptv-accent) 0%, var(--theme-ptv-accent-2) 100%);
+  border: none;
+  color: #fff;
+  border-radius: 999px;
+  font-weight: 700;
+  padding: .65rem 1.75rem;
+}
+
+body.theme-persiantvbox .btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+body.theme-persiantvbox .btn-outline-light {
+  border-radius: 999px;
+  font-weight: 700;
+  padding: .65rem 1.75rem;
+  border-width: 2px;
+  border-color: var(--theme-ptv-accent);
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .btn-outline-light:hover {
+  background: var(--theme-ptv-accent);
+  border-color: var(--theme-ptv-accent);
+}
+
+body.theme-persiantvbox a:not(.btn) {
+  color: var(--theme-ptv-accent);
+}
+
+body.theme-persiantvbox footer {
+  background: var(--theme-ptv-bg-2);
+  color: var(--theme-ptv-muted);
+  padding-top: 2rem;
+  border-top: 1px solid var(--theme-ptv-border);
+}
+
+body.theme-persiantvbox footer h5 {
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox footer a {
+  color: var(--theme-ptv-muted);
+}
+
+body.theme-persiantvbox footer a:hover {
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox footer hr {
+  border-color: var(--theme-ptv-border);
+}
+
+.theme-persiantvbox-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--theme-ptv-bg);
+  padding: 3.5rem 1rem;
+  text-align: center;
+}
+
+.theme-persiantvbox-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(50rem 26rem at 50% 0%, rgba(229, 9, 20, .28), transparent 65%),
+    linear-gradient(180deg, transparent 40%, var(--theme-ptv-bg) 100%);
+  pointer-events: none;
+}
+
+.theme-persiantvbox-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: .6rem;
+  background: #000;
+}
+
+.theme-persiantvbox-bar-top {
+  top: 0;
+}
+
+.theme-persiantvbox-bar-bottom {
+  bottom: 0;
+}
+
+.theme-persiantvbox-content {
+  position: relative;
+  z-index: 1;
+}
+
+.theme-persiantvbox-hero h1 {
+  color: var(--theme-ptv-text);
+  font-weight: 800;
+  font-size: clamp(2.25rem, 5.5vw, 3.75rem);
+  letter-spacing: -.01em;
+  margin-bottom: 1.25rem;
+}
+
+.theme-persiantvbox-hero p {
+  color: var(--theme-ptv-muted);
+  font-size: 1.1rem;
+  max-width: 38rem;
+  margin: 0 auto 2rem;
+}
+
+.theme-persiantvbox-hero video,
+.theme-persiantvbox-hero img {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  border-radius: .5rem;
+  margin-top: 2rem;
+}
+
+.theme-persiantvbox-row {
+  background: var(--theme-ptv-bg);
+  padding: .5rem 0 3rem;
+}
+
+.theme-persiantvbox-row h2 {
+  color: var(--theme-ptv-text);
+  font-weight: 700;
+  font-size: 1.3rem;
+  margin-bottom: 1.25rem;
+}
+
+.theme-persiantvbox-poster-track {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: .5rem;
+}
+
+.theme-persiantvbox-poster {
+  position: relative;
+  flex: 0 0 auto;
+  width: 10rem;
+  height: 14rem;
+  border-radius: .6rem;
+  overflow: hidden;
+  background-color: #1a0f28;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  text-decoration: none;
+  border: 1px solid var(--theme-ptv-border);
+  transition: transform .15s;
+}
+
+.theme-persiantvbox-poster:hover {
+  transform: scale(1.06);
+  z-index: 2;
+  box-shadow: 0 1rem 2rem rgba(0,0,0,.6);
+}
+
+.theme-persiantvbox-poster-overlay {
+  width: 100%;
+  padding: .85rem .7rem;
+  background: linear-gradient(0deg, rgba(0,0,0,.9) 0%, rgba(0,0,0,.55) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.theme-persiantvbox-poster-title {
+  color: #fff;
+  font-weight: 700;
+  font-size: .85rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.theme-persiantvbox-poster-price {
+  color: var(--theme-ptv-accent);
+  font-weight: 700;
+  font-size: .8rem;
+}
+
+/* Sitewide coverage so category/product/cart/account pages match the theme, not just the homepage. */
+
+body.theme-persiantvbox {
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox h1,
+body.theme-persiantvbox h2,
+body.theme-persiantvbox h3,
+body.theme-persiantvbox h4,
+body.theme-persiantvbox h5,
+body.theme-persiantvbox h6 {
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .text-muted,
+body.theme-persiantvbox small {
+  color: var(--theme-ptv-muted) !important;
+}
+
+body.theme-persiantvbox .breadcrumb {
+  background: var(--theme-ptv-bg-2);
+  border-radius: 0;
+  padding: .85rem 1rem;
+}
+
+body.theme-persiantvbox .breadcrumb-item,
+body.theme-persiantvbox .breadcrumb-item a {
+  color: var(--theme-ptv-muted);
+}
+
+body.theme-persiantvbox .breadcrumb-item.active,
+body.theme-persiantvbox .breadcrumb-item a:hover {
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .card,
+body.theme-persiantvbox .list-group-item {
+  background: var(--theme-ptv-bg-2);
+  border-color: var(--theme-ptv-border);
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .list-group-item a {
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .list-group-item.active {
+  background: var(--theme-ptv-accent) !important;
+  border-color: var(--theme-ptv-accent) !important;
+  color: #fff !important;
+}
+
+body.theme-persiantvbox .list-group-item:hover {
+  background: var(--theme-ptv-bg) !important;
+}
+
+body.theme-persiantvbox .list-group-item.active:hover {
+  background: var(--theme-ptv-accent) !important;
+}
+
+body.theme-persiantvbox .card-header {
+  background: var(--theme-ptv-bg-2);
+  border-color: var(--theme-ptv-border);
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .product-thumb .price,
+body.theme-persiantvbox .price {
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .price-new {
+  color: var(--theme-ptv-accent);
+}
+
+body.theme-persiantvbox .price-old {
+  color: var(--theme-ptv-muted);
+}
+
+body.theme-persiantvbox .form-control,
+body.theme-persiantvbox .form-select {
+  background: var(--theme-ptv-bg-2);
+  border-color: var(--theme-ptv-border);
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .form-control:focus,
+body.theme-persiantvbox .form-select:focus {
+  background: var(--theme-ptv-bg-2);
+  border-color: var(--theme-ptv-accent);
+  color: var(--theme-ptv-text);
+  box-shadow: 0 0 0 .2rem rgba(229,9,20,.2);
+}
+
+body.theme-persiantvbox .form-control::placeholder {
+  color: var(--theme-ptv-muted);
+}
+
+body.theme-persiantvbox .form-label,
+body.theme-persiantvbox .input-group-text {
+  color: var(--theme-ptv-text);
+  background: var(--theme-ptv-bg-2);
+  border-color: var(--theme-ptv-border);
+}
+
+body.theme-persiantvbox .pagination .page-link {
+  background: var(--theme-ptv-bg-2);
+  border-color: var(--theme-ptv-border);
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .pagination .page-item.active .page-link {
+  background: var(--theme-ptv-accent);
+  border-color: var(--theme-ptv-accent);
+  color: #fff;
+}
+
+body.theme-persiantvbox .table {
+  color: var(--theme-ptv-text);
+  border-color: var(--theme-ptv-border);
+}
+
+body.theme-persiantvbox .table > :not(caption) > * > * {
+  background: var(--theme-ptv-bg-2);
+  border-color: var(--theme-ptv-border);
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .dropdown-menu,
+body.theme-persiantvbox #menu .dropdown-menu {
+  background: var(--theme-ptv-bg-2) !important;
+  border-color: var(--theme-ptv-border) !important;
+}
+
+body.theme-persiantvbox .dropdown-item,
+body.theme-persiantvbox #menu .dropdown-item {
+  color: var(--theme-ptv-text) !important;
+}
+
+body.theme-persiantvbox .dropdown-item:hover,
+body.theme-persiantvbox .dropdown-item:focus,
+body.theme-persiantvbox #menu .dropdown-item:hover,
+body.theme-persiantvbox #menu .dropdown-item:focus {
+  background: var(--theme-ptv-bg) !important;
+  color: var(--theme-ptv-accent) !important;
+}
+
+body.theme-persiantvbox #menu .dropdown-divider {
+  border-color: var(--theme-ptv-border) !important;
+}
+
+body.theme-persiantvbox .btn-secondary,
+body.theme-persiantvbox .btn-light {
+  background: var(--theme-ptv-bg-2);
+  border-color: var(--theme-ptv-border);
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .modal-content {
+  background: var(--theme-ptv-bg-2);
+  color: var(--theme-ptv-text);
+}
+
+/* Product card colors — shape/spacing/layout come from theme-modern-base.css via --mb-*. */
+
+body.theme-persiantvbox .product-thumb {
+  background: var(--theme-ptv-bg-2);
+}
+
+body.theme-persiantvbox .product-thumb .image {
+  background: #fff;
+}
+
+body.theme-persiantvbox .product-thumb .description h4 a {
+  color: var(--theme-ptv-text);
+}
+
+body.theme-persiantvbox .product-thumb .description p {
+  color: var(--theme-ptv-muted);
+}
+
+body.theme-persiantvbox .rating .fa-star {
+  color: var(--theme-ptv-accent);
+}

@@ -1,0 +1,201 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="float-end">
+				{% if not readonly %}<button type="submit" form="form-purchase-invoice" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>{% endif %}
+				<a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+			</div>
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		{% if readonly %}
+			<div class="alert alert-info"><i class="fa-solid fa-circle-info"></i> {{ text_readonly_help }}</div>
+		{% endif %}
+		<div class="card">
+			<div class="card-header"><i class="fa-solid fa-file-invoice"></i> {{ text_form }}</div>
+			<div class="card-body">
+				<div id="alert-placeholder"></div>
+				<form id="form-purchase-invoice" action="{{ save }}" method="post" data-oc-toggle="ajax">
+					<div class="row mb-3 required">
+						<label for="input-warehouse" class="col-sm-2 col-form-label">{{ entry_warehouse }}</label>
+						<div class="col-sm-4">
+							<select name="warehouse_id" id="input-warehouse" class="form-select"{% if readonly %} disabled{% endif %}>
+								<option value=""></option>
+								{% for warehouse in warehouses %}
+									<option value="{{ warehouse.warehouse_id }}"{% if warehouse.warehouse_id == warehouse_id %} selected{% endif %}>{{ warehouse.name }} ({{ warehouse.currency_code }})</option>
+								{% endfor %}
+							</select>
+						</div>
+						<label for="input-invoice-date" class="col-sm-2 col-form-label">{{ entry_invoice_date }}</label>
+						<div class="col-sm-4">
+							<input type="date" name="invoice_date" value="{{ invoice_date }}" id="input-invoice-date" class="form-control"{% if readonly %} readonly{% endif %}/>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label for="input-supplier" class="col-sm-2 col-form-label">{{ entry_supplier }}</label>
+						<div class="col-sm-4">
+							<input type="text" name="supplier_name" value="{{ supplier_name }}" id="input-supplier" class="form-control"{% if readonly %} readonly{% endif %}/>
+						</div>
+						<label for="input-invoice-number" class="col-sm-2 col-form-label">{{ entry_invoice_number }}</label>
+						<div class="col-sm-4">
+							<input type="text" name="invoice_number" value="{{ invoice_number }}" id="input-invoice-number" class="form-control"{% if readonly %} readonly{% endif %}/>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label for="input-comment" class="col-sm-2 col-form-label">{{ entry_comment }}</label>
+						<div class="col-sm-10">
+							<textarea name="comment" id="input-comment" rows="2" class="form-control"{% if readonly %} readonly{% endif %}>{{ comment }}</textarea>
+						</div>
+					</div>
+
+					{% if not readonly %}
+						<fieldset>
+							<legend>{{ text_add_product }}</legend>
+							<div class="row mb-3">
+								<div class="col-sm-5">
+									<input type="text" id="input-product" placeholder="{{ entry_product }}" class="form-control" autocomplete="off"/>
+									<ul id="autocomplete-product" class="dropdown-menu"></ul>
+								</div>
+								<div class="col-sm-3">
+									<input type="text" id="input-barcode" placeholder="{{ entry_barcode }}" class="form-control"/>
+									<small class="form-text text-muted">{{ help_barcode }}</small>
+								</div>
+								<div class="col-sm-2">
+									<input type="number" id="input-product-quantity" value="1" min="1" class="form-control" placeholder="{{ column_quantity }}"/>
+								</div>
+								<div class="col-sm-2">
+									<button type="button" id="button-add-product" class="btn btn-primary w-100">{{ button_add_product }}</button>
+								</div>
+							</div>
+						</fieldset>
+					{% endif %}
+
+					<div class="table-responsive">
+						<table class="table table-bordered" id="table-product">
+							<thead>
+								<tr>
+									<th>{{ column_product }}</th>
+									<th class="text-end col-2">{{ column_quantity }}</th>
+									<th class="text-end col-2">{{ column_unit_cost }}</th>
+									{% if not readonly %}<th class="text-end col-1"></th>{% endif %}
+								</tr>
+							</thead>
+							<tbody>
+								{% for product in products %}
+									<tr>
+										<td>{{ product.name }}<input type="hidden" name="products[{{ loop.index0 }}][product_id]" value="{{ product.product_id }}"/><input type="hidden" name="products[{{ loop.index0 }}][barcode]" value="{{ product.barcode }}"/></td>
+										<td class="text-end"><input type="text" name="products[{{ loop.index0 }}][quantity]" value="{{ product.quantity }}" class="form-control text-end"{% if readonly %} readonly{% endif %}/></td>
+										<td class="text-end"><input type="text" name="products[{{ loop.index0 }}][unit_cost]" value="{{ product.unit_cost }}" class="form-control text-end"{% if readonly %} readonly{% endif %}/></td>
+										{% if not readonly %}<td class="text-end"><button type="button" class="btn btn-danger button-remove-product"><i class="fa-regular fa-trash-can"></i></button></td>{% endif %}
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+					<input type="hidden" name="purchase_invoice_id" value="{{ purchase_invoice_id }}"/>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript"><!--
+var productRowIndex = {{ products|length }};
+
+function addProductRow(productId, productName, quantity, unitCost, barcode) {
+    if (!productId || !quantity) {
+        return;
+    }
+
+    var html = '<tr>';
+    html += '<td>' + productName + '<input type="hidden" name="products[' + productRowIndex + '][product_id]" value="' + productId + '"/><input type="hidden" name="products[' + productRowIndex + '][barcode]" value="' + (barcode || '') + '"/></td>';
+    html += '<td class="text-end"><input type="text" name="products[' + productRowIndex + '][quantity]" value="' + quantity + '" class="form-control text-end"/></td>';
+    html += '<td class="text-end"><input type="text" name="products[' + productRowIndex + '][unit_cost]" value="' + (unitCost || 0) + '" class="form-control text-end"/></td>';
+    html += '<td class="text-end"><button type="button" class="btn btn-danger button-remove-product"><i class="fa-regular fa-trash-can"></i></button></td>';
+    html += '</tr>';
+
+    $('#table-product tbody').append(html);
+
+    productRowIndex++;
+}
+
+{% if not readonly %}
+$('#input-product').autocomplete({
+    'source': function(request, response) {
+        $.ajax({
+            url: '{{ autocomplete }}&filter_name=' + encodeURIComponent(request),
+            dataType: 'json',
+            success: function(json) {
+                response($.map(json, function(item) {
+                    return {
+                        label: item['name'],
+                        value: item['product_id'],
+                        price: item['price']
+                    }
+                }));
+            }
+        });
+    },
+    'select': function(item) {
+        $('#input-product').val(decodeHTMLEntities(item['label'])).attr('data-product-id', item['value']).attr('data-price', item['price']);
+    }
+});
+
+$('#button-add-product').on('click', function() {
+    var productId = $('#input-product').attr('data-product-id');
+    var productName = $('#input-product').val();
+    var quantity = $('#input-product-quantity').val();
+
+    addProductRow(productId, productName, quantity, 0, '');
+
+    $('#input-product').val('').removeAttr('data-product-id');
+    $('#input-product-quantity').val(1);
+});
+
+// Keyboard-wedge barcode scanner support: a USB/Bluetooth scanner just types
+// the code very fast and sends Enter - so pressing Enter in this field looks
+// up the code (against the product's model/EAN/UPC/etc.) and adds it straight
+// to the table, no click needed.
+$('#input-barcode').on('keydown', function(e) {
+    if (e.which !== 13) {
+        return;
+    }
+
+    e.preventDefault();
+
+    var code = $(this).val().trim();
+
+    if (!code) {
+        return;
+    }
+
+    var quantity = $('#input-product-quantity').val() || 1;
+    var field = $(this);
+
+    $.ajax({
+        url: '{{ autocomplete }}&filter_model=' + encodeURIComponent(code),
+        dataType: 'json',
+        success: function(json) {
+            if (json.length) {
+                addProductRow(json[0]['product_id'], json[0]['name'], quantity, 0, code);
+            } else {
+                alert('{{ text_barcode_not_found|escape('js') }}' + ' (' + code + ')');
+            }
+
+            field.val('').focus();
+        }
+    });
+});
+
+$('#table-product').on('click', '.button-remove-product', function() {
+    $(this).closest('tr').remove();
+});
+{% endif %}
+//--></script>
+{{ footer }}

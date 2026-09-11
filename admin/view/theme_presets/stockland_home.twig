@@ -1,0 +1,28 @@
+{{ header }}
+<div class="theme-stockland-hero">
+  <h1>{{ name }}</h1>
+  <p>{{ text_hero_tagline }}</p>
+  <a href="index.php?route=product/category" class="btn btn-primary me-2">{{ button_hero_products }}</a>
+  <a href="index.php?route=product/special" class="btn btn-outline-primary">{{ button_hero_special }}</a>
+</div>
+{% if home_categories %}
+  <div class="theme-stockland-categories">
+    <div class="container">
+      <h2>{{ text_categories_heading }}</h2>
+      <div class="theme-stockland-category-row">
+        {% for category in home_categories %}
+          <a href="{{ category.href }}" class="theme-stockland-category-tile">
+            <span class="theme-stockland-category-icon"><i class="fa-solid fa-cube"></i></span>
+            <span>{{ category.name }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+<div id="common-home" class="container">
+  <div class="row">{{ column_left }}
+    <div id="content" class="col">{{ content_top }}{{ content_bottom }}</div>
+    {{ column_right }}</div>
+</div>
+{{ footer }}

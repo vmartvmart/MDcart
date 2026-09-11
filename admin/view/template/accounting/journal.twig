@@ -1,0 +1,97 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="float-end">
+				<a href="{{ add_expense }}" class="btn btn-danger"><i class="fa-solid fa-money-bill-wave"></i> {{ button_expense }}</a>
+				<a href="{{ add_receipt }}" class="btn btn-success"><i class="fa-solid fa-hand-holding-dollar"></i> {{ button_receipt }}</a>
+				<a href="{{ add_payment }}" class="btn btn-warning"><i class="fa-solid fa-money-check-dollar"></i> {{ button_payment }}</a>
+				<a href="{{ add_manual }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> {{ button_manual }}</a>
+			</div>
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div class="card mb-3">
+			<div class="card-header"><i class="fa-solid fa-filter"></i> {{ button_filter }}</div>
+			<div class="card-body">
+				<div class="row g-2 align-items-end">
+					<div class="col-md-3">
+						<label class="form-label">{{ entry_date_start }}</label>
+						<input type="date" id="input-date-start" class="form-control"/>
+					</div>
+					<div class="col-md-3">
+						<label class="form-label">{{ entry_date_end }}</label>
+						<input type="date" id="input-date-end" class="form-control"/>
+					</div>
+					<div class="col-md-4">
+						<label class="form-label">{{ entry_type }}</label>
+						<select id="input-type" class="form-select">
+							<option value="">{{ text_all }}</option>
+							<option value="manual">{{ text_type_manual }}</option>
+							<option value="expense">{{ text_type_expense }}</option>
+							<option value="receipt">{{ text_type_receipt }}</option>
+							<option value="payment">{{ text_type_payment }}</option>
+							<option value="order_sale">{{ text_type_order_sale }}</option>
+							<option value="order_cogs">{{ text_type_order_cogs }}</option>
+						</select>
+					</div>
+					<div class="col-md-2">
+						<button type="button" id="button-filter" class="btn btn-primary w-100"><i class="fa-solid fa-magnifying-glass"></i> {{ button_filter }}</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="card">
+			<div class="card-header"><i class="fa-solid fa-book"></i> {{ text_list }}</div>
+			<div id="journal" class="card-body">{{ list }}</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript"><!--
+function reloadJournal() {
+    var url = '{{ list_action }}';
+
+    if ($('#input-date-start').val()) {
+        url += '&filter_date_start=' + encodeURIComponent($('#input-date-start').val());
+    }
+
+    if ($('#input-date-end').val()) {
+        url += '&filter_date_end=' + encodeURIComponent($('#input-date-end').val());
+    }
+
+    if ($('#input-type').val()) {
+        url += '&filter_reference_type=' + encodeURIComponent($('#input-type').val());
+    }
+
+    $.ajax({
+        url: url,
+        dataType: 'html',
+        success: function(html) {
+            $('#journal').html(html);
+        }
+    });
+}
+
+$('#button-filter').on('click', function() {
+    reloadJournal();
+});
+
+$('#journal').on('click', '.pagination a', function(e) {
+    e.preventDefault();
+
+    $.ajax({
+        url: this.href,
+        dataType: 'html',
+        success: function(html) {
+            $('#journal').html(html);
+        }
+    });
+});
+//--></script>
+{{ footer }}

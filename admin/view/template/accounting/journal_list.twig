@@ -1,0 +1,39 @@
+<div class="table-responsive">
+	<table class="table table-bordered">
+		<thead>
+			<tr>
+				<th>{{ column_date }}</th>
+				<th>{{ column_number }}</th>
+				<th>{{ column_type }}</th>
+				<th>{{ column_description }}</th>
+				<th class="text-end">{{ column_amount }}</th>
+				<th class="text-center">{{ column_status }}</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for journal in journals %}
+				<tr{% if journal.status_raw == 'voided' %} class="text-muted text-decoration-line-through"{% endif %}>
+					<td>{{ journal.date_added }}</td>
+					<td>{{ journal.journal_number }}</td>
+					<td>{{ journal.reference_type }}</td>
+					<td>{{ journal.description }}</td>
+					<td class="text-end">{{ journal.amount }} {{ currency_symbol }}</td>
+					<td class="text-center">{{ journal.status }}</td>
+					<td class="text-end"><a href="{{ journal.view }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-eye"></i></a></td>
+				</tr>
+			{% else %}
+				<tr>
+					<td class="text-center text-muted" colspan="7">0</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% if pages is defined and pages|length > 1 %}
+	<ul class="pagination mb-0">
+		{% for page in pages %}
+			<li class="page-item"><a class="page-link" href="{{ page.href }}">{{ page.text }}</a></li>
+		{% endfor %}
+	</ul>
+{% endif %}

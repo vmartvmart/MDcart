@@ -1,0 +1,138 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div id="alert-placeholder"></div>
+
+		<div class="card mb-3">
+			<div class="card-header"><i class="fa-solid fa-upload"></i> {{ text_upload }}</div>
+			<div class="card-body">
+				<p>{{ text_help }}</p>
+				<div class="row align-items-end">
+					<div class="col-md-6 mb-3">
+						<input type="file" id="input-theme-file" class="form-control" accept=".zip">
+					</div>
+					<div class="col-md-3 mb-3">
+						<button type="button" id="button-upload-theme" data-loading-text="{{ text_loading }}" class="btn btn-primary w-100"><i class="fa-solid fa-upload"></i> {{ button_upload }}</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="card">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<span><i class="fa-solid fa-swatchbook"></i> {{ text_installed }}</span>
+				<a href="{{ theme_switcher }}" class="btn btn-light btn-sm"><i class="fa-solid fa-arrow-right-arrow-left"></i> {{ button_back }}</a>
+			</div>
+			<table class="table table-hover mb-0">
+				<tbody>
+					{% for theme in themes %}
+						<tr>
+							<td class="align-middle">{{ theme.label }} <code class="text-muted">({{ theme.name }})</code></td>
+							<td class="align-middle">
+								{% if theme.active %}
+									<span class="badge text-bg-success">{{ text_active }}</span>
+								{% endif %}
+							</td>
+							<td class="text-end">
+								<button type="button" class="btn btn-danger btn-sm button-delete-theme" data-theme="{{ theme.name }}" {% if theme.active %}disabled{% endif %}><i class="fa-solid fa-trash"></i> {{ button_delete }}</button>
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<script type="text/javascript"><!--
+$('#button-upload-theme').on('click', function() {
+	var input = document.getElementById('input-theme-file');
+	var button = $(this);
+	var originalHtml = button.html();
+
+	$('#alert-placeholder').html('');
+
+	if (!input.files.length) {
+		return;
+	}
+
+	var formData = new FormData();
+	formData.append('file', input.files[0]);
+
+	button.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> ' + button.data('loading-text'));
+
+	$.ajax({
+		url: '{{ upload|raw }}',
+		type: 'post',
+		data: formData,
+		contentType: false,
+		processData: false,
+		dataType: 'json',
+		success: function(json) {
+			button.prop('disabled', false).html(originalHtml);
+
+			if (json.error) {
+				$('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button>' + json.error + '</div>');
+
+				return;
+			}
+
+			$('#alert-placeholder').html('<div class="alert alert-success alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><i class="fa-solid fa-circle-check"></i> ' + json.success + '</div>');
+
+			setTimeout(function() { location.reload(); }, 900);
+		},
+		error: function() {
+			button.prop('disabled', false).html(originalHtml);
+
+			$('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button>{{ error_permission|escape('js') }}</div>');
+		}
+	});
+});
+
+$('.button-delete-theme').on('click', function() {
+	if (!confirm('{{ text_confirm_delete|escape('js') }}')) {
+		return;
+	}
+
+	var button = $(this);
+	var theme = button.data('theme');
+	var originalHtml = button.html();
+
+	$('#alert-placeholder').html('');
+
+	button.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i>');
+
+	$.ajax({
+		url: '{{ delete|raw }}',
+		type: 'post',
+		dataType: 'json',
+		data: {theme: theme},
+		success: function(json) {
+			button.prop('disabled', false).html(originalHtml);
+
+			if (json.error) {
+				$('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button>' + json.error + '</div>');
+
+				return;
+			}
+
+			$('#alert-placeholder').html('<div class="alert alert-success alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><i class="fa-solid fa-circle-check"></i> ' + json.success + '</div>');
+
+			setTimeout(function() { location.reload(); }, 900);
+		},
+		error: function() {
+			button.prop('disabled', false).html(originalHtml);
+		}
+	});
+});
+//--></script>
+{{ footer }}

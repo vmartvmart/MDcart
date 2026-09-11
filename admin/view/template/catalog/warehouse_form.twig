@@ -1,0 +1,79 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="float-end">
+				<button type="submit" form="form-warehouse" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
+				<a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+			</div>
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div class="card">
+			<div class="card-header"><i class="fa-solid fa-warehouse"></i> {{ text_form }}</div>
+			<div class="card-body">
+				<div id="alert-placeholder"></div>
+				<form id="form-warehouse" action="{{ save }}" method="post" data-oc-toggle="ajax">
+					<div class="row mb-3 required">
+						<label for="input-name" class="col-sm-2 col-form-label">{{ entry_name }}</label>
+						<div class="col-sm-10">
+							<input type="text" name="name" value="{{ name }}" placeholder="{{ entry_name }}" id="input-name" class="form-control"/>
+							<div id="error-name" class="invalid-feedback"></div>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label for="input-address" class="col-sm-2 col-form-label">{{ entry_address }}</label>
+						<div class="col-sm-10">
+							<input type="text" name="address" value="{{ address }}" placeholder="{{ entry_address }}" id="input-address" class="form-control"/>
+						</div>
+					</div>
+					<div class="row mb-3 required">
+						<label for="input-currency" class="col-sm-2 col-form-label">{{ entry_currency }}</label>
+						<div class="col-sm-10">
+							<select name="currency_code" id="input-currency" class="form-select">
+								{% for currency in currencies %}
+									<option value="{{ currency.code }}"{% if currency.code == currency_code %} selected{% endif %}>{{ currency.title }} ({{ currency.code }})</option>
+								{% endfor %}
+							</select>
+							<div id="error-currency_code" class="invalid-feedback"></div>
+							<small class="form-text text-muted">{{ help_currency }}</small>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label for="input-selling-warehouse" class="col-sm-2 col-form-label">{{ entry_selling_warehouse }}</label>
+						<div class="col-sm-10">
+							<div class="form-check form-switch">
+								<input type="hidden" name="is_selling_warehouse" value="0"/>
+								<input type="checkbox" name="is_selling_warehouse" value="1" id="input-selling-warehouse" class="form-check-input"{% if is_selling_warehouse %} checked{% endif %}/>
+							</div>
+							<small class="form-text text-muted">{{ help_selling_warehouse }}</small>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label for="input-status" class="col-sm-2 col-form-label">{{ entry_status }}</label>
+						<div class="col-sm-10">
+							<div class="form-check form-switch">
+								<input type="hidden" name="status" value="0"/>
+								<input type="checkbox" name="status" value="1" id="input-status" class="form-check-input"{% if status %} checked{% endif %}/>
+							</div>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label for="input-sort-order" class="col-sm-2 col-form-label">{{ entry_sort_order }}</label>
+						<div class="col-sm-10">
+							<input type="number" name="sort_order" value="{{ sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control"/>
+						</div>
+					</div>
+					<input type="hidden" name="warehouse_id" value="{{ warehouse_id }}" id="input-warehouse-id"/>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+{{ footer }}

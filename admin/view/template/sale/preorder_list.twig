@@ -1,0 +1,135 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div id="alert-placeholder"></div>
+		<div class="card">
+			<div class="card-header"><i class="fa-solid fa-clock-rotate-left"></i> {{ heading_title }}</div>
+			<div class="card-body">
+				{% if not preorders %}
+					<div class="text-center text-muted py-3">{{ text_empty }}</div>
+				{% else %}
+					<div class="table-responsive">
+						<table class="table table-bordered">
+							<thead>
+								<tr>
+									<th>{{ column_order }}</th>
+									<th>{{ column_customer }}</th>
+									<th>{{ column_product }}</th>
+									<th class="text-end">{{ column_quantity }}</th>
+									<th>{{ column_order_status }}</th>
+									<th>{{ column_date_added }}</th>
+									<th>{{ column_delivery_date }}</th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for preorder in preorders %}
+									<tr data-order-product-id="{{ preorder.order_product_id }}">
+										<td><a href="{{ preorder.view }}">#{{ preorder.order_id }}</a></td>
+										<td>{{ preorder.customer }}</td>
+										<td>{{ preorder.name }}</td>
+										<td class="text-end">{{ preorder.quantity }}</td>
+										<td>{{ preorder.order_status }}</td>
+										<td>{{ preorder.date_added }}</td>
+										<td><input type="date" class="form-control form-control-sm input-delivery-date" style="min-width:150px;" value="{{ preorder.preorder_delivery_date }}"/></td>
+										<td class="text-end text-nowrap">
+											<button type="button" class="btn btn-sm btn-primary button-save-date"><i class="fa-solid fa-floppy-disk"></i> {{ button_save }}</button>
+											<button type="button" class="btn btn-sm btn-success button-fulfill"><i class="fa-solid fa-check"></i> {{ button_fulfill }}</button>
+										</td>
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+					{% if pages is defined and pages|length > 1 %}
+						<ul class="pagination mb-0">
+							{% for page in pages %}
+								<li class="page-item"><a class="page-link" href="{{ page.href }}">{{ page.text }}</a></li>
+							{% endfor %}
+						</ul>
+					{% endif %}
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript"><!--
+// Both the visible Jalali display input and the hidden input holding the
+// real Y-m-d value share the ".input-delivery-date" class once
+// admin/view/javascript/jalali-date-enhance.js (loaded on every RTL admin
+// page) replaces the plain date input - in DOM order [visible, hidden], so
+// .last() reliably reads the real value either way (enhanced or not).
+$('.button-save-date').on('click', function() {
+    var row = $(this).closest('tr');
+    var orderProductId = row.attr('data-order-product-id');
+    var dateInputs = row.find('.input-delivery-date');
+    var date = dateInputs.length ? dateInputs.last().val() : '';
+    var button = $(this);
+
+    button.prop('disabled', true);
+
+    $.ajax({
+        url: '{{ save }}',
+        type: 'post',
+        dataType: 'json',
+        data: {order_product_id: orderProductId, preorder_delivery_date: date},
+        success: function(json) {
+            button.prop('disabled', false);
+
+            if (json.error) {
+                $('#alert-placeholder').html('<div class="alert alert-danger">' + json.error + '</div>');
+                return;
+            }
+
+            $('#alert-placeholder').html('<div class="alert alert-success">' + json.success + '</div>');
+        },
+        error: function() {
+            button.prop('disabled', false);
+            $('#alert-placeholder').html('<div class="alert alert-danger">{{ error_unknown|escape('js') }}</div>');
+        }
+    });
+});
+
+$('.button-fulfill').on('click', function() {
+    var row = $(this).closest('tr');
+    var orderProductId = row.attr('data-order-product-id');
+    var button = $(this);
+
+    button.prop('disabled', true);
+
+    $.ajax({
+        url: '{{ fulfill }}',
+        type: 'post',
+        dataType: 'json',
+        data: {order_product_id: orderProductId},
+        success: function(json) {
+            if (json.error) {
+                button.prop('disabled', false);
+                $('#alert-placeholder').html('<div class="alert alert-danger">' + json.error + '</div>');
+                return;
+            }
+
+            row.fadeOut(200, function() {
+                row.remove();
+            });
+
+            $('#alert-placeholder').html('<div class="alert alert-success">' + json.success + '</div>');
+        },
+        error: function() {
+            button.prop('disabled', false);
+            $('#alert-placeholder').html('<div class="alert alert-danger">{{ error_unknown|escape('js') }}</div>');
+        }
+    });
+});
+//--></script>
+{{ footer }}

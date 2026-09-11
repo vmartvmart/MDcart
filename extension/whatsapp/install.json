@@ -1,0 +1,7 @@
+{
+  "name": "WhatsApp Cloud API Notifications",
+  "description": "Sends order/admin notifications through Meta's official WhatsApp Cloud API using pre-approved message templates.",
+  "version": "1.0",
+  "author": "",
+  "link": ""
+}

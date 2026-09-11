@@ -1,0 +1,7 @@
+{
+  "name": "IPPanel SMS",
+  "description": "Sends order/customer SMS notifications through the IPPanel (edge.ippanel.com) REST API.",
+  "version": "1.0",
+  "author": "",
+  "link": ""
+}

@@ -1,0 +1,24 @@
+{{ header }}
+<div id="common-success" class="container">
+  <ul class="breadcrumb">
+    {% for breadcrumb in breadcrumbs %}
+      <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+    {% endfor %}
+  </ul>
+  <div class="row">{{ column_left }}
+    <div id="content" class="col">{{ content_top }}
+      <h1>{{ heading_title }}</h1>
+      {{ text_message }}
+      {% if messenger_links %}
+        <div class="alert alert-light border">
+          {{ text_messenger_connect }}
+          {% for link in messenger_links %}
+            <a href="{{ link.url }}" target="_blank" class="btn btn-outline-secondary btn-sm ms-1">{{ link.channel }}</a>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <div class="text-end"><a href="{{ continue }}" class="btn btn-primary">{{ button_continue }}</a></div>
+      {{ content_bottom }}</div>
+    {{ column_right }}</div>
+</div>
+{{ footer }}

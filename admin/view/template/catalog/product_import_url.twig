@@ -1,0 +1,99 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="float-end">
+				<a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+			</div>
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div id="alert-placeholder"></div>
+		<div class="card">
+			<div class="card-header"><i class="fa-solid fa-link"></i> {{ heading_title }}</div>
+			<div class="card-body">
+				<p>{{ text_help }}</p>
+				<form id="form-import-url">
+					<div class="mb-3 row">
+						<label class="col-sm-2 col-form-label" for="input-url">{{ entry_url }}</label>
+						<div class="col-sm-10">
+							<input type="text" name="url" value="" id="input-url" class="form-control" placeholder="https://www.example.com/some-product" />
+						</div>
+					</div>
+					<div class="text-end">
+						<button type="button" id="button-import" data-loading-text="{{ text_loading }}" class="btn btn-primary"><i class="fa-solid fa-download"></i> {{ button_import }}</button>
+					</div>
+				</form>
+				<hr>
+				<div id="import-results"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript"><!--
+$('#button-import').on('click', function() {
+	var url = $('#input-url').val();
+
+	var button = $(this);
+	var originalHtml = button.html();
+
+	$('#alert-placeholder').html('');
+
+	if (!url) {
+		$('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button>{{ error_url_required }}</div>');
+		return;
+	}
+
+	button.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> ' + button.data('loading-text'));
+
+	$.ajax({
+		url: '{{ save }}',
+		type: 'post',
+		dataType: 'json',
+		data: {url: url},
+		success: function(json) {
+			button.prop('disabled', false).html(originalHtml);
+
+			if (json.error) {
+				$('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><i class="fa-solid fa-triangle-exclamation"></i> ' + json.error + '</div>');
+
+				return;
+			}
+
+			var html = '<div class="alert alert-success alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><i class="fa-solid fa-circle-check"></i> ' + json.success + ' <a href="' + json.edit + '" class="alert-link">{{ text_edit_product }}</a></div>';
+
+			if (json.warnings && json.warnings.length) {
+				html += '<div class="alert alert-warning"><strong>{{ text_notes }}</strong><ul class="mb-0">';
+				$.each(json.warnings, function(i, warning) {
+					html += '<li>' + warning + '</li>';
+				});
+				html += '</ul></div>';
+			}
+
+			if (json.imported_video_paths && json.imported_video_paths.length) {
+				html += '<div class="alert alert-info"><strong>{{ text_videos_saved }}</strong><ul class="mb-0">';
+				$.each(json.imported_video_paths, function(i, path) {
+					html += '<li>' + path + '</li>';
+				});
+				html += '</ul></div>';
+			}
+
+			$('#import-results').prepend(html);
+
+			$('#input-url').val('');
+		},
+		error: function(xhr, ajaxOptions, thrownError) {
+			button.prop('disabled', false).html(originalHtml);
+
+			$('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button>' + thrownError + '</div>');
+		}
+	});
+});
+//--></script>
+{{ footer }}

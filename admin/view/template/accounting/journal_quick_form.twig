@@ -1,0 +1,92 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="float-end">
+				<button type="button" id="button-save" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
+				<a href="{{ back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+			</div>
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div id="alert-placeholder"></div>
+		<div class="card">
+			<div class="card-body">
+				<div class="row mb-3">
+					<label class="col-sm-3 col-form-label">{{ entry_bank_account }}</label>
+					<div class="col-sm-9">
+						<select id="input-bank-account" class="form-select">
+							<option value=""></option>
+							{% for bank_account in bank_accounts %}
+								<option value="{{ bank_account.bank_account_id }}">{{ bank_account.name }}</option>
+							{% endfor %}
+						</select>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<label class="col-sm-3 col-form-label">{{ entry_category_account }}</label>
+					<div class="col-sm-9">
+						<select id="input-category-account" class="form-select">
+							<option value=""></option>
+							{% for account in category_accounts %}
+								<option value="{{ account.account_id }}">{{ account.code }} - {{ account.name }}</option>
+							{% endfor %}
+						</select>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<label class="col-sm-3 col-form-label">{{ entry_amount }}</label>
+					<div class="col-sm-9">
+						<div class="input-group">
+							<input type="number" id="input-amount" step="any" class="form-control"/>
+							<span class="input-group-text">{{ currency_symbol }}</span>
+						</div>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<label class="col-sm-3 col-form-label">{{ entry_description }}</label>
+					<div class="col-sm-9">
+						<input type="text" id="input-description" class="form-control"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript"><!--
+$('#button-save').on('click', function() {
+    $.ajax({
+        url: '{{ save }}',
+        type: 'post',
+        data: {
+            bank_account_id: $('#input-bank-account').val(),
+            category_account_id: $('#input-category-account').val(),
+            amount: $('#input-amount').val(),
+            description: $('#input-description').val()
+        },
+        dataType: 'json',
+        success: function(json) {
+            $('#alert-placeholder').html('');
+
+            if (json.error) {
+                var message = json.error.warning || json.error.bank_account_id || json.error.category_account_id || json.error.amount || '';
+
+                $('#alert-placeholder').html('<div class="alert alert-danger">' + message + '</div>');
+                return;
+            }
+
+            $('#alert-placeholder').html('<div class="alert alert-success">' + json.success + '</div>');
+
+            $('#input-amount').val('');
+            $('#input-description').val('');
+        }
+    });
+});
+//--></script>
+{{ footer }}

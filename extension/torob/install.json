@@ -1,0 +1,7 @@
+{
+  "name": "Torob Product Feed",
+  "description": "Authenticated JSON product feed for Torob's crawler (torob.com), mirroring the contract used by Torob's official WooCommerce plugin.",
+  "version": "1.0",
+  "author": "",
+  "link": ""
+}

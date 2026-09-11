@@ -1,0 +1,104 @@
+/* Admin panel RTL refinements. Bootstrap RTL build handles grids, utilities
+   and this extension's own settings forms - this file only fixes the
+   custom-positioned sidebar/menu, which uses hardcoded left/right values
+   instead of Bootstrap's logical utility classes. */
+html[dir="rtl"] body {
+    text-align: right;
+}
+
+html[dir="rtl"] #column-left {
+    left: auto;
+    right: -235px;
+}
+
+html[dir="rtl"] #column-left.active {
+    left: auto;
+    right: 0px;
+}
+
+html[dir="rtl"] #column-left + #content,
+html[dir="rtl"] #column-left + #content + #footer {
+    left: auto;
+    right: 0px;
+}
+
+html[dir="rtl"] #column-left.active + #content,
+html[dir="rtl"] #column-left.active + #content + #footer {
+    left: auto;
+    right: 235px;
+}
+
+@media (min-width: 992px) {
+    html[dir="rtl"] #column-left {
+        left: auto;
+        right: 0px;
+    }
+
+    html[dir="rtl"] #column-left + #content,
+    html[dir="rtl"] #column-left + #content + #footer,
+    html[dir="rtl"] #column-left.active + #content,
+    html[dir="rtl"] #column-left.active + #content + #footer {
+        left: auto;
+        right: 0px;
+        margin-left: 0;
+        margin-right: 235px;
+    }
+}
+
+html[dir="rtl"] #menu li a.parent:after {
+    float: left;
+    margin-right: 0;
+    margin-left: 8px;
+}
+
+html[dir="rtl"] #menu > li > a {
+    padding-left: 0;
+    padding-right: 20px;
+}
+
+html[dir="rtl"] #menu > li > a > i {
+    margin-right: 0;
+    margin-left: 5px;
+}
+
+html[dir="rtl"] #menu li li a:before {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+html[dir="rtl"] #menu li li a:hover:before {
+    margin-left: 20px;
+    margin-right: 0;
+}
+
+html[dir="rtl"] #menu li ul a {
+    padding-left: 0;
+    padding-right: 20px;
+}
+
+html[dir="rtl"] #menu li li ul a {
+    padding-left: 0;
+    padding-right: 40px;
+}
+
+html[dir="rtl"] #menu li li li ul a {
+    padding-left: 0;
+    padding-right: 60px;
+}
+
+html[dir="rtl"] #menu li li li li ul a {
+    padding-left: 0;
+    padding-right: 80px;
+}
+
+html[dir="rtl"] #nav-notification > .nav-link .badge {
+    right: auto;
+    left: 12px;
+}
+
+@media (min-width: 992px) {
+    html[dir="rtl"] #nav-notification > .nav-link .badge {
+        right: auto;
+        left: 11px;
+    }
+}

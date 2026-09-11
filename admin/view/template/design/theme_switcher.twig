@@ -1,0 +1,116 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div id="alert-placeholder"></div>
+
+		<div class="card">
+			<div class="card-header d-flex justify-content-between align-items-center">
+				<span><i class="fa-solid fa-swatchbook"></i> {{ heading_title }}</span>
+				{% if theme_manager %}
+					<a href="{{ theme_manager }}" class="btn btn-light btn-sm"><i class="fa-solid fa-gear"></i> {{ text_theme_manager }}</a>
+				{% endif %}
+			</div>
+			<div class="card-body">
+				<p>{{ text_help }}</p>
+
+				<div class="row" id="theme-options">
+					<div class="col-md-3 mb-3">
+						<div class="card theme-option" data-theme="default" style="cursor:pointer; border:2px solid {% if active_theme == 'default' %}#4a53ff{% else %}transparent{% endif %};">
+							<div style="height:130px;border-radius:4px 4px 0 0;background:#f4f4f4;display:flex;align-items:center;justify-content:center;">
+								<span style="color:#333;font-weight:700;letter-spacing:1px;">{{ text_default_theme }}</span>
+							</div>
+							<div class="card-body py-2 text-center">
+								<label class="form-check d-inline-flex align-items-center gap-2 mb-0">
+									<input type="radio" class="form-check-input" name="theme" value="default" {% if active_theme == 'default' %}checked{% endif %}>
+									<span>{{ text_default_theme }}</span>
+								</label>
+							</div>
+						</div>
+					</div>
+					{% for name, theme in themes %}
+						<div class="col-md-3 mb-3">
+							<div class="card theme-option" data-theme="{{ name }}" style="cursor:pointer; border:2px solid {% if active_theme == name %}#4a53ff{% else %}transparent{% endif %};">
+								<div style="height:130px;border-radius:4px 4px 0 0;background:{{ theme.swatch }};display:flex;align-items:center;justify-content:center;">
+									<span style="color:{{ theme.swatch_text }};font-weight:800;letter-spacing:1px;">{{ theme.label }}</span>
+								</div>
+								<div class="card-body py-2 text-center">
+									<label class="form-check d-inline-flex align-items-center gap-2 mb-0">
+										<input type="radio" class="form-check-input" name="theme" value="{{ name }}" {% if active_theme == name %}checked{% endif %}>
+										<span>{{ theme.label }}</span>
+									</label>
+								</div>
+							</div>
+						</div>
+					{% endfor %}
+				</div>
+
+				<div class="text-end">
+					<button type="button" id="button-save-theme" data-loading-text="{{ text_loading }}" class="btn btn-primary"><i class="fa-solid fa-check"></i> {{ button_confirm }}</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript"><!--
+$('.theme-option').on('click', function() {
+	$(this).find('input[type=radio]').prop('checked', true);
+	$('.theme-option').css('border-color', 'transparent');
+	$(this).css('border-color', '#4a53ff');
+});
+
+$('#button-save-theme').on('click', function() {
+	var theme = $('input[name=theme]:checked').val();
+	var button = $(this);
+	var originalHtml = button.html();
+
+	$('#alert-placeholder').html('');
+
+	if (!theme) {
+		return;
+	}
+
+	button.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> ' + button.data('loading-text'));
+
+	$.ajax({
+		url: '{{ save|raw }}',
+		type: 'post',
+		dataType: 'json',
+		data: {theme: theme},
+		success: function(json) {
+			button.prop('disabled', false).html(originalHtml);
+
+			if (json.error) {
+				$('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button>' + json.error + '</div>');
+
+				return;
+			}
+
+			$('#alert-placeholder').html('<div class="alert alert-success alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button><i class="fa-solid fa-circle-check"></i> ' + json.success + '</div>');
+		},
+		error: function(xhr) {
+			button.prop('disabled', false).html(originalHtml);
+
+			var message;
+
+			if (xhr.responseText && xhr.responseText.indexOf('<') === 0) {
+				message = '{{ text_session_expired|escape('js') }}';
+			} else {
+				message = '{{ text_unknown_error|escape('js') }}';
+			}
+
+			$('#alert-placeholder').html('<div class="alert alert-danger alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert"></button>' + message + '</div>');
+		}
+	});
+});
+//--></script>
+{{ footer }}

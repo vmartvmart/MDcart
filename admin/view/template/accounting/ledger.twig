@@ -1,0 +1,99 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<h1>{{ heading_title_ledger }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div class="card mb-3">
+			<div class="card-body">
+				<div class="row g-2 align-items-end">
+					<div class="col-md-4">
+						<label class="form-label">{{ entry_account }}</label>
+						<select id="input-account" class="form-select">
+							<option value=""></option>
+							{% for account in accounts %}
+								<option value="{{ account.account_id }}"{% if filter_account_id == account.account_id %} selected{% endif %}>{{ account.code }} - {{ account.name }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="col-md-3">
+						<label class="form-label">{{ entry_date_start }}</label>
+						<input type="date" id="input-date-start" value="{{ filter_date_start }}" class="form-control"/>
+					</div>
+					<div class="col-md-3">
+						<label class="form-label">{{ entry_date_end }}</label>
+						<input type="date" id="input-date-end" value="{{ filter_date_end }}" class="form-control"/>
+					</div>
+					<div class="col-md-2">
+						<button type="button" id="button-filter" class="btn btn-primary w-100"><i class="fa-solid fa-magnifying-glass"></i> {{ button_filter }}</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		{% if account_name %}
+			<div class="card">
+				<div class="card-header"><i class="fa-solid fa-book-open"></i> {{ account_name }}</div>
+				<div class="card-body p-0">
+					<div class="table-responsive">
+						<table class="table table-bordered mb-0">
+							<thead>
+								<tr>
+									<th>{{ column_date }}</th>
+									<th>{{ column_number }}</th>
+									<th>{{ column_type }}</th>
+									<th>{{ column_description }}</th>
+									<th class="text-end">{{ column_debit }}</th>
+									<th class="text-end">{{ column_credit }}</th>
+									<th class="text-end">{{ column_balance }}</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr class="table-light">
+									<td colspan="6" class="fw-bold">{{ text_opening_balance }}</td>
+									<td class="text-end fw-bold">{{ opening_balance }}</td>
+								</tr>
+								{% for row in rows %}
+									<tr>
+										<td>{{ row.date_added }}</td>
+										<td><a href="{{ row.view }}">{{ row.journal_number }}</a></td>
+										<td>{{ row.reference_type }}</td>
+										<td>{{ row.description }}</td>
+										<td class="text-end">{{ row.debit }}</td>
+										<td class="text-end">{{ row.credit }}</td>
+										<td class="text-end">{{ row.running }}</td>
+									</tr>
+								{% endfor %}
+								<tr class="table-light">
+									<td colspan="6" class="fw-bold">{{ text_closing_balance }}</td>
+									<td class="text-end fw-bold">{{ closing_balance }}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		{% else %}
+			<div class="alert alert-info">{{ text_select_account }}</div>
+		{% endif %}
+	</div>
+</div>
+<script type="text/javascript"><!--
+$('#button-filter').on('click', function() {
+    var url = '{{ filter_action }}';
+
+    url += '&filter_account_id=' + encodeURIComponent($('#input-account').val());
+    url += '&filter_date_start=' + encodeURIComponent($('#input-date-start').val());
+    url += '&filter_date_end=' + encodeURIComponent($('#input-date-end').val());
+
+    location = url;
+});
+//--></script>
+{{ footer }}

@@ -1,0 +1,118 @@
+{% if not_installed %}
+	<div class="alert alert-warning"><i class="fa-solid fa-triangle-exclamation"></i> {{ text_not_installed }}</div>
+{% else %}
+	<div class="row">
+		<div class="col-md-3 col-6 mb-3">
+			<div class="card text-bg-light h-100">
+				<div class="card-body">
+					<div class="text-muted">{{ column_orders }}</div>
+					<h3>{{ summary.order_count }}</h3>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3 col-6 mb-3">
+			<div class="card text-bg-light h-100">
+				<div class="card-body">
+					<div class="text-muted">{{ column_revenue }}</div>
+					<h3>{{ summary.revenue }} {{ currency_symbol }}</h3>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3 col-6 mb-3">
+			<div class="card text-bg-light h-100">
+				<div class="card-body">
+					<div class="text-muted">{{ column_cost }}</div>
+					<h3>{{ summary.cost }} {{ currency_symbol }}</h3>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3 col-6 mb-3">
+			<div class="card {% if summary.profit >= 0 %}text-bg-success{% else %}text-bg-danger{% endif %} h-100">
+				<div class="card-body">
+					<div>{{ column_profit }}</div>
+					<h3>{{ summary.profit }} {{ currency_symbol }}</h3>
+					<div>{{ column_margin }}: {{ summary.margin }}%</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{% if by_warehouse %}
+		<div class="card mb-3">
+			<div class="card-header"><i class="fa-solid fa-warehouse"></i> {{ text_by_warehouse }}</div>
+			<div class="card-body p-0">
+				<div class="table-responsive">
+					<table class="table table-bordered mb-0">
+						<thead>
+							<tr>
+								<th>{{ column_warehouse }}</th>
+								<th class="text-end">{{ column_orders }}</th>
+								<th class="text-end">{{ column_revenue }}</th>
+								<th class="text-end">{{ column_cost }}</th>
+								<th class="text-end">{{ column_profit }}</th>
+								<th class="text-end">{{ column_margin }}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for row in by_warehouse %}
+								<tr>
+									<td>{{ row.warehouse_name }}</td>
+									<td class="text-end">{{ row.order_count }}</td>
+									<td class="text-end">{{ row.revenue }} {{ currency_symbol }}</td>
+									<td class="text-end">{{ row.cost }} {{ currency_symbol }}</td>
+									<td class="text-end">{{ row.profit }} {{ currency_symbol }}</td>
+									<td class="text-end">{{ row.margin }}%</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+
+	<div class="card">
+		<div class="card-header"><i class="fa-solid fa-calendar-days"></i> {{ text_list }}</div>
+		<div class="card-body p-0">
+			<div class="table-responsive">
+				<table class="table table-bordered mb-0">
+					<thead>
+						<tr>
+							<th>{{ column_date }}</th>
+							<th class="text-end">{{ column_orders }}</th>
+							<th class="text-end">{{ column_revenue }}</th>
+							<th class="text-end">{{ column_cost }}</th>
+							<th class="text-end">{{ column_profit }}</th>
+							<th class="text-end">{{ column_margin }}</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for row in rows %}
+							<tr>
+								<td>{{ row.date }}</td>
+								<td class="text-end">{{ row.order_count }}</td>
+								<td class="text-end">{{ row.revenue }} {{ currency_symbol }}</td>
+								<td class="text-end">{{ row.cost }} {{ currency_symbol }}</td>
+								<td class="text-end">{{ row.profit }} {{ currency_symbol }}</td>
+								<td class="text-end">{{ row.margin }}%</td>
+							</tr>
+						{% else %}
+							<tr>
+								<td class="text-center text-muted" colspan="6">{{ text_list }}: 0</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		{% if pages is defined and pages|length > 1 %}
+			<div class="card-footer">
+				<ul class="pagination mb-0">
+					{% for page in pages %}
+						<li class="page-item"><a class="page-link" href="{{ page.href }}">{{ page.text }}</a></li>
+					{% endfor %}
+				</ul>
+			</div>
+		{% endif %}
+	</div>
+{% endif %}

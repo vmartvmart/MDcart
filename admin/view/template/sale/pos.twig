@@ -1,0 +1,486 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div id="alert-placeholder"></div>
+		<div class="row">
+			<div class="col-lg-7 col-md-12 mb-3">
+				<div class="card">
+					<div class="card-header"><i class="fa-solid fa-warehouse"></i> {{ entry_warehouse }}</div>
+					<div class="card-body">
+						<div class="row g-2">
+							<div class="col-8">
+								<select id="input-warehouse" class="form-select form-select-lg">
+									<option value=""></option>
+									{% for warehouse in warehouses %}
+										<option value="{{ warehouse.warehouse_id }}">{{ warehouse.name }}{% if warehouse.is_selling_warehouse %} ({{ heading_title }}) {% endif %}</option>
+									{% endfor %}
+								</select>
+							</div>
+							<div class="col-4">
+								<select id="input-currency" class="form-select form-select-lg">
+									{% for currency in currencies %}
+										<option value="{{ currency.code }}"{% if currency.code == currency_code %} selected{% endif %}>{{ currency.code }}</option>
+									{% endfor %}
+								</select>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="card mt-3">
+					<div class="card-header"><i class="fa-solid fa-magnifying-glass"></i> {{ entry_product }}</div>
+					<div class="card-body">
+						<div class="row g-2">
+							<div class="col-12">
+								<input type="text" id="input-product" placeholder="{{ entry_product }}" data-oc-target="autocomplete-product" class="form-control form-control-lg" autocomplete="off"/>
+								<ul id="autocomplete-product" class="dropdown-menu"></ul>
+							</div>
+							<div class="col-8">
+								<input type="text" id="input-barcode" placeholder="{{ entry_product }} (barcode)" class="form-control form-control-lg"/>
+							</div>
+							<div class="col-4">
+								<button type="button" id="button-scan-camera" class="btn btn-secondary btn-lg w-100"><i class="fa-solid fa-camera"></i> {{ button_scan }}</button>
+							</div>
+						</div>
+						<div id="camera-scan-box" hidden class="mt-3">
+							<div id="camera-scan-reader" style="width:100%; max-width:400px; margin:0 auto;"></div>
+							<div class="d-grid mt-2" style="max-width:400px; margin:0 auto;">
+								<button type="button" id="button-scan-close" class="btn btn-outline-secondary">{{ button_remove }}</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-5 col-md-12 mb-3">
+				<div class="card">
+					<div class="card-header"><i class="fa-solid fa-cash-register"></i> {{ heading_title }}</div>
+					<div class="card-body">
+						<div class="table-responsive">
+							<table class="table table-bordered" id="table-cart">
+								<thead>
+									<tr>
+										<th>{{ entry_product }}</th>
+										<th class="text-end" style="width:70px;">#</th>
+										<th class="text-end">{{ text_total }}</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr id="row-cart-empty"><td class="text-center text-muted" colspan="4">{{ text_cart_empty }}</td></tr>
+								</tbody>
+							</table>
+						</div>
+						<h3 class="text-end">{{ text_total }}: <span id="cart-total">0</span> <span id="currency-symbol-total">{{ currency_symbol }}</span></h3>
+						<hr/>
+						<div class="mb-3">
+							<label class="form-label d-block">{{ entry_payment_method }}</label>
+							<div class="btn-group w-100" role="group">
+								<input type="radio" class="btn-check" name="payment_method" id="payment-cash" value="cash" checked/>
+								<label class="btn btn-outline-primary btn-lg" for="payment-cash"><i class="fa-solid fa-money-bill"></i> {{ text_cash }}</label>
+								<input type="radio" class="btn-check" name="payment_method" id="payment-card" value="card"/>
+								<label class="btn btn-outline-primary btn-lg" for="payment-card"><i class="fa-solid fa-credit-card"></i> {{ text_card }}</label>
+							</div>
+						</div>
+						<div class="mb-3" id="cash-received-row">
+							<label for="input-cash-received" class="form-label">{{ entry_cash_received }}</label>
+							<input type="number" id="input-cash-received" class="form-control form-control-lg" step="any"/>
+							<div class="text-end mt-1">{{ text_change }}: <strong id="cash-change">0</strong> <span id="currency-symbol-change">{{ currency_symbol }}</span></div>
+						</div>
+						<div class="d-grid">
+							<button type="button" id="button-checkout" class="btn btn-success btn-lg py-3"><i class="fa-solid fa-check"></i> {{ button_checkout }}</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script type="text/javascript"><!--
+var cart = [];
+
+// Every enabled currency's conversion rate/symbol/decimal places, so prices
+// can be shown to the cashier in whatever currency is selected without a
+// round trip. Every cart line still stores its price in the store's BASE
+// currency (exactly what catalog/product.autocomplete returns) - this data
+// is display-only. The actual order is created server-side from
+// product_id/quantity alone (see sale/pos.checkout), so nothing here can
+// ever desync the real charged amount from what's displayed.
+var currencies = {
+    {% for currency in currencies %}
+        '{{ currency.code }}': {
+            value: {{ currency.value }},
+            symbol_left: '{{ currency.symbol_left|escape('js') }}',
+            symbol_right: '{{ currency.symbol_right|escape('js') }}',
+            decimal_place: {{ currency.decimal_place }}
+        }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+
+function currentCurrency() {
+    return currencies[$('#input-currency').val()] || {value: 1, symbol_left: '', symbol_right: '', decimal_place: 2};
+}
+
+// Converts a BASE-currency amount into the selected currency and formats it
+// with that currency's symbol - the same math OpenCart's own
+// Currency::format() does, just run client-side for instant feedback.
+function formatMoney(baseAmount) {
+    var currency = currentCurrency();
+    var amount = (parseFloat(baseAmount) || 0) * currency.value;
+    var formatted = amount.toFixed(currency.decimal_place);
+
+    return currency.symbol_left + formatted + currency.symbol_right;
+}
+
+function convertedAmount(baseAmount) {
+    var currency = currentCurrency();
+
+    return (parseFloat(baseAmount) || 0) * currency.value;
+}
+
+function updateCurrencySymbols() {
+    var currency = currentCurrency();
+    var symbol = (currency.symbol_left || currency.symbol_right || '').trim();
+
+    $('#currency-symbol-total, #currency-symbol-change').text(symbol);
+}
+
+function renderCart() {
+    var tbody = $('#table-cart tbody');
+
+    tbody.empty();
+
+    if (!cart.length) {
+        tbody.append('<tr id="row-cart-empty"><td class="text-center text-muted" colspan="4">{{ text_cart_empty|escape('js') }}</td></tr>');
+        $('#cart-total').text('0');
+        updateCurrencySymbols();
+        updateChange();
+        return;
+    }
+
+    var total = 0;
+
+    for (var i = 0; i < cart.length; i++) {
+        var line = cart[i];
+        var lineTotal = line.price * line.quantity;
+        total += lineTotal;
+
+        var row = '<tr data-index="' + i + '">';
+        row += '<td>' + line.name + (line.preorder ? ' <span class="badge bg-warning text-dark">{{ text_preorder|escape('js') }}</span>' : '') + '</td>';
+        row += '<td class="text-end"><input type="number" min="1" value="' + line.quantity + '" class="form-control form-control-sm text-end input-cart-quantity" style="width:70px; display:inline-block;"/></td>';
+        row += '<td class="text-end">' + formatMoney(lineTotal) + '</td>';
+        row += '<td class="text-end">';
+
+        // The pre-order toggle only ever shows for a product the admin has
+        // approved for pre-order (preorder_status) - api/cart.addProduct()
+        // rejects the flag otherwise, so there is no point offering a
+        // control that would just fail at checkout.
+        if (line.preorder_status) {
+            row += '<button type="button" class="btn btn-sm btn-outline-warning button-cart-preorder" title="{{ button_preorder|escape('js') }}"><i class="fa-regular fa-clock"></i></button> ';
+        }
+
+        row += '<button type="button" class="btn btn-sm btn-danger button-cart-remove"><i class="fa-regular fa-trash-can"></i></button></td>';
+        row += '</tr>';
+
+        tbody.append(row);
+
+        if (line.preorder) {
+            var dateRow = '<tr data-index="' + i + '" class="table-warning">';
+            dateRow += '<td colspan="4"><div class="d-flex align-items-center gap-2 flex-wrap">';
+            dateRow += '<span>{{ text_preorder_row|escape('js') }}</span>';
+            dateRow += '<input type="date" class="form-control form-control-sm input-cart-preorder-date" style="width:160px;" value="' + (line.preorder_delivery_date || '') + '"/>';
+            dateRow += '<button type="button" class="btn btn-sm btn-outline-secondary button-cart-preorder-cancel">{{ button_cancel|escape('js') }}</button>';
+            dateRow += '</div></td></tr>';
+
+            tbody.append(dateRow);
+        }
+    }
+
+    $('#cart-total').text(convertedAmount(total).toFixed(currentCurrency().decimal_place));
+    updateCurrencySymbols();
+    updateChange();
+}
+
+function updateChange() {
+    var total = parseFloat($('#cart-total').text()) || 0;
+    var received = parseFloat($('#input-cash-received').val()) || 0;
+    var change = received - total;
+
+    $('#cash-change').text(change > 0 ? change.toFixed(currentCurrency().decimal_place) : '0');
+}
+
+function addToCart(productId, name, price, quantity, preorderStatus) {
+    quantity = parseInt(quantity, 10) || 1;
+
+    for (var i = 0; i < cart.length; i++) {
+        if (cart[i].product_id == productId) {
+            cart[i].quantity += quantity;
+            renderCart();
+            return;
+        }
+    }
+
+    cart.push({product_id: productId, name: name, price: parseFloat(price) || 0, quantity: quantity, preorder: false, preorder_delivery_date: null, preorder_status: !!preorderStatus});
+    renderCart();
+}
+
+$('#input-product').autocomplete({
+    'source': function(request, response) {
+        $.ajax({
+            url: '{{ autocomplete }}&filter_name=' + encodeURIComponent(request),
+            dataType: 'json',
+            success: function(json) {
+                response($.map(json, function(item) {
+                    return {
+                        label: item['name'] + ' (' + item['price'] + ')',
+                        value: item['product_id'],
+                        name: item['name'],
+                        price: item['price'],
+                        preorder_status: item['preorder_status']
+                    }
+                }));
+            }
+        });
+    },
+    'select': function(item) {
+        addToCart(item['value'], decodeHTMLEntities(item['name']), item['price'], 1, item['preorder_status']);
+        $('#input-product').val('');
+        return false;
+    }
+});
+
+function lookupBarcode(code) {
+    if (!code) {
+        return;
+    }
+
+    $.ajax({
+        url: '{{ autocomplete }}&filter_model=' + encodeURIComponent(code),
+        dataType: 'json',
+        success: function(json) {
+            if (json.length) {
+                addToCart(json[0]['product_id'], json[0]['name'], json[0]['price'], 1, json[0]['preorder_status']);
+            } else {
+                alert('{{ error_barcode_not_found|escape('js') }}' + ' (' + code + ')');
+            }
+        }
+    });
+}
+
+$('#input-barcode').on('keydown', function(e) {
+    if (e.which !== 13) {
+        return;
+    }
+
+    e.preventDefault();
+
+    var code = $(this).val().trim();
+
+    $(this).val('');
+
+    lookupBarcode(code);
+});
+
+$('#table-cart').on('change', '.input-cart-quantity', function() {
+    var index = $(this).closest('tr').attr('data-index');
+    var value = parseInt($(this).val(), 10);
+
+    cart[index].quantity = value > 0 ? value : 1;
+
+    renderCart();
+});
+
+$('#table-cart').on('click', '.button-cart-remove', function() {
+    var index = $(this).closest('tr').attr('data-index');
+
+    cart.splice(index, 1);
+
+    renderCart();
+});
+
+$('#table-cart').on('click', '.button-cart-preorder', function() {
+    var index = $(this).closest('tr').attr('data-index');
+
+    cart[index].preorder = true;
+
+    if (!cart[index].preorder_delivery_date) {
+        var d = new Date();
+        d.setDate(d.getDate() + 7);
+        cart[index].preorder_delivery_date = d.toISOString().slice(0, 10);
+    }
+
+    renderCart();
+});
+
+$('#table-cart').on('click', '.button-cart-preorder-cancel', function() {
+    var index = $(this).closest('tr').attr('data-index');
+
+    cart[index].preorder = false;
+
+    renderCart();
+});
+
+$('#table-cart').on('change', '.input-cart-preorder-date', function() {
+    var index = $(this).closest('tr').attr('data-index');
+
+    cart[index].preorder_delivery_date = $(this).val();
+});
+
+// Reads the delivery date straight out of the DOM at submit time rather
+// than trusting the 'change' handler above to have fired - the Jalali date
+// picker (admin/view/javascript/jalali-date-enhance.js, loaded on every RTL
+// admin page) replaces every <input type="date"> with a read-only Jalali
+// display input plus a same-class hidden input holding the real Y-m-d
+// value; it updates that hidden input directly, which never dispatches a
+// 'change' event most browsers would notice. Both inputs share the
+// ".input-cart-preorder-date" class in DOM order [visible, hidden], so
+// .last() reliably grabs the real Y-m-d value either way (enhanced or not -
+// with no picker there's just the one input, and .last() is a no-op).
+function getPreorderDate(index) {
+    var inputs = $('#table-cart tbody tr[data-index="' + index + '"] .input-cart-preorder-date');
+
+    return inputs.length ? inputs.last().val() : '';
+}
+
+$('input[name=payment_method]').on('change', function() {
+    $('#cash-received-row').toggle($(this).val() === 'cash');
+});
+
+$('#input-currency').on('change', function() {
+    renderCart();
+});
+
+$('#input-cash-received').on('input', updateChange);
+
+var qrScanner = null;
+
+$('#button-scan-camera').on('click', function() {
+    $('#camera-scan-box').prop('hidden', false);
+
+    if (typeof Html5Qrcode === 'undefined') {
+        return;
+    }
+
+    qrScanner = new Html5Qrcode('camera-scan-reader');
+
+    qrScanner.start(
+        {facingMode: 'environment'},
+        {fps: 10, qrbox: 220},
+        function(decodedText) {
+            lookupBarcode(decodedText);
+            qrScanner.stop();
+            $('#camera-scan-box').prop('hidden', true);
+        },
+        function() {}
+    );
+});
+
+$('#button-scan-close').on('click', function() {
+    if (qrScanner) {
+        qrScanner.stop().catch(function() {});
+    }
+
+    $('#camera-scan-box').prop('hidden', true);
+});
+
+function doCheckout() {
+    var warehouseId = $('#input-warehouse').val();
+
+    if (!warehouseId) {
+        $('#alert-placeholder').html('<div class="alert alert-danger">{{ error_warehouse|escape('js') }}</div>');
+        return;
+    }
+
+    if (!cart.length) {
+        $('#alert-placeholder').html('<div class="alert alert-danger">{{ error_products|escape('js') }}</div>');
+        return;
+    }
+
+    for (var j = 0; j < cart.length; j++) {
+        if (cart[j].preorder && !getPreorderDate(j)) {
+            $('#alert-placeholder').html('<div class="alert alert-danger">{{ error_preorder_date|escape('js') }}</div>');
+            return;
+        }
+    }
+
+    var button = $('#button-checkout');
+
+    button.prop('disabled', true);
+
+    $.ajax({
+        url: '{{ checkout }}',
+        type: 'post',
+        dataType: 'json',
+        data: {
+            warehouse_id: warehouseId,
+            payment_method: $('input[name=payment_method]:checked').val(),
+            currency_code: $('#input-currency').val(),
+            products: cart.map(function(line, index) {
+                var p = {product_id: line.product_id, quantity: line.quantity};
+
+                if (line.preorder) {
+                    p.preorder = 1;
+                    p.preorder_delivery_date = getPreorderDate(index);
+                }
+
+                return p;
+            })
+        },
+        success: function(json) {
+            button.prop('disabled', false);
+
+            if (json.error) {
+                if (json.stock_product_id) {
+                    for (var i = 0; i < cart.length; i++) {
+                        // Only offer the "sell it as a pre-order instead" retry
+                        // when the product is actually approved for it -
+                        // otherwise api/cart.addProduct() would just reject the
+                        // retry too, with a "not approved" error instead of this
+                        // stock one.
+                        if (cart[i].product_id == json.stock_product_id && cart[i].preorder_status) {
+                            cart[i].preorder = true;
+
+                            if (!cart[i].preorder_delivery_date) {
+                                var d = new Date();
+                                d.setDate(d.getDate() + 7);
+                                cart[i].preorder_delivery_date = d.toISOString().slice(0, 10);
+                            }
+
+                            $('#alert-placeholder').html('<div class="alert alert-warning">' + '{{ text_preorder_stock_warning|escape('js') }}'.replace('%s', cart[i].name) + '</div>');
+                            renderCart();
+                            return;
+                        }
+                    }
+                }
+
+                $('#alert-placeholder').html('<div class="alert alert-danger">' + json.error + '</div>');
+                return;
+            }
+
+            $('#alert-placeholder').html('<div class="alert alert-success">' + '{{ text_success|escape('js') }}'.replace('%s', json.order_id) + '</div>');
+
+            cart = [];
+            renderCart();
+            $('#input-cash-received').val('');
+        },
+        error: function() {
+            button.prop('disabled', false);
+            $('#alert-placeholder').html('<div class="alert alert-danger">{{ error_unknown|escape('js') }}</div>');
+        }
+    });
+}
+
+$('#button-checkout').on('click', doCheckout);
+
+renderCart();
+//--></script>
+{{ footer }}

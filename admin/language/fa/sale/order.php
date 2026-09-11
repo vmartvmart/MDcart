@@ -1,0 +1,134 @@
+<?php
+// Heading
+$_['heading_title']              = 'سفارش‌ها';
+
+// Text
+$_['text_success']               = 'موفق: سفارش‌ها تغییر یافت!';
+$_['text_list']                  = 'لیست سفارش‌ها';
+$_['text_add']                   = 'افزودن سفارش';
+$_['text_edit']                  = 'سفارش (#%s)';
+$_['text_filter']                = 'فیلتر';
+$_['text_store']                 = 'فروشگاه';
+$_['text_date_added']            = 'تاریخ افزودن';
+$_['text_customer']              = 'مشتری';
+$_['text_product_add']           = 'افزودن محصول';
+$_['text_model']                 = 'مدل';
+$_['text_reward']                = 'امتیاز پاداش';
+$_['text_points']                = 'امتیاز';
+$_['text_reward_add']            = 'موفق: امتیاز پاداش اضافه شد!';
+$_['text_reward_remove']         = 'موفق: امتیاز پاداش حذف شد!';
+$_['text_affiliate']             = 'همکار در فروش';
+$_['text_commission']            = 'کمیسیون';
+$_['text_commission_add']        = 'موفق: کمیسیون اضافه شد!';
+$_['text_commission_remove']     = 'موفق: کمیسیون حذف شد!';
+$_['text_upload']                = 'فایل شما با موفقیت بارگذاری شد!';
+$_['text_subscription']          = 'اشتراک';
+$_['text_subscription_trial']    = '%s هر %d %s برای %d پرداخت سپس ';
+$_['text_subscription_duration'] = '%s هر %d %s برای %d پرداخت';
+$_['text_subscription_cancel']   = '%s هر %d %s تا زمان لغو';
+$_['text_day']                   = 'روز';
+$_['text_week']                  = 'هفته';
+$_['text_semi_month']            = 'نیم‌ماه';
+$_['text_month']                 = 'ماه';
+$_['text_year']                  = 'سال';
+$_['text_more']                  = 'بیشتر..';
+$_['text_less']                  = 'کمتر..';
+$_['text_payment_address']       = 'آدرس پرداخت';
+$_['text_payment_method']        = 'روش پرداخت';
+$_['text_payment']               = 'لطفاً روش پرداخت مورد نظر برای این سفارش را انتخاب کنید.';
+$_['text_shipping_address']      = 'آدرس ارسال';
+$_['text_shipping_method']       = 'روش ارسال';
+$_['text_shipping']              = 'لطفاً روش ارسال مورد نظر برای این سفارش را انتخاب کنید.';
+$_['text_comment']               = 'یادداشت';
+$_['text_history']               = 'تاریخچه';
+$_['text_history_add']           = 'افزودن تاریخچه';
+$_['text_browser']               = 'مرورگر';
+$_['text_ip']                    = 'آدرس آی‌پی';
+$_['text_forwarded_ip']          = 'آی‌پی فوروارد شده';
+$_['text_user_agent']            = 'مرورگر کاربر';
+$_['text_accept_language']       = 'زبان پذیرفته‌شده';
+$_['text_order_id']              = 'شناسه سفارش';
+$_['text_website']               = 'وب‌سایت';
+$_['text_invoice']               = 'فاکتور';
+$_['text_tbc']                   = 'در انتظار تأیید';
+$_['text_store_address']         = 'آدرس فروشگاه';
+$_['text_store_telephone']       = 'تلفن فروشگاه';
+$_['text_store_email']           = 'ایمیل فروشگاه';
+$_['text_customer_email']        = 'ایمیل مشتری';
+$_['text_customer_telephone']    = 'تلفن مشتری';
+$_['text_missing']               = 'سفارش‌های گم‌شده';
+$_['text_default']               = 'پیش‌فرض';
+$_['text_picklist']              = 'برگه ارسال';
+$_['text_sku']                   = 'SKU';
+$_['text_upc']                   = 'UPC';
+$_['text_ean']                   = 'EAN';
+$_['text_jan']                   = 'JAN';
+$_['text_isbn']                  = 'شابک';
+$_['text_mpn']                   = 'MPN';
+
+// Column
+$_['column_order_id']            = 'شناسه سفارش';
+$_['column_customer']            = 'مشتری';
+$_['column_store']               = 'فروشگاه';
+$_['column_status']              = 'وضعیت';
+$_['column_date_added']          = 'تاریخ افزودن';
+$_['column_date_modified']       = 'تاریخ ویرایش';
+$_['column_total']               = 'جمع کل';
+$_['column_product']             = 'محصول';
+$_['column_model']               = 'مدل';
+$_['column_quantity']            = 'تعداد';
+$_['column_price']               = 'قیمت واحد';
+$_['column_comment']             = 'یادداشت';
+$_['column_notify']              = 'اطلاع‌رسانی به مشتری';
+$_['column_location']            = 'محل نگهداری';
+$_['column_reference']           = 'مرجع';
+$_['column_weight']              = 'وزن محصول';
+$_['column_action']              = 'عملیات';
+
+// Entry
+$_['entry_store']                = 'فروشگاه';
+$_['entry_customer']             = 'مشتری';
+$_['entry_customer_group']       = 'گروه مشتری';
+$_['entry_firstname']            = 'نام';
+$_['entry_lastname']             = 'نام خانوادگی';
+$_['entry_email']                = 'ایمیل';
+$_['entry_telephone']            = 'تلفن';
+$_['entry_address']              = 'انتخاب آدرس';
+$_['entry_company']              = 'شرکت';
+$_['entry_address_1']            = 'آدرس ۱';
+$_['entry_address_2']            = 'آدرس ۲';
+$_['entry_city']                 = 'شهر';
+$_['entry_postcode']             = 'کد پستی';
+$_['entry_country']              = 'کشور';
+$_['entry_zone']                 = 'استان / منطقه';
+$_['entry_product']              = 'انتخاب محصول';
+$_['entry_option']               = 'انتخاب گزینه(ها)';
+$_['entry_subscription']         = 'انتخاب اشتراک';
+$_['entry_quantity']             = 'تعداد';
+$_['entry_order_status']         = 'وضعیت سفارش';
+$_['entry_notify']               = 'اطلاع‌رسانی به مشتری';
+$_['entry_payment_method']       = 'روش پرداخت';
+$_['entry_override']             = 'بازنویسی';
+$_['entry_comment']              = 'یادداشت';
+$_['entry_language']             = 'زبان';
+$_['entry_currency']             = 'ارز';
+$_['entry_affiliate']            = 'همکار در فروش';
+$_['entry_order_id']             = 'شناسه سفارش';
+$_['entry_total']                = 'جمع کل';
+$_['entry_date_from']            = 'از تاریخ';
+$_['entry_date_to']              = 'تا تاریخ';
+$_['entry_date_modified_from']   = 'از تاریخ ویرایش';
+$_['entry_date_modified_to']     = 'تا تاریخ ویرایش';
+
+// Help
+$_['help_override']              = 'اگر تغییر وضعیت سفارش مشتری به دلیل افزونه ضد تقلب مسدود شده، بازنویسی را فعال کنید.';
+
+// Error
+$_['error_warning']              = 'هشدار: لطفاً فرم را از نظر خطا با دقت بررسی کنید!';
+$_['error_permission']           = 'هشدار: شما اجازه تغییر سفارش‌ها را ندارید!';
+$_['error_invoice_no']           = 'هشدار: شماره فاکتور قبلاً ایجاد شده است!';
+$_['error_order']                = 'هشدار: سفارش وجود ندارد!';
+$_['error_affiliate']            = 'هشدار: همکار در فروش وجود ندارد!';
+$_['error_reward_add']           = 'هشدار: امتیاز پاداش این سفارش قبلاً اضافه شده است!';
+$_['error_reward_guest']         = 'هشدار: مهمان‌ها نمی‌توانند از امتیاز پاداش استفاده کنند!';
+$_['error_commission_add']       = 'هشدار: کمیسیون همکار در فروش برای این سفارش قبلاً اضافه شده است!';

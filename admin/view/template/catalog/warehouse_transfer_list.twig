@@ -1,0 +1,40 @@
+<div class="table-responsive">
+  <table class="table table-bordered table-hover">
+    <thead>
+      <tr>
+        <th>{{ column_transfer_id }}</th>
+        <th>{{ column_from }}</th>
+        <th>{{ column_to }}</th>
+        <th class="text-center">{{ column_status }}</th>
+        <th class="text-center">{{ column_estimated_delivery_date }}</th>
+        <th>{{ column_date_added }}</th>
+        <th class="text-end col-1">{{ column_action }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if transfers %}
+        {% for transfer in transfers %}
+          <tr>
+            <td>#{{ transfer.transfer_id }}</td>
+            <td>{{ transfer.from_warehouse_name }}</td>
+            <td>{{ transfer.to_warehouse_name }}</td>
+            <td class="text-center">
+              {% if transfer.status == 'received' %}<span class="badge text-bg-success">{{ transfer.status_text }}</span>
+              {% elseif transfer.status == 'in_transit' %}<span class="badge text-bg-warning">{{ transfer.status_text }}</span>
+              {% elseif transfer.status == 'cancelled' %}<span class="badge text-bg-danger">{{ transfer.status_text }}</span>
+              {% else %}<span class="badge text-bg-secondary">{{ transfer.status_text }}</span>
+              {% endif %}
+            </td>
+            <td class="text-center">{{ transfer.estimated_delivery_date ?: '-' }}</td>
+            <td>{{ transfer.date_added }}</td>
+            <td class="text-end"><a href="{{ transfer.edit }}" data-bs-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></a></td>
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td class="text-center" colspan="7">{{ text_no_results }}</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>

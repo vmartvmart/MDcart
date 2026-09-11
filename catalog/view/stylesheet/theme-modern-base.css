@@ -1,0 +1,221 @@
+/* Shared modern foundation for all custom storefront themes (whoop / stockland / persiantvbox).
+   Structure, spacing, and component shape live here — ONCE — so themes only need to supply
+   colors via the --mb-* custom properties below (each theme's own CSS maps its palette to
+   these at the top of its file, e.g. `body.theme-whoop { --mb-accent: var(--theme-whoop-accent); }`).
+   This file is only ever linked from the 3 custom header presets, never from the stock/default
+   header, so its rules are safe to write as plain selectors (no body.theme-* scoping needed). */
+
+:root {
+  --mb-surface: #ffffff;
+  --mb-surface-2: #f4f4f4;
+  --mb-text: #16181d;
+  --mb-muted: #6b7280;
+  --mb-border: #e5e7eb;
+  --mb-accent: #2563eb;
+  --mb-accent-text: #ffffff;
+  --mb-radius: .9rem;
+  --mb-radius-sm: .55rem;
+}
+
+/* Typography rhythm — bigger, bolder, more breathing room than Bootstrap defaults. */
+
+body[class^="theme-"],
+body[class*=" theme-"] {
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+body[class^="theme-"] h1,
+body[class*=" theme-"] h1 { font-weight: 800; letter-spacing: -.02em; }
+
+body[class^="theme-"] h2,
+body[class*=" theme-"] h2 { font-weight: 800; letter-spacing: -.01em; }
+
+body[class^="theme-"] h3,
+body[class*=" theme-"] h3,
+body[class^="theme-"] h4,
+body[class*=" theme-"] h4 { font-weight: 700; }
+
+body[class^="theme-"] #content,
+body[class*=" theme-"] #content { padding-top: 1.75rem; padding-bottom: 2.5rem; }
+
+/* Buttons — larger, bolder, no boxy Bootstrap corners, subtle lift on hover. */
+
+body[class^="theme-"] .btn,
+body[class*=" theme-"] .btn {
+  padding: .65rem 1.5rem;
+  border-radius: var(--mb-radius-sm);
+  font-weight: 700;
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+
+body[class^="theme-"] .btn:hover,
+body[class*=" theme-"] .btn:hover {
+  transform: translateY(-1px);
+}
+
+body[class^="theme-"] .btn-primary:hover,
+body[class*=" theme-"] .btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+/* Form controls — taller, roomier, softer corners. */
+
+body[class^="theme-"] .form-control,
+body[class*=" theme-"] .form-control,
+body[class^="theme-"] .form-select,
+body[class*=" theme-"] .form-select {
+  padding: .6rem .9rem;
+  border-radius: var(--mb-radius-sm);
+}
+
+body[class^="theme-"] .input-group-text {
+  border-radius: var(--mb-radius-sm) 0 0 var(--mb-radius-sm);
+}
+
+/* Pagination — pill style instead of square Bootstrap boxes. */
+
+body[class^="theme-"] .pagination,
+body[class*=" theme-"] .pagination {
+  gap: .35rem;
+}
+
+body[class^="theme-"] .pagination .page-link,
+body[class*=" theme-"] .pagination .page-link {
+  border-radius: var(--mb-radius-sm) !important;
+  border: none;
+  font-weight: 600;
+}
+
+/* Product cards — full redesign: soft shadow instead of thin border, generous radius,
+   floating circular action buttons instead of a boxy 3-button footer bar. */
+
+body[class^="theme-"] .product-thumb,
+body[class*=" theme-"] .product-thumb {
+  border: none !important;
+  border-radius: var(--mb-radius);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 20px rgba(0,0,0,.06);
+  overflow: hidden;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+body[class^="theme-"] .product-thumb:hover,
+body[class*=" theme-"] .product-thumb:hover {
+  transform: translateY(-.4rem);
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.08), 0 1.25rem 2.5rem rgba(0,0,0,.14);
+}
+
+body[class^="theme-"] .product-thumb .image,
+body[class*=" theme-"] .product-thumb .image {
+  position: relative;
+  padding: 1.5rem 1.25rem .75rem;
+}
+
+body[class^="theme-"] .product-thumb .description,
+body[class*=" theme-"] .product-thumb .description {
+  padding: 0 1.25rem 1rem;
+  margin-bottom: 0;
+}
+
+body[class^="theme-"] .product-thumb .description h4,
+body[class*=" theme-"] .product-thumb .description h4 {
+  font-size: 1rem;
+  margin-bottom: .35rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body[class^="theme-"] .product-thumb .description p,
+body[class*=" theme-"] .product-thumb .description p {
+  font-size: .85rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: .5rem;
+}
+
+body[class^="theme-"] .product-thumb .price,
+body[class*=" theme-"] .product-thumb .price {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+body[class^="theme-"] .product-thumb .button,
+body[class*=" theme-"] .product-thumb .button {
+  position: static;
+  width: auto;
+  display: flex;
+  gap: .5rem;
+  padding: 0 1.25rem 1.25rem;
+}
+
+body[class^="theme-"] .product-thumb .button button,
+body[class*=" theme-"] .product-thumb .button button {
+  border: none !important;
+  border-radius: var(--mb-radius-sm) !important;
+  height: 2.6rem;
+  line-height: 1;
+}
+
+body[class^="theme-"] .product-thumb .button button:nth-child(1),
+body[class*=" theme-"] .product-thumb .button button:nth-child(1) {
+  flex: 1 1 auto;
+  background: var(--mb-accent);
+  color: var(--mb-accent-text);
+  font-weight: 700;
+}
+
+body[class^="theme-"] .product-thumb .button button:nth-child(2),
+body[class*=" theme-"] .product-thumb .button button:nth-child(2),
+body[class^="theme-"] .product-thumb .button button:nth-child(3),
+body[class*=" theme-"] .product-thumb .button button:nth-child(3) {
+  flex: 0 0 2.6rem;
+  background: var(--mb-surface-2);
+  color: var(--mb-muted);
+}
+
+body[class^="theme-"] .product-thumb .button button + button,
+body[class*=" theme-"] .product-thumb .button button + button {
+  border-left: none !important;
+}
+
+/* Mobile nav safety net — shared by every custom theme's header, regardless of layout.
+   Prevents the logo image (whatever size the store owner uploaded) and OpenCart's built-in
+   mobile category toggle from blowing out narrow viewports. */
+
+body[class^="theme-"] #logo img,
+body[class*=" theme-"] #logo img {
+  max-height: 2.25rem;
+  width: auto;
+  max-width: 9rem;
+}
+
+body[class^="theme-"] #category,
+body[class*=" theme-"] #category {
+  color: var(--mb-text);
+  font-weight: 700;
+  padding: .5rem 0;
+}
+
+body[class^="theme-"] .navbar-toggler,
+body[class*=" theme-"] .navbar-toggler {
+  color: var(--mb-text);
+  border-color: var(--mb-border);
+  padding: .3rem .55rem;
+  font-size: .95rem;
+}
+
+body[class^="theme-"] .navbar-toggler i,
+body[class*=" theme-"] .navbar-toggler i {
+  color: var(--mb-text) !important;
+}
+
+@media (max-width: 575.98px) {
+  body[class^="theme-"] #category,
+  body[class*=" theme-"] #category {
+    display: none !important;
+  }
+}

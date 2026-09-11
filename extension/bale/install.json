@@ -1,0 +1,7 @@
+{
+  "name": "Bale Bot Notifications",
+  "description": "Sends order/admin notifications through a Bale (ble.ir) messenger bot.",
+  "version": "1.0",
+  "author": "",
+  "link": ""
+}

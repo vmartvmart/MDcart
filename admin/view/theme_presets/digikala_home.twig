@@ -1,0 +1,47 @@
+{{ header }}
+<div class="theme-digikala-hero">
+  <div class="container">
+    <h1>{{ name }}</h1>
+    <p>{{ text_hero_tagline }}</p>
+    <a href="index.php?route=product/category" class="btn btn-primary me-2">{{ button_hero_products }}</a>
+    <a href="index.php?route=product/special" class="btn btn-outline-light">{{ button_hero_special }}</a>
+  </div>
+</div>
+{% if home_categories %}
+  <div class="theme-digikala-shortcuts">
+    <div class="container">
+      <div class="theme-digikala-shortcut-row">
+        {% for category in home_categories %}
+          <a href="{{ category.href }}" class="theme-digikala-shortcut">
+            <span class="theme-digikala-shortcut-icon"><i class="fa-solid fa-cube"></i></span>
+            <span>{{ category.name }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% if home_products %}
+  <div class="theme-digikala-row">
+    <div class="container">
+      <div class="theme-digikala-row-header">
+        <h2>{{ text_new_products_heading }}</h2>
+      </div>
+      <div class="theme-digikala-product-track">
+        {% for product in home_products %}
+          <a href="{{ product.href }}" class="theme-digikala-product-card">
+            <span class="theme-digikala-product-image" style="background-image:url('{{ product.thumb }}');"></span>
+            <span class="theme-digikala-product-name">{{ product.name }}</span>
+            {% if product.price %}<span class="theme-digikala-product-price">{{ product.price }}</span>{% endif %}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+<div id="common-home" class="container">
+  <div class="row">{{ column_left }}
+    <div id="content" class="col">{{ content_top }}{{ content_bottom }}</div>
+    {{ column_right }}</div>
+</div>
+{{ footer }}

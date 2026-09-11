@@ -1,0 +1,33 @@
+<?php
+// Text
+$_['text_subject']               = '%s - اشتراک %s';
+$_['text_greeting']              = 'از علاقه شما به محصول %s متشکریم. درخواست اشتراک شما دریافت شد و پس از تأیید پرداخت پردازش خواهد شد.';
+$_['text_link']                  = 'برای مشاهده اشتراک خود روی لینک زیر کلیک کنید:';
+$_['text_promotion']             = 'موفق: یک ویژگی تبلیغاتی با موفقیت به این اشتراک اضافه شد!';
+$_['text_subscription_duration'] = '%s هر %d %s برای %d پرداخت';
+$_['text_subscription_cancel']   = '%s هر %d %s تا زمان لغو';
+$_['text_subscription_detail']   = 'جزئیات اشتراک';
+$_['text_instruction']           = 'راهنما';
+$_['text_orders_id']             = 'شناسه سفارش:';
+$_['text_date_added']            = 'تاریخ افزودن:';
+$_['text_order_status']          = 'وضعیت سفارش:';
+$_['text_payment_method']        = 'روش پرداخت:';
+$_['text_payment_address']       = 'آدرس پرداخت';
+$_['text_email']                 = 'ایمیل:';
+$_['text_telephone']             = 'تلفن:';
+$_['text_ip']                    = 'آدرس آی‌پی:';
+$_['text_products']              = 'محصولات';
+$_['text_product']               = 'محصول';
+$_['text_model']                 = 'مدل';
+$_['text_quantity']              = 'تعداد';
+$_['text_price']                 = 'قیمت';
+$_['text_order_total']           = 'جمع کل سفارش';
+$_['text_total']                 = 'جمع کل';
+$_['text_comment']               = 'یادداشت‌های اشتراک شما:';
+$_['text_description']           = 'توضیحات';
+$_['text_day']                   = 'روز';
+$_['text_week']                  = 'هفته';
+$_['text_semi_month']            = 'نیم‌ماه';
+$_['text_month']                 = 'ماه';
+$_['text_year']                  = 'سال';
+$_['text_footer']                = 'در صورت داشتن سؤال، به این ایمیل پاسخ دهید.';

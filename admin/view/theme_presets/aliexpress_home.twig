@@ -1,0 +1,49 @@
+{{ header }}
+<div class="theme-ae-hero">
+  <div class="container">
+    <h1>{{ name }}</h1>
+    <p>{{ text_hero_tagline }}</p>
+    <a href="index.php?route=product/category" class="btn btn-primary me-2">{{ button_hero_products }}</a>
+    <a href="index.php?route=product/special" class="btn btn-outline-light">{{ button_hero_special }}</a>
+  </div>
+</div>
+<div class="theme-ae-perks">
+  <div class="container theme-ae-perks-row">
+    <div class="theme-ae-perk"><i class="fa-solid fa-truck-fast"></i> {{ text_ae_perk_shipping }}</div>
+    <div class="theme-ae-perk"><i class="fa-solid fa-rotate-left"></i> {{ text_ae_perk_returns }}</div>
+    <div class="theme-ae-perk"><i class="fa-solid fa-shield-halved"></i> {{ text_ae_perk_protection }}</div>
+  </div>
+</div>
+{% if home_products %}
+  <div class="theme-ae-row">
+    <div class="container">
+      <div class="theme-ae-row-header">
+        <h2>{{ text_new_products_heading }}</h2>
+      </div>
+      <div class="theme-ae-product-grid">
+        {% for product in home_products %}
+          <a href="{{ product.href }}" class="theme-ae-product-card">
+            {% if product.discount %}<span class="theme-ae-badge">-{{ product.discount }}%</span>{% endif %}
+            <span class="theme-ae-product-image" style="background-image:url('{{ product.thumb }}');"></span>
+            <span class="theme-ae-product-name">{{ product.name }}</span>
+            <span class="theme-ae-product-price-row">
+              {% if product.price %}<span class="theme-ae-product-price">{{ product.price }}</span>{% endif %}
+              {% if product.price_old %}<span class="theme-ae-product-price-old">{{ product.price_old }}</span>{% endif %}
+            </span>
+            {% if product.rating %}
+              <span class="theme-ae-product-rating">
+                {% for i in 1..5 %}<i class="fa-solid fa-star{% if i > product.rating %} theme-ae-star-off{% endif %}"></i>{% endfor %}
+              </span>
+            {% endif %}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}
+<div id="common-home" class="container">
+  <div class="row">{{ column_left }}
+    <div id="content" class="col">{{ content_top }}{{ content_bottom }}</div>
+    {{ column_right }}</div>
+</div>
+{{ footer }}

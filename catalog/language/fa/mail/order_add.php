@@ -1,0 +1,36 @@
+<?php
+// Text
+$_['text_subject']               = '%s - سفارش %s';
+$_['text_greeting']              = 'از علاقه شما به محصولات %s متشکریم. سفارش شما دریافت شد و پس از تأیید پرداخت پردازش خواهد شد.';
+$_['text_link']                  = 'برای مشاهده سفارش خود روی لینک زیر کلیک کنید:';
+$_['text_order_detail']          = 'جزئیات سفارش';
+$_['text_instruction']           = 'راهنما';
+$_['text_order_id']              = 'شناسه سفارش:';
+$_['text_date_added']            = 'تاریخ افزودن:';
+$_['text_order_status']          = 'وضعیت سفارش:';
+$_['text_payment_method']        = 'روش پرداخت:';
+$_['text_shipping_method']       = 'روش ارسال:';
+$_['text_email']                 = 'ایمیل:';
+$_['text_telephone']             = 'تلفن:';
+$_['text_ip']                    = 'آدرس آی‌پی:';
+$_['text_payment_address']       = 'آدرس پرداخت';
+$_['text_shipping_address']      = 'آدرس ارسال';
+$_['text_products']              = 'محصولات';
+$_['text_product']               = 'محصول';
+$_['text_model']                 = 'مدل';
+$_['text_quantity']              = 'تعداد';
+$_['text_price']                 = 'قیمت';
+$_['text_order_total']           = 'جمع کل سفارش';
+$_['text_total']                 = 'جمع کل';
+$_['text_subscription']          = 'اشتراک';
+$_['text_subscription_trial']    = '%s هر %d %s برای %d پرداخت سپس ';
+$_['text_subscription_duration'] = '%s هر %d %s برای %d پرداخت';
+$_['text_subscription_cancel']   = '%s هر %d %s تا زمان لغو';
+$_['text_day']                   = 'روز';
+$_['text_week']                  = 'هفته';
+$_['text_semi_month']            = 'نیم‌ماه';
+$_['text_month']                 = 'ماه';
+$_['text_year']                  = 'سال';
+$_['text_download']              = 'پس از تأیید پرداخت شما، می‌توانید با کلیک روی لینک زیر به محصولات دانلودی خود دسترسی پیدا کنید:';
+$_['text_comment']               = 'یادداشت‌های سفارش شما:';
+$_['text_footer']                = 'در صورت داشتن سؤال، به این ایمیل پاسخ دهید.';

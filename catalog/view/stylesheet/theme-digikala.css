@@ -1,0 +1,374 @@
+/* "Digikala"-inspired storefront theme — white background, red accent, warm rounded icon
+   shortcuts, dense marketplace feel. Self-hosted, no external dependency. */
+
+:root {
+  --theme-dk-accent: #ef394e;
+  --theme-dk-accent-dark: #c92338;
+  --theme-dk-ink: #26232b;
+  --theme-dk-muted: #6b7280;
+  --theme-dk-border: #ececec;
+  --theme-dk-surface-2: #f7f7f8;
+}
+
+body.theme-digikala {
+  --mb-surface: #ffffff;
+  --mb-surface-2: var(--theme-dk-surface-2);
+  --mb-text: var(--theme-dk-ink);
+  --mb-muted: var(--theme-dk-muted);
+  --mb-border: var(--theme-dk-border);
+  --mb-accent: var(--theme-dk-accent);
+  --mb-accent-text: #ffffff;
+  --mb-radius: .6rem;
+  --mb-radius-sm: .5rem;
+}
+
+.theme-digikala-promo {
+  background: #fff4e5;
+  color: #8a5a00;
+  text-align: center;
+  font-size: .85rem;
+  font-weight: 600;
+  padding: .5rem 1rem;
+}
+
+body.theme-digikala #top {
+  background: var(--theme-dk-surface-2);
+  border-bottom: 1px solid var(--theme-dk-border);
+  padding: .3rem 0;
+  font-size: .8rem;
+  color: var(--theme-dk-muted);
+}
+
+.theme-digikala-utility-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .35rem 1rem;
+  font-size: .78rem;
+}
+
+.theme-digikala-utility-right {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+body.theme-digikala #top .dropdown-toggle,
+body.theme-digikala #top a {
+  color: var(--theme-dk-muted);
+}
+
+body.theme-digikala #top .dropdown-toggle:hover,
+body.theme-digikala #top a:hover {
+  color: var(--theme-dk-accent);
+}
+
+body.theme-digikala #cart .btn {
+  background: var(--theme-dk-accent);
+  border-color: var(--theme-dk-accent);
+}
+
+body.theme-digikala #top a {
+  color: var(--theme-dk-muted);
+}
+
+body.theme-digikala #top a:hover {
+  color: var(--theme-dk-accent);
+}
+
+body.theme-digikala header {
+  background: #fff;
+  border-bottom: 1px solid var(--theme-dk-border);
+  padding: .75rem 0;
+}
+
+body.theme-digikala header #logo h1 a {
+  color: var(--theme-dk-accent);
+  font-weight: 800;
+}
+
+body.theme-digikala .input-group .form-control {
+  border-radius: 999px 0 0 999px !important;
+}
+
+body.theme-digikala .input-group .btn,
+body.theme-digikala .input-group-text {
+  border-radius: 0 999px 999px 0 !important;
+}
+
+body.theme-digikala .input-group .btn {
+  background: var(--theme-dk-accent);
+  border-color: var(--theme-dk-accent);
+  color: #fff;
+}
+
+body.theme-digikala #menu {
+  background: #fff !important;
+  border-bottom: 1px solid var(--theme-dk-border);
+}
+
+body.theme-digikala #menu .nav-link,
+body.theme-digikala #menu .dropdown-item {
+  color: var(--theme-dk-ink) !important;
+  font-weight: 600;
+  font-size: .85rem;
+}
+
+body.theme-digikala #menu .nav-link:hover,
+body.theme-digikala #menu .dropdown-item:hover {
+  color: var(--theme-dk-accent) !important;
+}
+
+body.theme-digikala .btn-primary {
+  background-color: var(--theme-dk-accent);
+  border-color: var(--theme-dk-accent);
+  color: #fff;
+  border-radius: 999px;
+}
+
+body.theme-digikala .btn-primary:hover {
+  background-color: var(--theme-dk-accent-dark);
+  border-color: var(--theme-dk-accent-dark);
+}
+
+body.theme-digikala .btn-outline-light {
+  border-radius: 999px;
+  color: var(--theme-dk-ink);
+  border-color: rgba(255,255,255,.7);
+}
+
+body.theme-digikala a:not(.btn) {
+  color: var(--theme-dk-accent);
+}
+
+body.theme-digikala footer {
+  background: var(--theme-dk-ink);
+  color: #c7c3ce;
+  padding-top: 2rem;
+}
+
+body.theme-digikala footer h5 {
+  color: #fff;
+}
+
+body.theme-digikala footer a {
+  color: #c7c3ce;
+}
+
+body.theme-digikala footer a:hover {
+  color: #fff;
+}
+
+body.theme-digikala footer hr {
+  border-color: #3a3641;
+}
+
+/* Hero — warm campaign-banner gradient, bold white type, pill CTAs. */
+
+.theme-digikala-hero {
+  background: linear-gradient(120deg, #ff7a59 0%, var(--theme-dk-accent) 55%, #c92338 100%);
+  color: #fff;
+  padding: 3.5rem 1rem;
+  text-align: center;
+}
+
+.theme-digikala-hero h1 {
+  color: #fff;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.theme-digikala-hero p {
+  color: rgba(255,255,255,.9);
+  font-size: 1.1rem;
+  max-width: 40rem;
+  margin: 0 auto 1.5rem;
+}
+
+.theme-digikala-hero .btn-primary {
+  background: #fff;
+  border-color: #fff;
+  color: var(--theme-dk-accent-dark);
+}
+
+.theme-digikala-hero .btn-primary:hover {
+  background: #fff;
+  filter: brightness(.95);
+}
+
+/* Icon shortcut row — circular colorful icons like the real marketplace's quick links. */
+
+.theme-digikala-shortcuts {
+  padding: 1.75rem 0;
+  border-bottom: 1px solid var(--theme-dk-border);
+}
+
+.theme-digikala-shortcut-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem 1rem;
+}
+
+.theme-digikala-shortcut {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  width: 6rem;
+  text-decoration: none;
+  color: var(--theme-dk-ink);
+  font-size: .8rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.theme-digikala-shortcut-icon {
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: #fff;
+  background: var(--theme-dk-accent);
+  transition: transform .15s;
+}
+
+.theme-digikala-shortcut:hover .theme-digikala-shortcut-icon {
+  transform: translateY(-.2rem);
+}
+
+.theme-digikala-shortcut:nth-child(5n+2) .theme-digikala-shortcut-icon { background: #f59e0b; }
+.theme-digikala-shortcut:nth-child(5n+3) .theme-digikala-shortcut-icon { background: #10b981; }
+.theme-digikala-shortcut:nth-child(5n+4) .theme-digikala-shortcut-icon { background: #3b82f6; }
+.theme-digikala-shortcut:nth-child(5n+5) .theme-digikala-shortcut-icon { background: #8b5cf6; }
+
+.theme-digikala-shortcut:hover {
+  color: var(--theme-dk-accent);
+}
+
+/* New-arrivals product rail — light cards, red price, horizontal scroll. */
+
+.theme-digikala-row {
+  padding: 2rem 0;
+}
+
+.theme-digikala-row-header h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
+  color: var(--theme-dk-ink);
+}
+
+.theme-digikala-product-track {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: .5rem;
+}
+
+.theme-digikala-product-card {
+  flex: 0 0 auto;
+  width: 10rem;
+  text-decoration: none;
+  color: var(--theme-dk-ink);
+  border: 1px solid var(--theme-dk-border);
+  border-radius: var(--mb-radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow .15s, transform .15s;
+}
+
+.theme-digikala-product-card:hover {
+  box-shadow: 0 .5rem 1.25rem rgba(0,0,0,.08);
+  transform: translateY(-.25rem);
+  color: var(--theme-dk-ink);
+}
+
+.theme-digikala-product-image {
+  height: 8rem;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #fff;
+}
+
+.theme-digikala-product-name {
+  padding: .6rem .75rem 0;
+  font-size: .82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.theme-digikala-product-price {
+  padding: .3rem .75rem .75rem;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--theme-dk-accent);
+}
+
+/* Sitewide coverage so category/product/cart/account pages match the theme. */
+
+body.theme-digikala .breadcrumb {
+  background: var(--theme-dk-surface-2);
+}
+
+body.theme-digikala .breadcrumb-item.active {
+  color: var(--theme-dk-ink);
+}
+
+body.theme-digikala .card-header {
+  background: var(--theme-dk-surface-2);
+  color: var(--theme-dk-ink);
+  font-weight: 700;
+}
+
+body.theme-digikala .pagination .page-link {
+  color: var(--theme-dk-accent);
+}
+
+body.theme-digikala .pagination .page-item.active .page-link {
+  background: var(--theme-dk-accent);
+  border-color: var(--theme-dk-accent);
+}
+
+body.theme-digikala .price-new {
+  color: var(--theme-dk-accent);
+}
+
+body.theme-digikala .price-old {
+  color: var(--theme-dk-muted);
+  text-decoration: line-through;
+}
+
+body.theme-digikala .form-control:focus,
+body.theme-digikala .form-select:focus {
+  border-color: var(--theme-dk-accent);
+  box-shadow: 0 0 0 .2rem rgba(239,57,78,.15);
+}
+
+body.theme-digikala .rating .fa-star {
+  color: #f59e0b;
+}
+
+body.theme-digikala .product-thumb .description h4 a {
+  color: var(--theme-dk-ink);
+}
+
+@media (max-width: 767px) {
+  .theme-digikala-shortcut {
+    width: 4.5rem;
+  }
+
+  .theme-digikala-shortcut-icon {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.1rem;
+  }
+}

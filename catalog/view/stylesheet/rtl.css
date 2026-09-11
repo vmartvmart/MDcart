@@ -1,0 +1,29 @@
+/* Persian storefront refinements. Bootstrap RTL handles grids and utilities. */
+html[dir="rtl"] body {
+  font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
+  text-align: right;
+}
+
+html[dir="rtl"] #logo {
+  text-align: center;
+}
+
+html[dir="rtl"] .dropdown-menu-right {
+  right: auto;
+  left: 0;
+}
+
+html[dir="rtl"] input[type="email"],
+html[dir="rtl"] input[type="tel"],
+html[dir="rtl"] input[type="number"],
+html[dir="rtl"] input[name*="postcode"],
+html[dir="rtl"] input[name*="quantity"] {
+  direction: ltr;
+  text-align: left;
+}
+
+@media (min-width: 768px) {
+  html[dir="rtl"] #logo {
+    text-align: right;
+  }
+}

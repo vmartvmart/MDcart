@@ -1,0 +1,135 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div id="alert-placeholder"></div>
+		{% if not rates.installed %}
+			<div class="alert alert-warning">{{ text_not_installed }}</div>
+		{% else %}
+			<div class="card">
+				<div class="card-header"><i class="fa-solid fa-money-bill-transfer"></i> {{ text_current }}</div>
+				<div class="card-body">
+					<div class="row mb-3">
+						<label class="col-sm-3 col-form-label">{{ entry_rial_per_aed }}</label>
+						<div class="col-sm-9">
+							<div class="input-group" style="max-width:320px;">
+								<input type="number" id="input-rial-per-aed" value="{{ rates.rial_per_aed }}" step="any" min="0" class="form-control form-control-lg"/>
+								<span class="input-group-text">{{ text_rial }}</span>
+							</div>
+							<div class="form-text">{{ help_rial_per_aed }}</div>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label class="col-sm-3 col-form-label">{{ entry_toman_equivalent }}</label>
+						<div class="col-sm-9">
+							<span id="text-toman-equivalent" class="fs-5"></span>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label class="col-sm-3 col-form-label">{{ text_last_updated }}</label>
+						<div class="col-sm-9">
+							<span class="text-muted">{{ rates.date_modified ? rates.date_modified : text_never }}</span>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-sm-9 offset-sm-3">
+							<button type="button" id="button-save-manual" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> {{ button_save }}</button>
+							<button type="button" id="button-fetch" class="btn btn-success"><i class="fa-solid fa-rotate"></i> {{ button_fetch }}</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="card mt-3">
+				<div class="card-header"><i class="fa-solid fa-circle-info"></i> {{ text_how_it_works }}</div>
+				<div class="card-body">
+					<p>{{ text_explanation_1 }}</p>
+					<p>{{ text_explanation_2|replace({'%s': aed_usd_peg}) }}</p>
+					<p class="mb-0 text-muted">{{ text_explanation_3 }}</p>
+				</div>
+			</div>
+		{% endif %}
+	</div>
+</div>
+<script type="text/javascript"><!--
+function updateTomanPreview() {
+    var rial = parseFloat($('#input-rial-per-aed').val()) || 0;
+    var toman = rial / 10;
+
+    $('#text-toman-equivalent').text(toman.toLocaleString('{{ number_locale|default("en-US") }}', {maximumFractionDigits: 0}) + ' {{ text_toman|escape('js') }}');
+}
+
+$('#input-rial-per-aed').on('input', updateTomanPreview);
+updateTomanPreview();
+
+$('#button-save-manual').on('click', function() {
+    var button = $(this);
+    var rate = parseFloat($('#input-rial-per-aed').val());
+
+    if (!rate || rate <= 0) {
+        $('#alert-placeholder').html('<div class="alert alert-danger">{{ error_rate|escape('js') }}</div>');
+        return;
+    }
+
+    button.prop('disabled', true);
+
+    $.ajax({
+        url: '{{ save }}',
+        type: 'post',
+        dataType: 'json',
+        data: {rial_per_aed: rate},
+        success: function(json) {
+            button.prop('disabled', false);
+
+            if (json.error) {
+                $('#alert-placeholder').html('<div class="alert alert-danger">' + json.error + '</div>');
+                return;
+            }
+
+            $('#alert-placeholder').html('<div class="alert alert-success">' + json.success + '</div>');
+        },
+        error: function() {
+            button.prop('disabled', false);
+            $('#alert-placeholder').html('<div class="alert alert-danger">{{ error_unknown|escape('js') }}</div>');
+        }
+    });
+});
+
+$('#button-fetch').on('click', function() {
+    var button = $(this);
+
+    button.prop('disabled', true);
+
+    $.ajax({
+        url: '{{ fetch }}',
+        type: 'post',
+        dataType: 'json',
+        success: function(json) {
+            button.prop('disabled', false);
+
+            if (json.error) {
+                $('#alert-placeholder').html('<div class="alert alert-danger">' + json.error + '</div>');
+                return;
+            }
+
+            $('#input-rial-per-aed').val(json.rial_per_aed);
+            updateTomanPreview();
+
+            $('#alert-placeholder').html('<div class="alert alert-success">' + json.success + '</div>');
+        },
+        error: function() {
+            button.prop('disabled', false);
+            $('#alert-placeholder').html('<div class="alert alert-danger">{{ error_unknown|escape('js') }}</div>');
+        }
+    });
+});
+//--></script>
+{{ footer }}

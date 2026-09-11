@@ -1,0 +1,245 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="float-end">
+				{% if editable %}<button type="submit" form="form-transfer" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>{% endif %}
+				<a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+			</div>
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div class="card">
+			<div class="card-header"><i class="fa-solid fa-truck-ramp-box"></i> {{ text_form }}</div>
+			<div class="card-body">
+				<div id="alert-placeholder"></div>
+				<form id="form-transfer" action="{{ save }}" method="post" data-oc-toggle="ajax">
+					<div class="row mb-3 required">
+						<label for="input-from-warehouse" class="col-sm-2 col-form-label">{{ entry_from_warehouse }}</label>
+						<div class="col-sm-4">
+							<select name="from_warehouse_id" id="input-from-warehouse" class="form-select"{% if not editable %} disabled{% endif %}>
+								<option value=""></option>
+								{% for warehouse in warehouses %}
+									<option value="{{ warehouse.warehouse_id }}"{% if warehouse.warehouse_id == from_warehouse_id %} selected{% endif %}>{{ warehouse.name }}</option>
+								{% endfor %}
+							</select>
+						</div>
+						<label for="input-to-warehouse" class="col-sm-2 col-form-label">{{ entry_to_warehouse }}</label>
+						<div class="col-sm-4">
+							<select name="to_warehouse_id" id="input-to-warehouse" class="form-select"{% if not editable %} disabled{% endif %}>
+								<option value=""></option>
+								{% for warehouse in warehouses %}
+									<option value="{{ warehouse.warehouse_id }}"{% if warehouse.warehouse_id == to_warehouse_id %} selected{% endif %}>{{ warehouse.name }}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label for="input-shipping-cost" class="col-sm-2 col-form-label">{{ entry_shipping_cost }}</label>
+						<div class="col-sm-4">
+							<div class="input-group">
+								<input type="text" name="shipping_cost" value="{{ shipping_cost }}" id="input-shipping-cost" class="form-control"{% if not editable %} readonly{% endif %}/>
+								<span class="input-group-text">{{ currency_symbol }}</span>
+							</div>
+							<small class="form-text text-muted">{{ help_shipping_cost }}</small>
+						</div>
+						<label for="input-estimated-delivery-date" class="col-sm-2 col-form-label">{{ entry_estimated_delivery_date }}</label>
+						<div class="col-sm-4">
+							<input type="date" name="estimated_delivery_date" value="{{ estimated_delivery_date }}" id="input-estimated-delivery-date" class="form-control"/>
+							<small class="form-text text-muted">{{ help_estimated_delivery_date }}</small>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label for="input-comment" class="col-sm-2 col-form-label">{{ entry_comment }}</label>
+						<div class="col-sm-10">
+							<textarea name="comment" id="input-comment" rows="2" class="form-control"{% if not editable %} readonly{% endif %}>{{ comment }}</textarea>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<div class="col-sm-2"></div>
+						<div class="col-sm-10">
+							<div class="form-check">
+								<input type="hidden" name="presell_online" value="0"/>
+								<input type="checkbox" name="presell_online" value="1" id="input-presell-online" class="form-check-input"{% if presell_online %} checked{% endif %}{% if not presell_editable %} disabled{% endif %}/>
+								<label for="input-presell-online" class="form-check-label">{{ entry_presell_online }}</label>
+							</div>
+							<small class="form-text text-muted">{{ help_presell_online }}</small>
+							{% if presell_only_matters_for_selling_warehouse %}
+								<div class="alert alert-warning mt-2 mb-0 py-1 px-2"><i class="fa-solid fa-triangle-exclamation"></i> {{ warning_presell_not_selling_warehouse }}</div>
+							{% endif %}
+						</div>
+					</div>
+
+					{% if editable %}
+						<fieldset>
+							<legend>{{ text_add_product }}</legend>
+							<div class="row mb-3">
+								<div class="col-sm-8">
+									<input type="text" id="input-product" placeholder="{{ entry_product }}" data-oc-target="autocomplete-product" class="form-control" autocomplete="off"/>
+									<ul id="autocomplete-product" class="dropdown-menu"></ul>
+								</div>
+								<div class="col-sm-2">
+									<input type="number" id="input-product-quantity" value="1" min="1" class="form-control"/>
+								</div>
+								<div class="col-sm-2">
+									<button type="button" id="button-add-product" class="btn btn-primary w-100">{{ button_add_product }}</button>
+								</div>
+							</div>
+						</fieldset>
+					{% endif %}
+
+					<div class="table-responsive">
+						<table class="table table-bordered" id="table-product">
+							<thead>
+								<tr>
+									<th>{{ column_product }}</th>
+									<th class="text-end col-2">{{ column_quantity }}</th>
+									{% if editable %}<th class="text-end col-1"></th>{% endif %}
+								</tr>
+							</thead>
+							<tbody>
+								{% for product in products %}
+									<tr>
+										<td>{{ product.name }}<input type="hidden" name="products[{{ loop.index0 }}][product_id]" value="{{ product.product_id }}"/>
+											{% if product.reserved_quantity > 0 %}
+												<div class="form-text text-warning mb-0"><i class="fa-solid fa-cart-shopping"></i> {{ text_reserved_online|replace({'%s': product.reserved_quantity}) }}</div>
+											{% endif %}
+										</td>
+										<td class="text-end"><input type="text" name="products[{{ loop.index0 }}][quantity]" value="{{ product.quantity }}" class="form-control text-end"{% if not editable %} readonly{% endif %}/></td>
+										{% if editable %}<td class="text-end"><button type="button" class="btn btn-danger button-remove-product"><i class="fa-regular fa-trash-can"></i></button></td>{% endif %}
+									</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+					<input type="hidden" name="transfer_id" value="{{ transfer_id }}"/>
+				</form>
+			</div>
+		</div>
+
+		{% if transfer_id %}
+			<div class="card mt-3">
+				<div class="card-header"><i class="fa-solid fa-arrows-rotate"></i> {{ text_status }}</div>
+				<div class="card-body">
+					<div id="status-alert-placeholder"></div>
+					<form id="form-status" action="{{ status_save }}" method="post" data-oc-toggle="ajax">
+						<div class="row mb-3">
+							<label for="input-status" class="col-sm-2 col-form-label">{{ entry_status }}</label>
+							<div class="col-sm-4">
+								<select name="status" id="input-status" class="form-select">
+									{% for s in statuses %}
+										<option value="{{ s }}"{% if s == status %} selected{% endif %}>{{ attribute(_context, 'text_status_' ~ s) }}</option>
+									{% endfor %}
+								</select>
+							</div>
+							<label for="input-actual-delivery-date" class="col-sm-2 col-form-label">{{ entry_actual_delivery_date }}</label>
+							<div class="col-sm-4">
+								<input type="date" name="actual_delivery_date" value="{{ actual_delivery_date }}" id="input-actual-delivery-date" class="form-control"/>
+							</div>
+						</div>
+						<div class="row mb-3">
+							<label for="input-status-comment" class="col-sm-2 col-form-label">{{ entry_comment }}</label>
+							<div class="col-sm-10">
+								<input type="text" name="comment" id="input-status-comment" class="form-control"/>
+							</div>
+						</div>
+						<input type="hidden" name="transfer_id" value="{{ transfer_id }}"/>
+						<input type="hidden" name="estimated_delivery_date" value="{{ estimated_delivery_date }}" id="input-status-estimated-delivery-date"/>
+						<div class="text-end">
+							<button type="submit" class="btn btn-primary">{{ button_update_status }}</button>
+						</div>
+					</form>
+					<hr/>
+					<div class="table-responsive">
+						<table class="table table-bordered">
+							<thead>
+								<tr>
+									<th>{{ column_date_added }}</th>
+									<th>{{ column_status }}</th>
+									<th>{{ column_comment }}</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% if histories %}
+									{% for history in histories %}
+										<tr>
+											<td>{{ history.date_added }}</td>
+											<td>{{ history.status_text }}</td>
+											<td>{{ history.comment }}</td>
+										</tr>
+									{% endfor %}
+								{% else %}
+									<tr><td class="text-center" colspan="3">{{ text_no_results }}</td></tr>
+								{% endif %}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		{% endif %}
+	</div>
+</div>
+<script type="text/javascript"><!--
+var productRowIndex = {{ products|length }};
+
+$('#input-product').autocomplete({
+    'source': function(request, response) {
+        $.ajax({
+            url: '{{ autocomplete }}&filter_name=' + encodeURIComponent(request),
+            dataType: 'json',
+            success: function(json) {
+                response($.map(json, function(item) {
+                    return {
+                        label: item['name'],
+                        value: item['product_id']
+                    }
+                }));
+            }
+        });
+    },
+    'select': function(item) {
+        $('#input-product').val(decodeHTMLEntities(item['label'])).attr('data-product-id', item['value']);
+    }
+});
+
+$('#button-add-product').on('click', function() {
+    var productId = $('#input-product').attr('data-product-id');
+    var productName = $('#input-product').val();
+    var quantity = $('#input-product-quantity').val();
+
+    if (!productId || !quantity) {
+        return;
+    }
+
+    var html = '<tr>';
+    html += '<td>' + productName + '<input type="hidden" name="products[' + productRowIndex + '][product_id]" value="' + productId + '"/></td>';
+    html += '<td class="text-end"><input type="text" name="products[' + productRowIndex + '][quantity]" value="' + quantity + '" class="form-control text-end"/></td>';
+    html += '<td class="text-end"><button type="button" class="btn btn-danger button-remove-product"><i class="fa-regular fa-trash-can"></i></button></td>';
+    html += '</tr>';
+
+    $('#table-product tbody').append(html);
+
+    productRowIndex++;
+
+    $('#input-product').val('').removeAttr('data-product-id');
+    $('#input-product-quantity').val(1);
+});
+
+$('#table-product').on('click', '.button-remove-product', function() {
+    $(this).closest('tr').remove();
+});
+
+$('#input-status').on('change', function() {
+    if ($(this).val() === 'received' && !$('#input-actual-delivery-date').val()) {
+        var today = new Date().toISOString().split('T')[0];
+        $('#input-actual-delivery-date').val(today);
+    }
+});
+//--></script>
+{{ footer }}

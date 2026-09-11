@@ -1,0 +1,126 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="float-end">
+				<button type="submit" form="form-bank-account" formaction="{{ save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
+				<a href="{{ back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+			</div>
+			<h1>{{ heading_title }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div id="alert-placeholder"></div>
+		<div class="card">
+			<div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_form }}</div>
+			<div class="card-body">
+				<form id="form-bank-account">
+					<input type="hidden" id="input-bank-account-id" value="{{ bank_account_id }}"/>
+					<div class="row mb-3">
+						<label class="col-sm-3 col-form-label">{{ entry_name }}</label>
+						<div class="col-sm-9">
+							<input type="text" id="input-name" value="{{ name }}" class="form-control"/>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label class="col-sm-3 col-form-label">{{ entry_bank_name }}</label>
+						<div class="col-sm-9">
+							<input type="text" id="input-bank-name" value="{{ bank_name }}" class="form-control"/>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label class="col-sm-3 col-form-label">{{ entry_account_number }}</label>
+						<div class="col-sm-9">
+							<input type="text" id="input-account-number" value="{{ account_number }}" class="form-control"/>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label class="col-sm-3 col-form-label">{{ entry_iban }}</label>
+						<div class="col-sm-9">
+							<input type="text" id="input-iban" value="{{ iban }}" class="form-control"/>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label class="col-sm-3 col-form-label">{{ entry_opening_balance }}</label>
+						<div class="col-sm-9">
+							<div class="input-group">
+								<input type="number" id="input-opening-balance" value="{{ opening_balance }}" step="any" class="form-control"/>
+								<span class="input-group-text">{{ currency_symbol }}</span>
+							</div>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label class="col-sm-3 col-form-label">{{ entry_currency }}</label>
+						<div class="col-sm-9">
+							<input type="text" id="input-currency" value="{{ currency }}" maxlength="3" class="form-control" style="max-width:120px;"/>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label class="col-sm-3 col-form-label">{{ entry_default_role }}</label>
+						<div class="col-sm-9">
+							<select id="input-default-role" class="form-select">
+								<option value="">{{ text_role_none }}</option>
+								{% for role in roles %}
+									<option value="{{ role }}"{% if default_role == role %} selected{% endif %}>{{ attribute(_context, 'text_role_' ~ role) }}</option>
+								{% endfor %}
+							</select>
+							<div class="form-text">{{ help_default_role }}</div>
+						</div>
+					</div>
+					<div class="row mb-3">
+						<label class="col-sm-3 col-form-label">{{ entry_status }}</label>
+						<div class="col-sm-9">
+							<label class="form-check form-switch form-switch-lg">
+								<input type="checkbox" id="input-status" value="1" class="form-check-input"{% if status %} checked{% endif %}/>
+							</label>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript"><!--
+$('#form-bank-account').on('submit', function(e) {
+    e.preventDefault();
+
+    $.ajax({
+        url: '{{ save }}',
+        type: 'post',
+        data: {
+            bank_account_id: $('#input-bank-account-id').val(),
+            name: $('#input-name').val(),
+            bank_name: $('#input-bank-name').val(),
+            account_number: $('#input-account-number').val(),
+            iban: $('#input-iban').val(),
+            opening_balance: $('#input-opening-balance').val(),
+            currency: $('#input-currency').val(),
+            default_role: $('#input-default-role').val(),
+            status: $('#input-status').is(':checked') ? 1 : 0
+        },
+        dataType: 'json',
+        success: function(json) {
+            $('#alert-placeholder').html('');
+
+            if (json.error) {
+                var message = json.error.warning || json.error.name || '';
+
+                $('#alert-placeholder').html('<div class="alert alert-danger">' + message + '</div>');
+                return;
+            }
+
+            $('#alert-placeholder').html('<div class="alert alert-success">' + json.success + '</div>');
+
+            if (json.bank_account_id) {
+                $('#input-bank-account-id').val(json.bank_account_id);
+            }
+        }
+    });
+});
+//--></script>
+{{ footer }}

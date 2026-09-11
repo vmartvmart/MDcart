@@ -1,0 +1,150 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header"><i class="fa-solid fa-bullhorn"></i> {{ text_edit }}</div>
+      <div class="card-body">
+        {% if not (channel_available.sms or channel_available.whatsapp or channel_available.telegram or channel_available.bale) %}
+          <div class="alert alert-warning">{{ text_no_channel }}</div>
+        {% endif %}
+        <form id="form-broadcast">
+          <div class="row mb-3 required">
+            <label for="input-message" class="col-sm-2 col-form-label">{{ entry_message }}</label>
+            <div class="col-sm-10">
+              <textarea name="message" rows="4" id="input-message" class="form-control"></textarea>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-2 col-form-label">{{ text_channels }}</label>
+            <div class="col-sm-10">
+              {% if channel_available.sms %}
+                <div class="form-check">
+                  <input type="checkbox" name="channels[]" value="sms" class="form-check-input" id="channel-sms" checked/>
+                  <label class="form-check-label" for="channel-sms">SMS</label>
+                </div>
+              {% endif %}
+              {% if channel_available.whatsapp %}
+                <div class="form-check">
+                  <input type="checkbox" name="channels[]" value="whatsapp" class="form-check-input" id="channel-whatsapp"{% if not other_whatsapp_template_order_add %} disabled{% endif %}/>
+                  <label class="form-check-label" for="channel-whatsapp">WhatsApp</label>
+                </div>
+              {% endif %}
+              {% if channel_available.telegram %}
+                <div class="form-check">
+                  <input type="checkbox" name="channels[]" value="telegram" class="form-check-input" id="channel-telegram"/>
+                  <label class="form-check-label" for="channel-telegram">Telegram</label>
+                </div>
+              {% endif %}
+              {% if channel_available.bale %}
+                <div class="form-check">
+                  <input type="checkbox" name="channels[]" value="bale" class="form-check-input" id="channel-bale"/>
+                  <label class="form-check-label" for="channel-bale">Bale</label>
+                </div>
+              {% endif %}
+              {% if channel_available.whatsapp %}
+                <div class="form-text">{{ text_whatsapp_note }}</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label class="col-sm-2 col-form-label">{{ text_audience }}</label>
+            <div class="col-sm-10">
+              <select name="audience" class="form-select">
+                <option value="newsletter">{{ text_audience_newsletter }}</option>
+                <option value="all">{{ text_audience_all }}</option>
+              </select>
+            </div>
+          </div>
+          <button type="button" id="button-send" data-url="{{ send }}" class="btn btn-primary">{{ button_send }}</button>
+          <div id="broadcast-message" class="mt-2"></div>
+        </form>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><i class="fa-solid fa-clock-rotate-left"></i> {{ text_history }}</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <td>{{ text_column_message }}</td>
+                <td>{{ text_column_audience }}</td>
+                <td>{{ text_column_channels }}</td>
+                <td>{{ text_column_sent }}</td>
+                <td>{{ text_column_failed }}</td>
+                <td>{{ text_column_date }}</td>
+              </tr>
+            </thead>
+            <tbody>
+              {% if history %}
+                {% for row in history %}
+                  <tr>
+                    <td>{{ row.message }}</td>
+                    <td>{{ row.audience }}</td>
+                    <td>{{ row.channels }}</td>
+                    <td>{{ row.total_sent }}</td>
+                    <td>{{ row.total_failed }}</td>
+                    <td>{{ row.date_added }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td class="text-center" colspan="6">{{ text_no_results }}</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript"><!--
+$('#button-send').on('click', function() {
+    var button = this;
+
+    if (!$('#input-message').val()) {
+        return;
+    }
+
+    if (!confirm('Are you sure? This sends immediately to the selected audience.')) {
+        return;
+    }
+
+    $(button).prop('disabled', true);
+
+    $.ajax({
+        url: $(button).attr('data-url'),
+        type: 'post',
+        data: $('#form-broadcast').serialize(),
+        dataType: 'json',
+        success: function(json) {
+            $(button).prop('disabled', false);
+
+            if (json['error']) {
+                $('#broadcast-message').html('<div class="text-danger">' + json['error'] + '</div>');
+            }
+
+            if (json['success']) {
+                $('#broadcast-message').html('<div class="text-success">' + json['success'] + '</div>');
+            }
+        },
+        error: function() {
+            $(button).prop('disabled', false);
+        }
+    });
+});
+//--></script>
+{{ footer }}

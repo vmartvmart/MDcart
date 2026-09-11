@@ -1,0 +1,25 @@
+# Site-specific configuration - each install creates its own from the
+# *-dist.php templates below. Never commit real DB credentials or paths.
+/config.php
+/admin/config.php
+
+# Runtime / generated storage - safe to regenerate, never versioned.
+/system/storage/cache/*
+/system/storage/logs/*
+/system/storage/session/*
+/system/storage/download/*
+/system/storage/upload/*
+/system/storage/backup/*
+/system/storage/marketplace/*
+/system/storage/modification/*
+!/system/storage/*/index.html
+!/system/storage/*/.htaccess
+
+# Generated image thumbnails - regenerated automatically on demand.
+/image/cache/*
+!/image/cache/index.html
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.bak

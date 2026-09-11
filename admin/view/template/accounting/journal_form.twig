@@ -1,0 +1,145 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="float-end">
+				<button type="button" id="button-save" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
+				<a href="{{ back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+			</div>
+			<h1>{{ text_manual }}</h1>
+			<ol class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				{% endfor %}
+			</ol>
+		</div>
+	</div>
+	<div class="container-fluid">
+		<div id="alert-placeholder"></div>
+		<div class="card">
+			<div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_manual }}</div>
+			<div class="card-body">
+				<div class="row mb-3">
+					<label class="col-sm-2 col-form-label">{{ entry_description }}</label>
+					<div class="col-sm-10">
+						<input type="text" id="input-description" class="form-control"/>
+					</div>
+				</div>
+				<div class="table-responsive">
+					<table class="table table-bordered" id="table-lines">
+						<thead>
+							<tr>
+								<th style="min-width:260px;">{{ column_account }}</th>
+								<th style="width:160px;">{{ column_debit }}</th>
+								<th style="width:160px;">{{ column_credit }}</th>
+								<th>{{ column_description }}</th>
+								<th style="width:1px;"></th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+						<tfoot>
+							<tr>
+								<td></td>
+								<td class="text-end fw-bold"><span id="total-debit">0.00</span></td>
+								<td class="text-end fw-bold"><span id="total-credit">0.00</span></td>
+								<td colspan="2"><span id="balance-indicator" class="badge text-bg-secondary">{{ text_unbalanced }}</span></td>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+				<button type="button" id="button-add-line" class="btn btn-secondary btn-sm"><i class="fa-solid fa-plus"></i> {{ text_add_line }}</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript"><!--
+var accountOptions = '<option value=""></option>';
+
+{% for account in accounts %}
+	accountOptions += '<option value="{{ account.account_id }}">{{ (account.code ~ ' - ' ~ account.name)|escape('js') }}</option>';
+{% endfor %}
+
+function addLine() {
+    var row = $('<tr>' +
+        '<td><select class="form-select input-line-account">' + accountOptions + '</select></td>' +
+        '<td><input type="number" step="any" class="form-control input-line-debit" value="0"/></td>' +
+        '<td><input type="number" step="any" class="form-control input-line-credit" value="0"/></td>' +
+        '<td><input type="text" class="form-control input-line-description"/></td>' +
+        '<td class="text-end"><button type="button" class="btn btn-sm btn-danger button-remove-line"><i class="fa-regular fa-trash-can"></i></button></td>' +
+        '</tr>');
+
+    $('#table-lines tbody').append(row);
+}
+
+function updateTotals() {
+    var totalDebit = 0;
+    var totalCredit = 0;
+
+    $('.input-line-debit').each(function() {
+        totalDebit += parseFloat($(this).val()) || 0;
+    });
+
+    $('.input-line-credit').each(function() {
+        totalCredit += parseFloat($(this).val()) || 0;
+    });
+
+    $('#total-debit').text(totalDebit.toFixed(2));
+    $('#total-credit').text(totalCredit.toFixed(2));
+
+    if (totalDebit > 0 && totalDebit.toFixed(2) === totalCredit.toFixed(2)) {
+        $('#balance-indicator').removeClass('text-bg-secondary text-bg-danger').addClass('text-bg-success').text('{{ text_balanced|escape('js') }}');
+    } else {
+        $('#balance-indicator').removeClass('text-bg-secondary text-bg-success').addClass('text-bg-danger').text('{{ text_unbalanced|escape('js') }}');
+    }
+}
+
+$('#button-add-line').on('click', addLine);
+
+$('#table-lines').on('input', '.input-line-debit, .input-line-credit', updateTotals);
+
+$('#table-lines').on('click', '.button-remove-line', function() {
+    $(this).closest('tr').remove();
+    updateTotals();
+});
+
+$('#button-save').on('click', function() {
+    var lines = [];
+
+    $('#table-lines tbody tr').each(function() {
+        var accountId = $(this).find('.input-line-account').val();
+        var debit = parseFloat($(this).find('.input-line-debit').val()) || 0;
+        var credit = parseFloat($(this).find('.input-line-credit').val()) || 0;
+        var description = $(this).find('.input-line-description').val();
+
+        if (accountId && (debit || credit)) {
+            lines.push({account_id: accountId, debit: debit, credit: credit, description: description});
+        }
+    });
+
+    $.ajax({
+        url: '{{ save }}',
+        type: 'post',
+        data: {
+            description: $('#input-description').val(),
+            lines: lines
+        },
+        dataType: 'json',
+        success: function(json) {
+            $('#alert-placeholder').html('');
+
+            if (json.error) {
+                var message = json.error.warning || '';
+
+                $('#alert-placeholder').html('<div class="alert alert-danger">' + message + '</div>');
+                return;
+            }
+
+            $('#alert-placeholder').html('<div class="alert alert-success">' + json.success + '</div>');
+        }
+    });
+});
+
+addLine();
+addLine();
+//--></script>
+{{ footer }}

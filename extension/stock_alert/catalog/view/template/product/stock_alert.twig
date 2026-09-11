@@ -1,0 +1,42 @@
+<div class="stock-alert card card-body mb-3">
+  <strong>{{ text_heading }}</strong>
+  {% if phone %}
+    <div class="input-group mt-2">
+      <input type="text" id="input-stock-alert-phone" class="form-control" placeholder="{{ text_placeholder }}" dir="ltr"/>
+      <button type="button" id="button-stock-alert" class="btn btn-primary" data-product-id="{{ product_id }}" data-url="{{ subscribe_url }}">{{ text_button }}</button>
+    </div>
+    <div id="stock-alert-message" class="mt-2"></div>
+  {% endif %}
+  {% if telegram or bale %}
+    <div class="mt-2">
+      {{ text_or }}
+      {% if telegram %}<a href="{{ telegram }}" target="_blank" class="btn btn-outline-secondary btn-sm ms-1">Telegram</a>{% endif %}
+      {% if bale %}<a href="{{ bale }}" target="_blank" class="btn btn-outline-secondary btn-sm ms-1">Bale</a>{% endif %}
+    </div>
+  {% endif %}
+</div>
+<script type="text/javascript"><!--
+$('#button-stock-alert').on('click', function() {
+    var button = this;
+    var phone = $('#input-stock-alert-phone').val();
+
+    $.ajax({
+        url: $(button).attr('data-url'),
+        type: 'post',
+        data: {
+            product_id: $(button).attr('data-product-id'),
+            phone: phone
+        },
+        dataType: 'json',
+        success: function(json) {
+            if (json['error']) {
+                $('#stock-alert-message').html('<div class="text-danger">' + json['error'] + '</div>');
+            }
+
+            if (json['success']) {
+                $('#stock-alert-message').html('<div class="text-success">' + json['success'] + '</div>');
+            }
+        }
+    });
+});
+//--></script>

@@ -1,0 +1,7 @@
+{
+  "name": "Telegram Bot Notifications",
+  "description": "Sends order/admin notifications through a Telegram bot (api.telegram.org).",
+  "version": "1.0",
+  "author": "",
+  "link": ""
+}

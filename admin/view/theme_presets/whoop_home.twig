@@ -1,0 +1,25 @@
+{{ header }}
+<div class="theme-whoop-hero">
+  <h1>{{ name }}</h1>
+  <p>{{ text_hero_tagline }}</p>
+  <a href="index.php?route=product/category" class="btn btn-primary me-2">{{ button_hero_products }}</a>
+  <a href="index.php?route=product/special" class="btn btn-outline-light">{{ button_hero_special }}</a>
+</div>
+<div class="theme-whoop-banner">
+  <div class="theme-whoop-banner-image">
+    <div class="theme-whoop-badge">
+      <span class="theme-whoop-badge-value">{{ text_whoop_stat_value }}</span>
+      <span class="theme-whoop-badge-label">{{ text_whoop_stat_label }}</span>
+    </div>
+  </div>
+</div>
+<div class="theme-whoop-statement">
+  <h2>{{ text_whoop_banner_heading }}</h2>
+  <p>{{ text_whoop_banner_text }}</p>
+</div>
+<div id="common-home" class="container">
+  <div class="row">{{ column_left }}
+    <div id="content" class="col">{{ content_top }}{{ content_bottom }}</div>
+    {{ column_right }}</div>
+</div>
+{{ footer }}

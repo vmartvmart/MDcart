@@ -1,0 +1,114 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="submit" form="form-whatsapp" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-save"></i></button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header"><i class="fa-brands fa-whatsapp"></i> {{ text_edit }}</div>
+      <div class="card-body">
+        <form id="form-whatsapp" action="{{ save }}" method="post" data-oc-toggle="ajax">
+          <fieldset>
+            <legend>{{ text_general }}</legend>
+            <div class="row mb-3">
+              <label class="col-sm-2 col-form-label">{{ entry_status }}</label>
+              <div class="col-sm-10">
+                <div class="form-check form-switch form-switch-lg">
+                  <input type="hidden" name="other_whatsapp_status" value="0"/>
+                  <input type="checkbox" name="other_whatsapp_status" value="1" id="input-status" class="form-check-input"{% if other_whatsapp_status %} checked{% endif %}/>
+                </div>
+              </div>
+            </div>
+            <div class="row mb-3 required">
+              <label for="input-phone-number-id" class="col-sm-2 col-form-label">{{ entry_phone_number_id }}</label>
+              <div class="col-sm-10">
+                <input type="text" name="other_whatsapp_phone_number_id" value="{{ other_whatsapp_phone_number_id }}" id="input-phone-number-id" class="form-control" dir="ltr"/>
+                <div id="error-phone-number-id" class="invalid-feedback"></div>
+                <div class="form-text">{{ help_phone_number_id }}</div>
+              </div>
+            </div>
+            <div class="row mb-3 required">
+              <label for="input-access-token" class="col-sm-2 col-form-label">{{ entry_access_token }}</label>
+              <div class="col-sm-10">
+                <input type="text" name="other_whatsapp_access_token" value="{{ other_whatsapp_access_token }}" id="input-access-token" class="form-control" dir="ltr"/>
+                <div id="error-access-token" class="invalid-feedback"></div>
+                <div class="form-text">{{ help_access_token }}</div>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>{{ text_templates }}</legend>
+            <div class="alert alert-info">{{ text_templates_notice }}</div>
+            <div class="row mb-3">
+              <label for="input-language-code" class="col-sm-2 col-form-label">{{ entry_language_code }}</label>
+              <div class="col-sm-10">
+                <input type="text" name="other_whatsapp_language_code" value="{{ other_whatsapp_language_code }}" id="input-language-code" class="form-control" dir="ltr" placeholder="fa"/>
+                <div class="form-text">{{ help_language_code }}</div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="input-template-order-add" class="col-sm-2 col-form-label">{{ entry_template_order_add }}</label>
+              <div class="col-sm-10">
+                <input type="text" name="other_whatsapp_template_order_add" value="{{ other_whatsapp_template_order_add }}" id="input-template-order-add" class="form-control" dir="ltr"/>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="input-template-order-status" class="col-sm-2 col-form-label">{{ entry_template_order_status }}</label>
+              <div class="col-sm-10">
+                <input type="text" name="other_whatsapp_template_order_status" value="{{ other_whatsapp_template_order_status }}" id="input-template-order-status" class="form-control" dir="ltr"/>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>{{ text_notifications }}</legend>
+            <div class="row mb-3">
+              <label class="col-sm-2 col-form-label">{{ entry_order_add_status }}</label>
+              <div class="col-sm-10">
+                <div class="form-check form-switch form-switch-lg">
+                  <input type="hidden" name="other_whatsapp_order_add_status" value="0"/>
+                  <input type="checkbox" name="other_whatsapp_order_add_status" value="1" id="input-order-add-status" class="form-check-input"{% if other_whatsapp_order_add_status %} checked{% endif %}/>
+                </div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label class="col-sm-2 col-form-label">{{ entry_order_status_status }}</label>
+              <div class="col-sm-10">
+                <div class="form-check form-switch form-switch-lg">
+                  <input type="hidden" name="other_whatsapp_order_status_status" value="0"/>
+                  <input type="checkbox" name="other_whatsapp_order_status_status" value="1" id="input-order-status-status" class="form-check-input"{% if other_whatsapp_order_status_status %} checked{% endif %}/>
+                </div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label class="col-sm-2 col-form-label">{{ entry_admin_status }}</label>
+              <div class="col-sm-10">
+                <div class="form-check form-switch form-switch-lg">
+                  <input type="hidden" name="other_whatsapp_admin_status" value="0"/>
+                  <input type="checkbox" name="other_whatsapp_admin_status" value="1" id="input-admin-status" class="form-check-input"{% if other_whatsapp_admin_status %} checked{% endif %}/>
+                </div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="input-admin-telephone" class="col-sm-2 col-form-label">{{ entry_admin_telephone }}</label>
+              <div class="col-sm-10">
+                <input type="text" name="other_whatsapp_admin_telephone" value="{{ other_whatsapp_admin_telephone }}" id="input-admin-telephone" class="form-control" dir="ltr"/>
+                <div class="form-text">{{ help_admin_telephone }}</div>
+              </div>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}

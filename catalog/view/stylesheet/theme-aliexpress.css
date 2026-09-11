@@ -1,0 +1,394 @@
+/* "AliExpress"-inspired storefront theme — white background, red/orange accent, dense deal
+   cards with discount badges and star ratings. Self-hosted, no external dependency. */
+
+:root {
+  --theme-ae-accent: #ff4747;
+  --theme-ae-accent-dark: #c40000;
+  --theme-ae-ink: #222222;
+  --theme-ae-muted: #767676;
+  --theme-ae-border: #ebebeb;
+  --theme-ae-surface-2: #f7f7f7;
+}
+
+body.theme-aliexpress {
+  --mb-surface: #ffffff;
+  --mb-surface-2: var(--theme-ae-surface-2);
+  --mb-text: var(--theme-ae-ink);
+  --mb-muted: var(--theme-ae-muted);
+  --mb-border: var(--theme-ae-border);
+  --mb-accent: var(--theme-ae-accent);
+  --mb-accent-text: #ffffff;
+  --mb-radius: .35rem;
+  --mb-radius-sm: .3rem;
+}
+
+.theme-ae-utility-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+body.theme-aliexpress #top {
+  background: var(--theme-ae-surface-2);
+  border-bottom: 1px solid var(--theme-ae-border);
+  padding: .3rem 0;
+  font-size: .78rem;
+  color: var(--theme-ae-muted);
+}
+
+body.theme-aliexpress #top .dropdown-toggle,
+body.theme-aliexpress #top a {
+  color: var(--theme-ae-muted);
+}
+
+body.theme-aliexpress #top .dropdown-toggle:hover,
+body.theme-aliexpress #top a:hover {
+  color: var(--theme-ae-accent);
+}
+
+.theme-ae-utility-right {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+body.theme-aliexpress .theme-ae-nav {
+  background: #fff;
+  border-bottom: 2px solid var(--theme-ae-accent);
+  padding: .75rem 0;
+}
+
+.theme-ae-nav-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .6rem 1rem;
+}
+
+@media (max-width: 767.98px) {
+  .theme-ae-search {
+    order: 3;
+    flex: 1 0 100%;
+  }
+}
+
+body.theme-aliexpress .theme-ae-nav #logo h1 a {
+  color: var(--theme-ae-accent);
+  font-weight: 800;
+}
+
+.theme-ae-categories-toggle {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  background: var(--theme-ae-ink);
+  color: #fff;
+  border-radius: 999px;
+  padding: .55rem 1.1rem;
+  font-weight: 700;
+  font-size: .85rem;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.theme-ae-search {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.theme-ae-search .input-group .form-control {
+  border-radius: 999px 0 0 999px !important;
+  border-color: var(--theme-ae-accent);
+}
+
+.theme-ae-search .input-group .btn,
+.theme-ae-search .input-group-text {
+  border-radius: 0 999px 999px 0 !important;
+  background: var(--theme-ae-accent);
+  border-color: var(--theme-ae-accent);
+  color: #fff;
+}
+
+#cart {
+  flex: 0 0 auto;
+}
+
+body.theme-aliexpress #cart .btn {
+  background: transparent;
+  border: none;
+  color: var(--theme-ae-ink);
+  font-size: 0;
+  padding: 0 .25rem;
+}
+
+body.theme-aliexpress #cart .btn i {
+  font-size: 1.3rem;
+}
+
+body.theme-aliexpress #menu {
+  background: var(--theme-ae-surface-2) !important;
+  border-bottom: 1px solid var(--theme-ae-border);
+}
+
+body.theme-aliexpress #menu .nav-link,
+body.theme-aliexpress #menu .dropdown-item {
+  color: var(--theme-ae-ink) !important;
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+body.theme-aliexpress #menu .nav-link:hover,
+body.theme-aliexpress #menu .dropdown-item:hover {
+  color: var(--theme-ae-accent) !important;
+}
+
+body.theme-aliexpress .btn-primary {
+  background-color: var(--theme-ae-accent);
+  border-color: var(--theme-ae-accent);
+  color: #fff;
+  border-radius: 999px;
+}
+
+body.theme-aliexpress .btn-primary:hover {
+  background-color: var(--theme-ae-accent-dark);
+  border-color: var(--theme-ae-accent-dark);
+}
+
+body.theme-aliexpress .btn-outline-light {
+  border-radius: 999px;
+  color: #fff;
+  border-color: rgba(255,255,255,.7);
+}
+
+body.theme-aliexpress a:not(.btn) {
+  color: var(--theme-ae-accent);
+}
+
+body.theme-aliexpress footer {
+  background: #2b2b2b;
+  color: #c9c9c9;
+  padding-top: 2rem;
+}
+
+body.theme-aliexpress footer h5 {
+  color: #fff;
+}
+
+body.theme-aliexpress footer a {
+  color: #c9c9c9;
+}
+
+body.theme-aliexpress footer a:hover {
+  color: #fff;
+}
+
+body.theme-aliexpress footer hr {
+  border-color: #3d3d3d;
+}
+
+/* Hero — deep red gradient campaign banner. */
+
+.theme-ae-hero {
+  background: linear-gradient(120deg, #8b0000 0%, var(--theme-ae-accent-dark) 50%, var(--theme-ae-accent) 100%);
+  color: #fff;
+  padding: 3.5rem 1rem;
+  text-align: center;
+}
+
+.theme-ae-hero h1 {
+  color: #fff;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.theme-ae-hero p {
+  color: rgba(255,255,255,.9);
+  font-size: 1.1rem;
+  max-width: 40rem;
+  margin: 0 auto 1.5rem;
+}
+
+.theme-ae-hero .btn-primary {
+  background: #fff;
+  border-color: #fff;
+  color: var(--theme-ae-accent-dark);
+}
+
+/* Perks row. */
+
+.theme-ae-perks {
+  border-bottom: 1px solid var(--theme-ae-border);
+  padding: 1rem 0;
+}
+
+.theme-ae-perks-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1.5rem 2.5rem;
+}
+
+.theme-ae-perk {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--theme-ae-ink);
+}
+
+.theme-ae-perk i {
+  color: var(--theme-ae-accent);
+}
+
+/* Deal grid — discount badge, price pair, star rating. */
+
+.theme-ae-row {
+  padding: 2rem 0;
+}
+
+.theme-ae-row-header h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
+  color: var(--theme-ae-ink);
+}
+
+.theme-ae-product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 1rem;
+}
+
+.theme-ae-product-card {
+  position: relative;
+  text-decoration: none;
+  color: var(--theme-ae-ink);
+  border: 1px solid var(--theme-ae-border);
+  border-radius: var(--mb-radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow .15s;
+}
+
+.theme-ae-product-card:hover {
+  box-shadow: 0 .5rem 1.25rem rgba(0,0,0,.1);
+  color: var(--theme-ae-ink);
+}
+
+.theme-ae-badge {
+  position: absolute;
+  top: .5rem;
+  left: .5rem;
+  background: var(--theme-ae-accent);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 800;
+  padding: .15rem .4rem;
+  border-radius: .25rem;
+  z-index: 1;
+}
+
+.theme-ae-product-image {
+  height: 9rem;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #fff;
+}
+
+.theme-ae-product-name {
+  padding: .6rem .6rem 0;
+  font-size: .78rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.4rem;
+}
+
+.theme-ae-product-price-row {
+  padding: .35rem .6rem 0;
+  display: flex;
+  align-items: baseline;
+  gap: .4rem;
+}
+
+.theme-ae-product-price {
+  font-size: .95rem;
+  font-weight: 800;
+  color: var(--theme-ae-accent);
+}
+
+.theme-ae-product-price-old {
+  font-size: .75rem;
+  color: var(--theme-ae-muted);
+  text-decoration: line-through;
+}
+
+.theme-ae-product-rating {
+  padding: .3rem .6rem .6rem;
+  font-size: .7rem;
+  color: #ffa500;
+}
+
+.theme-ae-star-off {
+  color: var(--theme-ae-border);
+}
+
+/* Sitewide coverage. */
+
+body.theme-aliexpress .breadcrumb {
+  background: var(--theme-ae-surface-2);
+}
+
+body.theme-aliexpress .breadcrumb-item.active {
+  color: var(--theme-ae-ink);
+}
+
+body.theme-aliexpress .card-header {
+  background: var(--theme-ae-surface-2);
+  color: var(--theme-ae-ink);
+  font-weight: 700;
+}
+
+body.theme-aliexpress .pagination .page-link {
+  color: var(--theme-ae-accent);
+}
+
+body.theme-aliexpress .pagination .page-item.active .page-link {
+  background: var(--theme-ae-accent);
+  border-color: var(--theme-ae-accent);
+}
+
+body.theme-aliexpress .price-new {
+  color: var(--theme-ae-accent);
+}
+
+body.theme-aliexpress .price-old {
+  color: var(--theme-ae-muted);
+  text-decoration: line-through;
+}
+
+body.theme-aliexpress .form-control:focus,
+body.theme-aliexpress .form-select:focus {
+  border-color: var(--theme-ae-accent);
+  box-shadow: 0 0 0 .2rem rgba(255,71,71,.15);
+}
+
+body.theme-aliexpress .rating .fa-star {
+  color: #ffa500;
+}
+
+body.theme-aliexpress .product-thumb .description h4 a {
+  color: var(--theme-ae-ink);
+}
+
+@media (max-width: 767px) {
+  .theme-ae-categories-toggle span {
+    display: none;
+  }
+}

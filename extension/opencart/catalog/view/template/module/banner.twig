@@ -1,0 +1,61 @@
+<div id="carousel-banner-{{ module }}" class="carousel slide{% if effect == 'fade' %} carousel-fade{% endif %}{% if full_width %} banner-full-width{% endif %}" data-bs-ride="carousel">
+  {% if indicators and banners|batch(items)|length > 1 %}
+    <div class="carousel-indicators">
+      {% set banner_row = 0 %}
+      {% for banner in banners|batch(items) %}
+        <button type="button" data-bs-target="#carousel-banner-{{ module }}" data-bs-slide-to="{{ banner_row }}"{% if banner_row == 0 %} class="active"{% endif %}></button>
+        {% set banner_row = banner_row + 1 %}
+      {% endfor %}
+    </div>
+  {% endif %}
+  <div class="carousel-inner">
+    {% set banner_row = 0 %}
+    {% for carousel in banners|batch(items) %}
+      <div class="carousel-item{% if banner_row == 0 %} active{% endif %}">
+        <div class="row justify-content-center g-0">
+          {% for banner in carousel %}
+            <div class="col-{{ (12 / items)|round }} text-center">
+              {% if banner.type == 'video' %}
+                <video class="img-fluid" src="{{ banner.image }}" autoplay muted loop playsinline{% if not full_width %} controls{% endif %}></video>
+              {% elseif banner.link %}
+                <a href="{{ banner.link }}"><img src="{{ banner.image }}" alt="{{ banner.title }}" class="img-fluid"/></a>
+              {% else %}
+                <img src="{{ banner.image }}" alt="{{ banner.title }}" class="img-fluid"/>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% set banner_row = banner_row + 1 %}
+    {% endfor %}
+  </div>
+  {% if controls and banners|batch(items)|length > 1 %}
+    <button type="button" class="carousel-control-prev" data-bs-target="#carousel-banner-{{ module }}" data-bs-slide="prev"><span class="fa-solid fa-chevron-left"></span></button>
+    <button type="button" class="carousel-control-next" data-bs-target="#carousel-banner-{{ module }}" data-bs-slide="next"><span class="fa-solid fa-chevron-right"></span></button>
+  {% endif %}
+</div>
+{% if full_width %}
+  <style>
+    #carousel-banner-{{ module }}.banner-full-width {
+      width: 100vw;
+      max-width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+    }
+    #carousel-banner-{{ module }}.banner-full-width img,
+    #carousel-banner-{{ module }}.banner-full-width video {
+      width: 100%;
+      max-height: 70vh;
+      object-fit: cover;
+    }
+  </style>
+{% endif %}
+<script type="text/javascript"><!--
+$(document).ready(function() {
+    new bootstrap.Carousel(document.querySelector('#carousel-banner-{{ module }}'), {
+        ride: 'carousel',
+        interval: {{ interval|escape('js') }},
+        wrap: true
+    });
+});
+//--></script>

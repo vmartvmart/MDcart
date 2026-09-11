@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>SizPay</title>
+</head>
+<body>
+<form id="form-sizpay-gateway" action="{{ action }}" method="post">
+  {% for name, value in fields %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}"/>
+  {% endfor %}
+</form>
+<script type="text/javascript">
+document.getElementById('form-sizpay-gateway').submit();
+</script>
+</body>
+</html>
