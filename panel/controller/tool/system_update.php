@@ -49,6 +49,7 @@ class SystemUpdate extends \Opencart\System\Engine\Controller {
 		$data['check'] = $this->url->link('tool/system_update.check', 'user_token=' . $this->session->data['user_token'], true);
 		$data['baseline'] = $this->url->link('tool/system_update.baseline', 'user_token=' . $this->session->data['user_token'], true);
 		$data['apply'] = $this->url->link('tool/system_update.apply', 'user_token=' . $this->session->data['user_token'], true);
+		$data['progress'] = $this->url->link('tool/system_update.progress', 'user_token=' . $this->session->data['user_token'], true);
 		$data['backups'] = $this->url->link('tool/system_update.backups', 'user_token=' . $this->session->data['user_token'], true);
 		$data['restore'] = $this->url->link('tool/system_update.restore', 'user_token=' . $this->session->data['user_token'], true);
 		$data['back'] = $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token']);
@@ -242,6 +243,48 @@ class SystemUpdate extends \Opencart\System\Engine\Controller {
 			if (isset($result['backup_id'])) {
 				$json['backup_id'] = $result['backup_id'];
 			}
+		}
+
+		$this->discardStrayOutput();
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+	/**
+	 * Progress
+	 *
+	 * Polled by the page (every ~1 second) while apply() is running, so
+	 * the admin sees a live progress bar instead of one static "please
+	 * wait" message for however long the whole request takes. Deliberately
+	 * a plain GET with only 'access' permission (same as check()) — it
+	 * only reads a small status file, it changes nothing, so it's safe to
+	 * call this as often as the page needs.
+	 *
+	 * This works concurrently with the long-running apply() request
+	 * because sessions here are stored in the database (see
+	 * system/library/session/db.php: a plain read/REPLACE, no row
+	 * locking), unlike PHP's native file-based sessions where a second
+	 * request on the same session would otherwise queue behind the first
+	 * until it finished — which would have made a progress poll pointless.
+	 *
+	 * @return void
+	 */
+	public function progress(): void {
+		ob_start();
+
+		$this->load->language('tool/system_update');
+
+		$json = [];
+
+		if (!$this->user->hasPermission('access', 'tool/system_update')) {
+			$json['error'] = $this->language->get('error_permission');
+		}
+
+		if (!$json) {
+			$this->load->model('tool/system_update');
+
+			$json = $this->model_tool_system_update->getProgress();
 		}
 
 		$this->discardStrayOutput();

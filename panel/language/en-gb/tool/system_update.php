@@ -38,6 +38,17 @@ $_['text_confirm_restore']         = 'Are you sure? The site\'s files and databa
 $_['text_restoring']               = 'Restoring from backup... do not close this page.';
 $_['text_restore_success']         = 'Restore completed successfully.';
 
+// Progress steps (shown live above the progress bar while "Get & Apply Update" is running)
+$_['text_step_start']              = 'Starting...';
+$_['text_step_resolve']            = 'Checking the latest version...';
+$_['text_step_backup']             = 'Taking a full backup (files and database)...';
+$_['text_step_download']           = 'Downloading the update package...';
+$_['text_step_extract']            = 'Extracting files...';
+$_['text_step_copy']               = 'Copying files onto the server...';
+$_['text_step_finalize']           = 'Finishing up...';
+$_['text_step_done']               = 'Done!';
+$_['text_step_error']              = 'Stopped due to an error';
+
 // Entry
 $_['entry_repo']                   = 'Repository';
 $_['entry_branch']                 = 'Branch';

@@ -38,6 +38,17 @@ $_['text_confirm_restore']         = 'آیا مطمئن هستید؟ فایل‌
 $_['text_restoring']               = 'در حال بازگردانی از بکاپ... صفحه را نبندید.';
 $_['text_restore_success']         = 'بازگردانی با موفقیت انجام شد.';
 
+// Progress steps (shown live above the progress bar while "دریافت و اعمال بروزرسانی" is running)
+$_['text_step_start']              = 'در حال شروع...';
+$_['text_step_resolve']            = 'در حال بررسی آخرین نسخه...';
+$_['text_step_backup']             = 'در حال گرفتن بکاپ کامل (فایل‌ها و دیتابیس)...';
+$_['text_step_download']           = 'در حال دانلود بسته بروزرسانی...';
+$_['text_step_extract']            = 'در حال استخراج فایل‌ها...';
+$_['text_step_copy']               = 'در حال جایگزینی فایل‌ها روی سرور...';
+$_['text_step_finalize']           = 'در حال اتمام کار...';
+$_['text_step_done']               = 'انجام شد!';
+$_['text_step_error']              = 'متوقف شد به‌خاطر خطا';
+
 // Entry
 $_['entry_repo']                   = 'مخزن';
 $_['entry_branch']                 = 'شاخه (Branch)';

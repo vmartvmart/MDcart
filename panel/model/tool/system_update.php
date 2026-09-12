@@ -80,6 +80,22 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 	private const BACKUP_KEEP = 5;
 
 	/**
+	 * Path (under DIR_STORAGE, NOT inside update_tmp/) of the small JSON
+	 * file that records apply-update progress in real time, so a separate,
+	 * fast polling request can report live status to the admin while the
+	 * one long-running request that's actually doing the work (backup +
+	 * download + extract + copy) is still in flight. Deliberately kept
+	 * outside update_tmp/ — that directory is wiped and recreated partway
+	 * through applyUpdate() (see prepareTmpDir()/cleanupTmpDir()), which
+	 * would otherwise delete this file out from under a request reading it.
+	 * Session storage here is the "db" engine (system/library/session/db.php)
+	 * with no row locking, so the concurrent poll never has to wait behind
+	 * the long request either — this file is the only coordination needed
+	 * between the two.
+	 */
+	private const PROGRESS_FILE = 'system_update_progress.json';
+
+	/**
 	 * Persian names for every country in the reference seed data
 	 * (install_starter.sql), keyed by ISO 3166-1 alpha-2 code.
 	 *
@@ -596,6 +612,60 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 	}
 
 	/**
+	 * Write Progress
+	 *
+	 * Overwrites the small progress file with the current step and percent
+	 * complete. Best-effort only (@-suppressed): a failed write here must
+	 * never break the actual update, it just means the progress bar stops
+	 * updating for that run — the apply request itself still finishes
+	 * normally and reports success/failure the usual way.
+	 *
+	 * @param string $step
+	 * @param int    $percent
+	 *
+	 * @return void
+	 */
+	private function writeProgress(string $step, int $percent): void {
+		if (!is_dir(DIR_STORAGE)) {
+			return;
+		}
+
+		@file_put_contents(DIR_STORAGE . self::PROGRESS_FILE, json_encode([
+			'step'    => $step,
+			'percent' => $percent,
+			'time'    => time(),
+		]));
+	}
+
+	/**
+	 * Get Progress
+	 *
+	 * Read-only status for the polling endpoint. Always returns something
+	 * usable — an "idle" step when no update has ever run, the file is
+	 * unreadable, or a read happens to land on a half-written file (an
+	 * overwrite here is not atomic, but the file is only ever a few dozen
+	 * bytes, so a torn read is rare and self-corrects on the very next
+	 * poll a second later).
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function getProgress(): array {
+		$file = DIR_STORAGE . self::PROGRESS_FILE;
+
+		if (!is_file($file)) {
+			return ['step' => 'idle', 'percent' => 0];
+		}
+
+		$data = json_decode((string)@file_get_contents($file), true);
+
+		if (!is_array($data) || !isset($data['step'])) {
+			return ['step' => 'idle', 'percent' => 0];
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Apply Update
 	 *
 	 * Takes a full backup (database + files), then downloads the configured
@@ -605,51 +675,80 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 	 * attempted — a pre-update backup that didn't happen is not worth the
 	 * risk of an update with no way back.
 	 *
+	 * Writes progress to self::PROGRESS_FILE at each stage (see
+	 * writeProgress()) so the admin page can poll tool/system_update.progress
+	 * and show a live progress bar instead of one static "please wait"
+	 * message for however long this whole request takes.
+	 *
 	 * @return array<string, mixed>
 	 */
 	public function applyUpdate(): array {
+		$this->writeProgress('start', 2);
+
 		$settings = $this->getSettings();
 
 		if (!$settings['repo'] || !$settings['token']) {
+			$this->writeProgress('error', 0);
+
 			return ['error' => 'not_configured'];
 		}
 
 		if (!class_exists('ZipArchive')) {
+			$this->writeProgress('error', 0);
+
 			return ['error' => 'zip_extension'];
 		}
 
 		@set_time_limit(0);
 		@ini_set('memory_limit', '512M');
 
+		$this->writeProgress('resolve', 5);
+
 		// Resolve the exact commit we're about to apply, so the recorded
 		// "current_commit" always reflects the code actually written to disk.
 		$commit_result = $this->githubRequest('https://api.github.com/repos/' . $settings['repo'] . '/commits/' . rawurlencode($settings['branch']), $settings['token']);
 
 		if (isset($commit_result['error'])) {
+			$this->writeProgress('error', 5);
+
 			return $commit_result;
 		}
 
 		$sha = $commit_result['data']['sha'] ?? '';
 
 		if (!$sha) {
+			$this->writeProgress('error', 5);
+
 			return ['error' => 'download'];
 		}
+
+		$this->writeProgress('backup', 10);
 
 		$backup = $this->createBackup('پیش از بروزرسانی به ' . substr($sha, 0, 10), $settings['current_commit'], $sha);
 
 		if (isset($backup['error'])) {
+			$this->writeProgress('error', 10);
+
 			return $backup;
 		}
+
+		$this->writeProgress('download', 40);
 
 		$tmp_dir = DIR_STORAGE . 'update_tmp/';
 		$zip_file = $tmp_dir . 'update.zip';
 		$extract_dir = $tmp_dir . 'extracted/';
 
+		// Note: this wipes and recreates $tmp_dir, which is why the
+		// progress file lives outside it (see PROGRESS_FILE's docblock) —
+		// otherwise every call here would erase the very file a concurrent
+		// poll is trying to read.
 		$this->prepareTmpDir($tmp_dir, $extract_dir);
 
 		$download = $this->downloadZipball($settings['repo'], $settings['branch'], $settings['token'], $zip_file);
 
 		if (isset($download['error'])) {
+			$this->writeProgress('error', 40);
+
 			$this->cleanupTmpDir($tmp_dir);
 
 			$download['backup_id'] = $backup['id'];
@@ -657,15 +756,21 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 			return $download;
 		}
 
+		$this->writeProgress('extract', 65);
+
 		$zip = new \ZipArchive();
 
 		if ($zip->open($zip_file) !== true) {
+			$this->writeProgress('error', 65);
+
 			$this->cleanupTmpDir($tmp_dir);
 
 			return ['error' => 'extract', 'backup_id' => $backup['id']];
 		}
 
 		if ($zip->numFiles < 1) {
+			$this->writeProgress('error', 65);
+
 			$zip->close();
 			$this->cleanupTmpDir($tmp_dir);
 
@@ -683,6 +788,8 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 		$zip->close();
 
 		if (!$extracted_ok) {
+			$this->writeProgress('error', 65);
+
 			$this->cleanupTmpDir($tmp_dir);
 
 			return ['error' => 'extract', 'backup_id' => $backup['id']];
@@ -691,10 +798,14 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 		$source_root = $extract_dir . $root_folder . '/';
 
 		if (!is_dir($source_root)) {
+			$this->writeProgress('error', 65);
+
 			$this->cleanupTmpDir($tmp_dir);
 
 			return ['error' => 'extract', 'backup_id' => $backup['id']];
 		}
+
+		$this->writeProgress('copy', 85);
 
 		$write_failures = [];
 
@@ -711,6 +822,8 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 
 		$this->copyRecursive($source_root, DIR_OPENCART, self::EXCLUDE_PATHS, $write_failures, $path_remap);
 
+		$this->writeProgress('finalize', 95);
+
 		$this->cleanupTmpDir($tmp_dir);
 
 		// New code is on disk — force the framework to recompile templates
@@ -720,6 +833,8 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 		$this->setBaseline($sha);
 
 		if ($write_failures) {
+			$this->writeProgress('error', 95);
+
 			return [
 				'error'          => 'write',
 				'applied_commit' => $sha,
@@ -727,6 +842,8 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 				'backup_id'      => $backup['id'],
 			];
 		}
+
+		$this->writeProgress('done', 100);
 
 		return ['applied_commit' => $sha, 'backup_id' => $backup['id']];
 	}

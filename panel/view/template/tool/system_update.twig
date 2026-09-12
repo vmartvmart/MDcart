@@ -25,6 +25,16 @@
           </div>
         </div>
 
+        <div id="div-apply-progress" class="mb-3" style="display: none;">
+          <div class="d-flex justify-content-between mb-1">
+            <span id="text-apply-step">{{ text_step_start }}</span>
+            <span id="text-apply-percent">0%</span>
+          </div>
+          <div class="progress" role="progressbar" aria-label="{{ button_apply }}" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div id="bar-apply-progress" class="progress-bar progress-bar-striped progress-bar-animated bg-danger" style="width: 0%"></div>
+          </div>
+        </div>
+
         <table class="table table-bordered">
           <tr>
             <td class="text-start">{{ text_current_commit }}</td>
@@ -143,6 +153,85 @@ function scRefreshBackups() {
     });
 }
 
+// Text shown above the progress bar for each step reported by
+// tool/system_update.progress — in the admin's own current language,
+// same as everything else on this page (these come from the language
+// file, auto-injected into every template's data, so they already
+// switch fa/en with the rest of the panel with no extra work here).
+var scStepLabels = {
+    'idle':     '',
+    'start':    '{{ text_step_start }}',
+    'resolve':  '{{ text_step_resolve }}',
+    'backup':   '{{ text_step_backup }}',
+    'download': '{{ text_step_download }}',
+    'extract':  '{{ text_step_extract }}',
+    'copy':     '{{ text_step_copy }}',
+    'finalize': '{{ text_step_finalize }}',
+    'done':     '{{ text_step_done }}',
+    'error':    '{{ text_step_error }}'
+};
+
+var scProgressTimer = null;
+
+// Polls tool/system_update.progress every second while apply() is
+// running. This works *concurrently* with that long, single apply()
+// request — rather than queueing behind it until it finishes, which
+// would defeat the whole point — because sessions here are stored in
+// the database with no row locking (see the "progress" controller
+// method's own docblock), unlike PHP's native file-based sessions.
+function scStartProgressPolling() {
+    scStopProgressPolling();
+
+    $('#div-apply-progress').show();
+    scRenderProgress({step: 'start', percent: 2});
+
+    scProgressTimer = setInterval(function() {
+        $.ajax({
+            url: '{{ progress }}',
+            type: 'get',
+            dataType: 'json',
+            success: function(json) {
+                if (json && !json['error']) {
+                    scRenderProgress(json);
+                }
+            }
+            // A single failed poll is not worth surfacing — the next one
+            // a second later either succeeds or the apply request itself
+            // has by then finished and its own success/error handler
+            // (which always calls scStopProgressPolling()) takes over.
+        });
+    }, 1000);
+}
+
+function scStopProgressPolling() {
+    if (scProgressTimer) {
+        clearInterval(scProgressTimer);
+        scProgressTimer = null;
+    }
+}
+
+function scRenderProgress(json) {
+    var percent = Math.max(0, Math.min(100, parseInt(json.percent, 10) || 0));
+    var label = scStepLabels[json.step] || '';
+
+    $('#bar-apply-progress').css('width', percent + '%').attr('aria-valuenow', percent);
+    $('#text-apply-percent').text(percent + '%');
+    $('#text-apply-step').text(label);
+
+    if (json.step === 'error') {
+        $('#bar-apply-progress').removeClass('progress-bar-animated bg-danger').addClass('bg-warning');
+    }
+}
+
+// Resets a previous run's finished/error progress bar (color, width, hidden
+// state) before a fresh check — otherwise a leftover "stopped due to an
+// error" bar from an earlier attempt could still be showing next time.
+function scResetProgress() {
+    $('#div-apply-progress').stop(true, true).hide();
+    $('#bar-apply-progress').removeClass('bg-warning').addClass('progress-bar-animated bg-danger');
+    scRenderProgress({step: 'idle', percent: 0});
+}
+
 $('#button-check').on('click', function() {
     var element = this;
 
@@ -153,6 +242,7 @@ $('#button-check').on('click', function() {
         beforeSend: function() {
             $(element).prop('disabled', true);
             scUpdateAlert('warning', '{{ text_checking }}');
+            scResetProgress();
         },
         complete: function() {
             $(element).prop('disabled', false);
@@ -275,12 +365,18 @@ $('#button-apply').on('click', function() {
             $(element).prop('disabled', true);
             $('#button-check').prop('disabled', true);
             scUpdateAlert('warning', '{{ text_applying }}');
+            // Show something the instant the button is clicked, then keep
+            // it live for however long this request actually takes —
+            // instead of one static message with no visible progress.
+            scStartProgressPolling();
         },
         complete: function() {
             $('#button-check').prop('disabled', false);
+            scStopProgressPolling();
         },
         success: function(json) {
             if (json['error']) {
+                scRenderProgress({step: 'error', percent: parseInt($('#text-apply-percent').text(), 10) || 0});
                 scUpdateAlert('danger', json['error']);
                 $(element).prop('disabled', false);
 
@@ -290,6 +386,8 @@ $('#button-apply').on('click', function() {
 
                 return;
             }
+
+            scRenderProgress({step: 'done', percent: 100});
 
             if (json['applied_commit']) {
                 var appliedLabel = json['applied_version'] || json['applied_commit'].substring(0, 10);
@@ -308,8 +406,15 @@ $('#button-apply').on('click', function() {
             scUpdateAlert(json['warning'] ? 'warning' : 'success', message);
 
             scRefreshBackups();
+
+            // Leave the finished bar visible for a moment so it's clear the
+            // job actually completed, then tuck it away again.
+            setTimeout(function() {
+                $('#div-apply-progress').fadeOut(400);
+            }, 2000);
         },
         error: function(xhr, ajaxOptions, thrownError) {
+            scRenderProgress({step: 'error', percent: parseInt($('#text-apply-percent').text(), 10) || 0});
             scAjaxError(xhr, thrownError);
             $(element).prop('disabled', false);
         }
