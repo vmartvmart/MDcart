@@ -33,5 +33,10 @@
     "version": "5.2.3",
     "fa": "دو رفع باگ روی صفحه‌ی «بروزرسانی»: (۱) تاریخ «آخرین بروزرسانی اعمال‌شده» اصلاً هیچ‌وقت به تقویم جلالی تبدیل نمی‌شد (برخلاف بقیه‌ی تاریخ‌های صفحه که در تغییر قبلی درست شدند) — الان درست می‌شود. (۲) بازه‌ی نسخه در توضیح هر بکاپ (مثلاً «5.2.1 → 5.2.2») گاهی داخل متن راست‌به‌چپ فارسی برعکس نمایش داده می‌شد (انگار از نسخه‌ی بالاتر به پایین‌تر رفته)، چون مرورگر جهت آن را با متن فارسی اطرافش قاطی می‌کرد؛ الان با علامت‌های جهت‌دهی یونیکد همیشه به ترتیب درست (چپ‌به‌راست) نمایش داده می‌شود.",
     "en": "Two fixes on the System Update page: (1) the \"last applied\" date was never converted to the Jalali calendar at all (unlike the rest of the page's dates, fixed in the previous release) — it now is. (2) The version range in each backup's description (e.g. \"5.2.1 → 5.2.2\") could render visually reversed inside the surrounding right-to-left Persian text (looking like it went from the newer version down to the older one), because the browser's bidi handling mixed its direction with the Persian text around it; it now always displays left-to-right in the correct order via Unicode directional isolate marks."
+  },
+  {
+    "version": "5.2.4",
+    "fa": "رفع باگ: پرچم زبان انگلیسی (هم در فروشگاه و هم در پنل مدیریت) از وقتی کد زبان به us تغییر کرد، شکسته بود (تصویر پیدا نمی‌شد) — چون هنگام تغییرنام پوشه‌ها، خودِ فایل پرچم به‌اشتباه با نام قدیمی (en-gb.png) باقی مانده بود، در حالی‌که سیستم آدرس پرچم را همیشه از روی «کد زبان + پسوند png» می‌سازد (یعنی به‌دنبال us.png می‌گردد). یک فایل تصویر یتیم و بلااستفاده هم از پوشه‌ی زبان فارسی پاک شد.",
+    "en": "Fixed a bug where the English language's flag (both storefront and admin) had been broken (image not found) ever since the language code changed to us — the flag file itself was left with its old name (en-gb.png) when the folders were renamed, while the system always builds the flag's path from \"language code + .png\" (i.e. it looks for us.png). Also removed an unused, orphaned flag image left behind in the Persian language folder."
   }
 ]
