@@ -1,0 +1,12 @@
+[
+  {
+    "version": "5.0.1",
+    "fa": "افزودن آدرس مستقیم /pos، رفع باگ دکمه‌های صفحه «بروزرسانی» (ذخیره/بررسی/اعمال) که از ابتدا کار نمی‌کردند، و رفع یک باگ عمومی‌تر که می‌توانست هر درخواست AJAX دیگری در کل سایت را هم خراب کند.",
+    "en": "Added the direct /pos shortcut, fixed the Update page's buttons (save/check/apply), which never actually worked, and fixed a broader bug that could silently break any AJAX request across the whole site."
+  },
+  {
+    "version": "5.1.0",
+    "fa": "نام کشورها در بخش محلی‌سازی برای هر دو زبان اصلاح شد: ترجمه‌ی واقعی فارسی برای هر ۲۵۳ کشور (که قبلاً همگی صرفاً کپی نام انگلیسی بودند) و تصحیح نام رسمی ایران. همچنین یک ابزار نگه‌داری جدید اضافه شد تا همین اصلاح روی نصب‌های آینده هم با یک کلیک قابل اعمال باشد.",
+    "en": "Fixed country names in Localisation for both languages: real Persian translations for all 253 countries (previously just copies of the English name) and a corrected official name for Iran. Also added a maintenance tool so this same fix can be applied to future installs with one click."
+  }
+]

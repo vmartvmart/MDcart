@@ -407,8 +407,16 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 	 * Check For Update
 	 *
 	 * When a baseline is already recorded and a newer commit exists, also
-	 * fetches the list of commits between the two (the changelog) so the
-	 * admin can see what's actually changing before approving an update.
+	 * fetches the list of what's changing (the changelog) so the admin can
+	 * see it before approving an update. Prefers the repository's own
+	 * CHANGELOG.json — structured, bilingual release notes (one entry per
+	 * version, each with a "fa" and an "en" string) so this list can switch
+	 * language with the rest of the admin interface, the same way every
+	 * other piece of text in the panel already does. Raw git commit
+	 * messages are always English and often too technical for an end
+	 * customer, so they're only used as a fallback when CHANGELOG.json is
+	 * missing (e.g. an older repo state, or a version bumped without a
+	 * changelog entry).
 	 *
 	 * @return array<string, mixed>
 	 */
@@ -445,7 +453,9 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 			'changelog'       => [],
 		];
 
-		if ($settings['current_commit'] && $settings['current_commit'] !== $response['latest_commit']) {
+		$response['changelog'] = $this->getReleaseNotes($settings['repo'], $settings['token'], $settings['branch'], $response['current_version']);
+
+		if (!$response['changelog'] && $settings['current_commit'] && $settings['current_commit'] !== $response['latest_commit']) {
 			$compare = $this->compareCommits($settings['repo'], $settings['token'], $settings['current_commit'], $response['latest_commit']);
 
 			if (!isset($compare['error'])) {
@@ -454,6 +464,99 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Get Release Notes
+	 *
+	 * Structured, bilingual changelog entries (from CHANGELOG.json on the
+	 * configured branch) that are newer than $current_version — i.e. what
+	 * an update from here would actually add. Each entry looks like
+	 * {"version": "5.1.0", "fa": "...", "en": "..."}. Returns [] (not an
+	 * error) whenever this file doesn't exist, fails to parse, or every
+	 * entry in it is already applied — the caller falls back to the raw
+	 * git commit log in that case, so a repo without this file yet still
+	 * shows something.
+	 *
+	 * @param string $repo
+	 * @param string $token
+	 * @param string $branch
+	 * @param string $current_version
+	 *
+	 * @return array<int, array<string, string>>
+	 */
+	private function getReleaseNotes(string $repo, string $token, string $branch, string $current_version): array {
+		$entries = $this->getRemoteChangelog($repo, $token, $branch);
+
+		if (!$entries) {
+			return [];
+		}
+
+		$filtered = [];
+
+		foreach ($entries as $entry) {
+			// Skip anything already applied (or older). An empty local
+			// VERSION file (never set) means we can't compare, so show
+			// everything rather than hide it all.
+			if ($current_version !== '' && version_compare($entry['version'], $current_version, '<=')) {
+				continue;
+			}
+
+			$filtered[] = $entry;
+		}
+
+		usort($filtered, function (array $a, array $b): int {
+			return version_compare($b['version'], $a['version']);
+		});
+
+		return $filtered;
+	}
+
+	/**
+	 * Get Remote Changelog
+	 *
+	 * Parses CHANGELOG.json from the configured branch into a plain array
+	 * of ['version' => ..., 'fa' => ..., 'en' => ...] entries. Returns []
+	 * (not an error) when the file is missing or malformed, matching
+	 * getRemoteVersion()'s "absence is not a hard failure" behaviour —
+	 * an older repo state without this file must never block the rest of
+	 * the update check.
+	 *
+	 * @param string $repo
+	 * @param string $token
+	 * @param string $branch
+	 *
+	 * @return array<int, array<string, string>>
+	 */
+	private function getRemoteChangelog(string $repo, string $token, string $branch): array {
+		$result = $this->githubRequest('https://api.github.com/repos/' . $repo . '/contents/CHANGELOG.json?ref=' . rawurlencode($branch), $token);
+
+		if (isset($result['error']) || !isset($result['data']['content'])) {
+			return [];
+		}
+
+		$json = base64_decode(str_replace("\n", '', (string)$result['data']['content']));
+		$decoded = json_decode((string)$json, true);
+
+		if (!is_array($decoded)) {
+			return [];
+		}
+
+		$entries = [];
+
+		foreach ($decoded as $entry) {
+			if (!is_array($entry) || empty($entry['version'])) {
+				continue;
+			}
+
+			$entries[] = [
+				'version' => (string)$entry['version'],
+				'fa'      => (string)($entry['fa'] ?? ''),
+				'en'      => (string)($entry['en'] ?? ''),
+			];
+		}
+
+		return $entries;
 	}
 
 	/**

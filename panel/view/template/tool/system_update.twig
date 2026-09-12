@@ -177,9 +177,30 @@ $('#button-check').on('click', function() {
             $list.empty();
 
             if (json['changelog'] && json['changelog'].length) {
-                json['changelog'].forEach(function(commit) {
-                    var firstLine = (commit.message || '').split('\n')[0];
-                    $list.append('<li class="list-group-item">' + firstLine + '</li>');
+                var isPersian = scAdminLangCode.indexOf('fa') === 0;
+
+                json['changelog'].forEach(function(entry) {
+                    var line;
+
+                    if (entry.fa !== undefined || entry.en !== undefined) {
+                        // Structured, bilingual entry from CHANGELOG.json —
+                        // show it in whichever language the admin is
+                        // currently using, same as the rest of the panel.
+                        // Falls back to the other language if this one's
+                        // text is missing, so a half-filled entry still
+                        // shows something instead of a blank line.
+                        line = (isPersian ? entry.fa : entry.en) || entry.en || entry.fa || '';
+
+                        if (entry.version) {
+                            line = entry.version + ' — ' + line;
+                        }
+                    } else {
+                        // Fallback: raw git commit message (always English —
+                        // used only when the repo has no CHANGELOG.json yet).
+                        line = (entry.message || '').split('\n')[0];
+                    }
+
+                    $list.append('<li class="list-group-item">' + line + '</li>');
                 });
                 $('#div-changelog').show();
             } else if (json['message']) {
