@@ -116,7 +116,15 @@ function scFormatDate(iso) {
         return '';
     }
 
-    var d = new Date(iso);
+    // MySQL/PHP's "Y-m-d H:i:s" (a space between date and time, no "T",
+    // no timezone) isn't standard ISO 8601 — some browsers parse it fine
+    // as local time anyway, but that's undefined behaviour per spec, so
+    // normalize it to "Y-m-dTH:i:s" first for a parse that's reliable
+    // everywhere. Already-ISO strings (e.g. from the GitHub API, which
+    // include a "T") pass through unchanged.
+    var normalized = (iso.indexOf('T') === -1) ? iso.replace(' ', 'T') : iso;
+
+    var d = new Date(normalized);
 
     if (isNaN(d.getTime())) {
         return iso;
@@ -131,6 +139,19 @@ function scFormatDate(iso) {
     } catch (e) {
         return d.toLocaleDateString();
     }
+}
+
+// The backups list is rendered server-side (initial page load) and also
+// re-fetched over AJAX after every apply/restore (see scRefreshBackups()),
+// so its dates need reformatting in both places rather than just once on
+// load. Each cell keeps the raw value in data-created so this can run
+// repeatedly without losing the original string to reformat from.
+function scFormatBackupDates() {
+    $('#div-backup-list .backup-date').each(function() {
+        var raw = $(this).attr('data-created');
+
+        $(this).text(scFormatDate(raw));
+    });
 }
 
 // A failed AJAX call (network error, PHP fatal, wrong URL, etc.) used to
@@ -149,9 +170,14 @@ function scRefreshBackups() {
         type: 'get',
         success: function(html) {
             $('#div-backup-list').html(html);
+            scFormatBackupDates();
         }
     });
 }
+
+// Format the backups list that's already in the page from the initial,
+// server-rendered load (before any AJAX refresh has happened).
+scFormatBackupDates();
 
 // Text shown above the progress bar for each step reported by
 // tool/system_update.progress — in the admin's own current language,

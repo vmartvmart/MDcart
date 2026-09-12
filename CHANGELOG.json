@@ -23,5 +23,10 @@
     "version": "5.2.1",
     "fa": "لیست بکاپ‌های خودکار قبل از بروزرسانی حالا به‌جای هش گیت (مثلاً «به fa9e389abc»)، شماره نسخه را نشان می‌دهد (مثلاً «5.2.0 → 5.2.1»)، هماهنگ با همان شماره نسخه‌ای که همه‌جای دیگر سایت نمایش داده می‌شود.",
     "en": "The automatic pre-update backups list now labels each backup with version numbers (e.g. \"5.2.0 → 5.2.1\") instead of a raw git hash, matching how the version is shown everywhere else on the site."
+  },
+  {
+    "version": "5.2.2",
+    "fa": "رفع باگ: صفحه‌ی «بروزرسانی» (لیست تغییرات و تاریخ‌ها) همیشه بر اساس زبان پیش‌فرض سیستم نمایش داده می‌شد، نه زبانی که مدیر واقعاً در همان لحظه از آن استفاده می‌کند — یعنی حتی وقتی زبان پنل روی فارسی بود، لیست تغییرات به انگلیسی و تاریخ‌ها میلادی نشان داده می‌شدند. حالا هم لیست تغییرات و هم تاریخ‌ها (شامل تاریخ بکاپ‌ها) با زبان فعال مدیر هماهنگ هستند: فارسی با تقویم جلالی، در غیر این صورت میلادی.",
+    "en": "Fixed a bug where the System Update page (changelog and dates) always used the site's system-wide default language instead of whatever language the current admin actually has active — so even with the panel set to Persian, the changelog showed English and dates showed the Gregorian calendar. Both the changelog and every date on the page (including backup dates) now follow the admin's active language: Persian with the Jalali calendar, Gregorian otherwise."
   }
 ]

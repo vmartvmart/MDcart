@@ -63,8 +63,14 @@ class SystemUpdate extends \MDcart\System\Engine\Controller {
 		$data['applied_at'] = $settings['applied_at'];
 		// Lets the page format dates in the admin's own calendar (Jalali
 		// for Persian, Gregorian otherwise) instead of always one or the
-		// other — see scFormatDate() in the template.
-		$data['language_code'] = $this->config->get('language_code');
+		// other — see scFormatDate() in the template. Must be
+		// config_language_admin (the language actually active for this
+		// admin session, updated by startup/language from the language
+		// cookie), not the system-wide "language_code" default — that one
+		// never changes no matter which language the admin has selected,
+		// so the page silently ignored the admin's language choice before
+		// this fix.
+		$data['language_code'] = $this->config->get('config_language_admin');
 
 		$data['backup_list_html'] = $this->load->view('tool/system_update_backups', [
 			'backup_list' => $this->formatBackups($this->model_tool_system_update->listBackups()),
