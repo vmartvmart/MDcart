@@ -42,7 +42,7 @@
           </tr>
           <tr>
             <td class="text-start">{{ text_applied_date }}</td>
-            <td class="text-start" id="text-applied-date">{{ applied_at ? applied_at : text_never }}</td>
+            <td class="text-start" id="text-applied-date" data-created="{{ applied_at }}">{{ applied_at ? applied_at : text_never }}</td>
           </tr>
           <tr>
             <td class="text-start">{{ text_latest_commit }}</td>
@@ -178,6 +178,16 @@ function scRefreshBackups() {
 // Format the backups list that's already in the page from the initial,
 // server-rendered load (before any AJAX refresh has happened).
 scFormatBackupDates();
+
+// The "last applied" date is only ever rendered server-side on page load
+// (there's no AJAX refresh point for it, unlike the backups list or the
+// "Check for update" result), so it just needs the one-time conversion
+// here rather than a reusable function.
+var scAppliedAtRaw = $('#text-applied-date').attr('data-created');
+
+if (scAppliedAtRaw) {
+    $('#text-applied-date').text(scFormatDate(scAppliedAtRaw));
+}
 
 // Text shown above the progress bar for each step reported by
 // tool/system_update.progress — in the admin's own current language,

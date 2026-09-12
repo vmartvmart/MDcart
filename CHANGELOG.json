@@ -28,5 +28,10 @@
     "version": "5.2.2",
     "fa": "رفع باگ: صفحه‌ی «بروزرسانی» (لیست تغییرات و تاریخ‌ها) همیشه بر اساس زبان پیش‌فرض سیستم نمایش داده می‌شد، نه زبانی که مدیر واقعاً در همان لحظه از آن استفاده می‌کند — یعنی حتی وقتی زبان پنل روی فارسی بود، لیست تغییرات به انگلیسی و تاریخ‌ها میلادی نشان داده می‌شدند. حالا هم لیست تغییرات و هم تاریخ‌ها (شامل تاریخ بکاپ‌ها) با زبان فعال مدیر هماهنگ هستند: فارسی با تقویم جلالی، در غیر این صورت میلادی.",
     "en": "Fixed a bug where the System Update page (changelog and dates) always used the site's system-wide default language instead of whatever language the current admin actually has active — so even with the panel set to Persian, the changelog showed English and dates showed the Gregorian calendar. Both the changelog and every date on the page (including backup dates) now follow the admin's active language: Persian with the Jalali calendar, Gregorian otherwise."
+  },
+  {
+    "version": "5.2.3",
+    "fa": "دو رفع باگ روی صفحه‌ی «بروزرسانی»: (۱) تاریخ «آخرین بروزرسانی اعمال‌شده» اصلاً هیچ‌وقت به تقویم جلالی تبدیل نمی‌شد (برخلاف بقیه‌ی تاریخ‌های صفحه که در تغییر قبلی درست شدند) — الان درست می‌شود. (۲) بازه‌ی نسخه در توضیح هر بکاپ (مثلاً «5.2.1 → 5.2.2») گاهی داخل متن راست‌به‌چپ فارسی برعکس نمایش داده می‌شد (انگار از نسخه‌ی بالاتر به پایین‌تر رفته)، چون مرورگر جهت آن را با متن فارسی اطرافش قاطی می‌کرد؛ الان با علامت‌های جهت‌دهی یونیکد همیشه به ترتیب درست (چپ‌به‌راست) نمایش داده می‌شود.",
+    "en": "Two fixes on the System Update page: (1) the \"last applied\" date was never converted to the Jalali calendar at all (unlike the rest of the page's dates, fixed in the previous release) — it now is. (2) The version range in each backup's description (e.g. \"5.2.1 → 5.2.2\") could render visually reversed inside the surrounding right-to-left Persian text (looking like it went from the newer version down to the older one), because the browser's bidi handling mixed its direction with the Persian text around it; it now always displays left-to-right in the correct order via Unicode directional isolate marks."
   }
 ]

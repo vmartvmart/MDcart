@@ -13,7 +13,7 @@
       {% for backup in backup_list %}
       <tr>
         <td class="text-start backup-date" data-created="{{ backup.created_at }}">{{ backup.created_at }}</td>
-        <td class="text-start">{{ backup.reason }} ({{ backup.commit_before }} &rarr; {{ backup.commit_after }})</td>
+        <td class="text-start">{{ backup.reason }} ⁦({{ backup.commit_before }} &rarr; {{ backup.commit_after }})⁩</td>
         <td class="text-start">{{ backup.size }}</td>
         <td class="text-end">
           <button type="button" class="btn btn-outline-danger btn-sm button-restore" data-backup-id="{{ backup.id }}"><i class="fa-solid fa-clock-rotate-left"></i> {{ button_restore }}</button>

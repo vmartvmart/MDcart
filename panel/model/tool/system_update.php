@@ -738,7 +738,15 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 		$latest_version = $this->getRemoteVersion($settings['repo'], $settings['token'], $settings['branch']);
 
 		if ($current_version && $latest_version) {
-			$reason = 'پیش از بروزرسانی: ' . $current_version . ' → ' . $latest_version;
+			// "\u{2066}" / "\u{2069}" are Unicode LTR-isolate marks, not
+			// visible characters — without them, "5.1.1 → 5.2.0" sitting
+			// inside a right-to-left Persian sentence can get visually
+			// reordered by the browser's bidi algorithm (rendering as if
+			// it went from the newer version to the older one, backwards
+			// from what the string actually says). Isolating the
+			// old-to-new segment forces it to always display left-to-right
+			// regardless of the surrounding RTL text.
+			$reason = 'پیش از بروزرسانی: ' . "\u{2066}" . $current_version . ' → ' . $latest_version . "\u{2069}";
 		} else {
 			$reason = 'پیش از بروزرسانی به ' . substr($sha, 0, 10);
 		}
