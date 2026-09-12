@@ -6,7 +6,12 @@
   },
   {
     "version": "5.1.0",
-    "fa": "نام کشورها در بخش محلی‌سازی برای هر دو زبان اصلاح شد: ترجمه‌ی واقعی فارسی برای هر ۲۵۳ کشور (که قبلاً همگی صرفاً کپی نام انگلیسی بودند) و تصحیح نام رسمی ایران. همچنین یک ابزار نگه‌داری جدید اضافه شد تا همین اصلاح روی نصب‌های آینده هم با یک کلیک قابل اعمال باشد.",
-    "en": "Fixed country names in Localisation for both languages: real Persian translations for all 253 countries (previously just copies of the English name) and a corrected official name for Iran. Also added a maintenance tool so this same fix can be applied to future installs with one click."
+    "fa": "نام کشورها در بخش محلی‌سازی برای هر دو زبان اصلاح شد: ترجمه‌ی واقعی فارسی برای هر ۲۵۳ کشور (که قبلاً همگی صرفاً کپی نام انگلیسی بودند) و تصحیح نام رسمی ایران. همچنین یک ابزار نگه‌داری جدید اضافه شد تا همین اصلاح روی نصب‌های آینده هم با یک کلیک قابل اعمال باشد. برند داخلی و ظاهری از OpenCart به MDcart تغییر کرد (namespace، ثابت‌های اصلی، متن‌های قابل‌مشاهده)، باگ ریشه‌ای بازنویسی‌شدن config.php هنگام بروزرسانی رفع شد، و پوشه‌ی وابستگی‌های Composer (vendor) به مخزن اضافه شد تا نصب‌های تازه دیگر نیازی به کپی دستی نداشته باشند.",
+    "en": "Fixed country names in Localisation for both languages: real Persian translations for all 253 countries (previously just copies of the English name) and a corrected official name for Iran. Also added a maintenance tool so this same fix can be applied to future installs with one click. Rebranded from OpenCart to MDcart internally and visibly (namespace, core constants, visible text), fixed the root-cause bug that let an update overwrite config.php, and committed the vendor/ Composer dependencies so fresh installs no longer need a manual copy."
+  },
+  {
+    "version": "5.1.1",
+    "fa": "رفع یک باگ بحرانی که کل فروشگاه (سبد خرید و پرداخت) را از کار انداخته بود: تغییر نام برند قبلی به‌اشتباه نام کد افزونه‌ی پایه («opencart»، که فقط یک شناسه‌ی داخلی است، نه برند) را هم عوض کرده بود، و همین باعث می‌شد هیچ‌کدام از افزونه‌های پیش‌فرض (جمع‌کل سفارش، پرداخت، ارسال، ماژول‌ها) بارگذاری نشوند.",
+    "en": "Fixed a critical bug that broke the entire storefront (cart and checkout): the earlier rebrand had accidentally also renamed the built-in extension's code identifier (\"opencart\", an internal id, not the brand), which stopped every default extension (order totals, payment, shipping, modules) from loading at all."
   }
 ]
