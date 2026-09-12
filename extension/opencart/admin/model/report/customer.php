@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Extension\Opencart\Report;
+namespace MDcart\Admin\Model\Extension\MDcart\Report;
 /**
  * Class Customer
  *
  * Can be called from $this->load->model('extension/opencart/report/customer');
  *
- * @package Opencart\Admin\Model\Extension\Opencart\Report
+ * @package MDcart\Admin\Model\Extension\MDcart\Report
  */
-class Customer extends \Opencart\System\Engine\Model {
+class Customer extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Total Customers By Day
 	 *

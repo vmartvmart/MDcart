@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Api;
+namespace MDcart\Catalog\Controller\Api;
 /**
  * Class Shipping Address
  *
  * Can be loaded using $this->load->controller('api/shipping_address');
  *
- * @package Opencart\Catalog\Controller\Api
+ * @package MDcart\Catalog\Controller\Api
  */
-class ShippingAddress extends \Opencart\System\Engine\Controller {
+class ShippingAddress extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

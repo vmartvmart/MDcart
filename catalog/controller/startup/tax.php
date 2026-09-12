@@ -1,18 +1,18 @@
 <?php
-namespace Opencart\Catalog\Controller\Startup;
+namespace MDcart\Catalog\Controller\Startup;
 /**
  * Class Tax
  *
- * @package Opencart\Catalog\Controller\Startup
+ * @package MDcart\Catalog\Controller\Startup
  */
-class Tax extends \Opencart\System\Engine\Controller {
+class Tax extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
 	 * @return void
 	 */
 	public function index(): void {
-		$this->registry->set('tax', new \Opencart\System\Library\Cart\Tax($this->registry));
+		$this->registry->set('tax', new \MDcart\System\Library\Cart\Tax($this->registry));
 
 		if (isset($this->session->data['shipping_address'])) {
 			$this->tax->setShippingAddress((int)$this->session->data['shipping_address']['country_id'], (int)$this->session->data['shipping_address']['zone_id']);

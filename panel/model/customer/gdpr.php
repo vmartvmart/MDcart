@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Customer;
+namespace MDcart\Admin\Model\Customer;
 /**
  * Class GDPR
  *
  * Can be loaded using $this->load->model('customer/gdpr');
  *
- * @package Opencart\Admin\Model\Customer
+ * @package MDcart\Admin\Model\Customer
  */
-class Gdpr extends \Opencart\System\Engine\Model {
+class Gdpr extends \MDcart\System\Engine\Model {
 	/**
 	 * Edit Status
 	 *

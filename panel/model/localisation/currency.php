@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Localisation;
+namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Currency
  *
  * Can be loaded using $this->load->model('localisation/currency');
  *
- * @package Opencart\Admin\Model\Localisation
+ * @package MDcart\Admin\Model\Localisation
  */
-class Currency extends \Opencart\System\Engine\Model {
+class Currency extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Currency
 	 *

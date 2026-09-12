@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Customer Group
  *
  * Can be called using $this->load->model('account/customer_group');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class CustomerGroup extends \Opencart\System\Engine\Model {
+class CustomerGroup extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Customer Group
 	 *

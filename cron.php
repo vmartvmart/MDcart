@@ -12,19 +12,19 @@ require_once('config.php');
 require_once(DIR_SYSTEM . 'startup.php');
 
 // Autoloader
-$autoloader = new \Opencart\System\Engine\Autoloader();
-$autoloader->register('Opencart\Catalog', DIR_APPLICATION);
-$autoloader->register('Opencart\Extension', DIR_EXTENSION);
-$autoloader->register('Opencart\System', DIR_SYSTEM);
+$autoloader = new \MDcart\System\Engine\Autoloader();
+$autoloader->register('MDcart\Catalog', DIR_APPLICATION);
+$autoloader->register('MDcart\Extension', DIR_EXTENSION);
+$autoloader->register('MDcart\System', DIR_SYSTEM);
 
 // require_once(DIR_SYSTEM . 'vendor.php');
 
 // Registry
-$registry = new \Opencart\System\Engine\Registry();
+$registry = new \MDcart\System\Engine\Registry();
 $registry->set('autoloader', $autoloader);
 
 // Config
-$config = new \Opencart\System\Engine\Config();
+$config = new \MDcart\System\Engine\Config();
 $registry->set('config', $config);
 
 // Load the default config
@@ -40,7 +40,7 @@ date_default_timezone_set($config->get('date_timezone'));
 $config->set('config_store_id', 0);
 
 // Logging
-$log = new \Opencart\System\Library\Log($config->get('error_filename'));
+$log = new \MDcart\System\Library\Log($config->get('error_filename'));
 $registry->set('log', $log);
 
 // Error Handler
@@ -73,7 +73,7 @@ set_error_handler(function(int $code, string $message, string $file, int $line) 
 			break;
 	}
 
-	// Always write to the OpenCart error log so admins can diagnose cron issues
+	// Always write to the MDcart error log so admins can diagnose cron issues
 	if ($config->get('error_log')) {
 		$log->write('PHP ' . $error . ':  ' . $message . ' in ' . $file . ' on line ' . $line);
 	}
@@ -136,36 +136,36 @@ set_exception_handler(function(\Throwable $e) use ($log, $config): void {
 });
 
 // Event
-$event = new \Opencart\System\Engine\Event($registry);
+$event = new \MDcart\System\Engine\Event($registry);
 $registry->set('event', $event);
 
 // Event Register
 if ($config->has('action_event')) {
 	foreach ($config->get('action_event') as $key => $value) {
 		foreach ($value as $priority => $action) {
-			$event->register($key, new \Opencart\System\Engine\Action($action), $priority);
+			$event->register($key, new \MDcart\System\Engine\Action($action), $priority);
 		}
 	}
 }
 
 // Factory
-$registry->set('factory', new \Opencart\System\Engine\Factory($registry));
+$registry->set('factory', new \MDcart\System\Engine\Factory($registry));
 
 // Loader
-$loader = new \Opencart\System\Engine\Loader($registry);
+$loader = new \MDcart\System\Engine\Loader($registry);
 $registry->set('load', $loader);
 
 // Request
-$request = new \Opencart\System\Library\Request();
+$request = new \MDcart\System\Library\Request();
 $registry->set('request', $request);
 
 // Response
-$response = new \Opencart\System\Library\Response();
+$response = new \MDcart\System\Library\Response();
 $registry->set('response', $response);
 
 // Database
 if ($config->get('db_autostart')) {
-	$db = new \Opencart\System\Library\DB($config->get('db_engine'), $config->get('db_hostname'), $config->get('db_username'), $config->get('db_password'), $config->get('db_database'), $config->get('db_port'), $config->get('db_ssl_key'), $config->get('db_ssl_cert'), $config->get('db_ssl_ca'));
+	$db = new \MDcart\System\Library\DB($config->get('db_engine'), $config->get('db_hostname'), $config->get('db_username'), $config->get('db_password'), $config->get('db_database'), $config->get('db_port'), $config->get('db_ssl_key'), $config->get('db_ssl_cert'), $config->get('db_ssl_ca'));
 	$registry->set('db', $db);
 
 	// Sync PHP and DB time zones
@@ -174,7 +174,7 @@ if ($config->get('db_autostart')) {
 
 // Session
 if ($config->get('session_autostart')) {
-	$session = new \Opencart\System\Library\Session($config->get('session_engine'), $registry);
+	$session = new \MDcart\System\Library\Session($config->get('session_engine'), $registry);
 	$registry->set('session', $session);
 
 	if (isset($request->cookie[$config->get('session_name')])) {
@@ -199,21 +199,21 @@ if ($config->get('session_autostart')) {
 }
 
 // Cache
-$registry->set('cache', new \Opencart\System\Library\Cache($config->get('cache_engine'), $config->get('cache_expire')));
+$registry->set('cache', new \MDcart\System\Library\Cache($config->get('cache_engine'), $config->get('cache_expire')));
 
 // Template
-$template = new \Opencart\System\Library\Template($config->get('template_engine'));
+$template = new \MDcart\System\Library\Template($config->get('template_engine'));
 $registry->set('template', $template);
 $template->addPath(DIR_TEMPLATE);
 
 // Language
-$language = new \Opencart\System\Library\Language($config->get('language_code'));
+$language = new \MDcart\System\Library\Language($config->get('language_code'));
 $registry->set('language', $language);
 $language->addPath(DIR_LANGUAGE);
 $loader->load->language($config->get('language_code'));
 
 // Url
-$registry->set('url', new \Opencart\System\Library\Url($config->get('site_url')));
+$registry->set('url', new \MDcart\System\Library\Url($config->get('site_url')));
 
 // Pre Actions
 foreach ($config->get('action_pre_action') as $pre_action) {

@@ -9,7 +9,7 @@
  *
  * @see       https://www.opencart.com
  */
-namespace Opencart\System\Library;
+namespace MDcart\System\Library;
 /**
  * Class URL
  */
@@ -37,7 +37,7 @@ class Url {
 	 *
 	 * Add a rewrite method to the URL system
 	 *
-	 * @param \Opencart\System\Engine\Controller $rewrite
+	 * @param \MDcart\System\Engine\Controller $rewrite
 	 *
 	 * @return void
 	 */

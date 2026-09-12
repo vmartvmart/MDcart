@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Localisation;
+namespace MDcart\Catalog\Model\Localisation;
 /**
  * Class Subscription Status
  *
  * Can be called using $this->load->model('localisation/subscription_status');
  *
- * @package Opencart\Catalog\Model\Localisation
+ * @package MDcart\Catalog\Model\Localisation
  */
-class SubscriptionStatus extends \Opencart\System\Engine\Model {
+class SubscriptionStatus extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Subscription Status
 	 *

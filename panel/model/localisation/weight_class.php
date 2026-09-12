@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Localisation;
+namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Weight Class
  *
  * Can be loaded using $this->load->model('localisation/weight_class');
  *
- * @package Opencart\Admin\Model\Localisation
+ * @package MDcart\Admin\Model\Localisation
  */
-class WeightClass extends \Opencart\System\Engine\Model {
+class WeightClass extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Weight Class
 	 *

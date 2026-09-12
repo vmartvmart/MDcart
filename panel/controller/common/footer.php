@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Footer
  *
  * Can be loaded using $this->load->controller('common/footer');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class Footer extends \Opencart\System\Engine\Controller {
+class Footer extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -20,7 +20,7 @@ class Footer extends \Opencart\System\Engine\Controller {
 			// Our own app version (see the VERSION file at the root of the
 			// install), not OpenCart core's VERSION constant — the two are
 			// independent, and the admin footer should reflect ours.
-			$app_version = is_file(DIR_OPENCART . 'VERSION') ? trim((string)file_get_contents(DIR_OPENCART . 'VERSION')) : '';
+			$app_version = is_file(MCART_ROOT . 'VERSION') ? trim((string)file_get_contents(MCART_ROOT . 'VERSION')) : '';
 
 			$data['text_version'] = $app_version ? sprintf($this->language->get('text_version'), $app_version) : '';
 		} else {

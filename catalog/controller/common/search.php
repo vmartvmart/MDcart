@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Common;
+namespace MDcart\Catalog\Controller\Common;
 /**
  * Class Search
  *
  * Can be called from $this->load->controller('common/search');
  *
- * @package Opencart\Catalog\Controller\Common
+ * @package MDcart\Catalog\Controller\Common
  */
-class Search extends \Opencart\System\Engine\Controller {
+class Search extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

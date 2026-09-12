@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\StockAlert\Product;
+namespace MDcart\Catalog\Controller\Extension\StockAlert\Product;
 /**
  * Class StockAlert
  *
  * Powers the "Notify me when available" widget shown on out-of-stock product pages.
  *
- * @package Opencart\Catalog\Controller\Extension\StockAlert\Product
+ * @package MDcart\Catalog\Controller\Extension\StockAlert\Product
  */
-class StockAlert extends \Opencart\System\Engine\Controller {
+class StockAlert extends \MDcart\System\Engine\Controller {
 	/**
 	 * Returns the widget's data so it can be included from the product controller/template.
 	 *

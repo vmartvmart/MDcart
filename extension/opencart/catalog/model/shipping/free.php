@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\Opencart\Shipping;
+namespace MDcart\Catalog\Model\Extension\MDcart\Shipping;
 /**
  * Class Free
  *
  * Can be called from $this->load->model('extension/opencart/shipping/free');
  *
- * @package Opencart\Catalog\Model\Extension\Opencart\Shipping
+ * @package MDcart\Catalog\Model\Extension\MDcart\Shipping
  */
-class Free extends \Opencart\System\Engine\Model {
+class Free extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Quote
 	 *

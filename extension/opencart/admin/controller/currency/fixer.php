@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Opencart\Currency;
+namespace MDcart\Admin\Controller\Extension\MDcart\Currency;
 /**
  * Class Fixer
  *
- * @package Opencart\Admin\Controller\Extension\Opencart\Currency
+ * @package MDcart\Admin\Controller\Extension\MDcart\Currency
  */
-class Fixer extends \Opencart\System\Engine\Controller {
+class Fixer extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Localisation;
+namespace MDcart\Admin\Controller\Localisation;
 /**
  * Class Tax Rate
  *
- * @package Opencart\Admin\Controller\Localisation
+ * @package MDcart\Admin\Controller\Localisation
  */
-class TaxRate extends \Opencart\System\Engine\Controller {
+class TaxRate extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

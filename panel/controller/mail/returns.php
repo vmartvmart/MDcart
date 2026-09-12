@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Mail;
+namespace MDcart\Admin\Controller\Mail;
 /**
  * Class Returns
  *
- * @package Opencart\Admin\Controller\Mail
+ * @package MDcart\Admin\Controller\Mail
  */
-class Returns extends \Opencart\System\Engine\Controller {
+class Returns extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -97,7 +97,7 @@ class Returns extends \Opencart\System\Engine\Controller {
 						'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 					];
 
-					$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+					$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 					$mail->setTo($return_info['email']);
 					$mail->setFrom($this->config->get('config_email'));
 					$mail->setSender($store_name);

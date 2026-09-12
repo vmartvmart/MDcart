@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Event;
+namespace MDcart\Catalog\Controller\Event;
 /**
  * Class Activity
  *
- * @package Opencart\Catalog\Controller\Event
+ * @package MDcart\Catalog\Controller\Event
  */
-class Activity extends \Opencart\System\Engine\Controller {
+class Activity extends \MDcart\System\Engine\Controller {
 	/**
 	 * Add Customer
 	 *

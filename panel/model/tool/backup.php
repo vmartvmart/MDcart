@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Tool;
+namespace MDcart\Admin\Model\Tool;
 /**
  * Class Backup
  *
  * Can be loaded using $this->load->model('tool/backup');
  *
- * @package Opencart\Admin\Model\Tool
+ * @package MDcart\Admin\Model\Tool
  */
-class Backup extends \Opencart\System\Engine\Model {
+class Backup extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Tables
 	 *

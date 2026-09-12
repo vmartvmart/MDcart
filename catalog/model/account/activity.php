@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Activity
  *
  * Can be called using $this->load->model('account/activity');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Activity extends \Opencart\System\Engine\Model {
+class Activity extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Activity
 	 *

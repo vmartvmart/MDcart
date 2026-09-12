@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Setting;
+namespace MDcart\Admin\Model\Setting;
 /**
  * Class Event
  *
  * Can be loaded using $this->load->model('setting/event');
  *
- * @package Opencart\Admin\Model\Setting
+ * @package MDcart\Admin\Model\Setting
  */
-class Event extends \Opencart\System\Engine\Model {
+class Event extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Event
 	 *

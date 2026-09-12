@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Dashboard
  *
  * Can be loaded using $this->load->controller('common/dashboard');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class Dashboard extends \Opencart\System\Engine\Controller {
+class Dashboard extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Cms;
+namespace MDcart\Admin\Model\Cms;
 /**
  * Class Anti-Spam
  *
  * Can be loaded using $this->load->model('cms/antispam');
  *
- * @package Opencart\Admin\Model\Cms
+ * @package MDcart\Admin\Model\Cms
  */
-class Antispam extends \Opencart\System\Engine\Model {
+class Antispam extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Antispam
 	 *

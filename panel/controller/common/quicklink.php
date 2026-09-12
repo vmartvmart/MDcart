@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Quicklink
  *
@@ -19,9 +19,9 @@ namespace Opencart\Admin\Controller\Common;
  *
  * Can be loaded using $this->load->controller('common/quicklink');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class Quicklink extends \Opencart\System\Engine\Controller {
+class Quicklink extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

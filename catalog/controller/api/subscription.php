@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Api;
+namespace MDcart\Catalog\Controller\Api;
 /**
  * Class Subscription
  *
  * Subscription API
  *
- * @package Opencart\Catalog\Controller\Api
+ * @package MDcart\Catalog\Controller\Api
  */
-class Subscription extends \Opencart\System\Engine\Controller {
+class Subscription extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

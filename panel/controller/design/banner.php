@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Design;
+namespace MDcart\Admin\Controller\Design;
 /**
  * Class Banner
  *
- * @package Opencart\Admin\Controller\Design
+ * @package MDcart\Admin\Controller\Design
  */
-class Banner extends \Opencart\System\Engine\Controller {
+class Banner extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

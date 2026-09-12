@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Design;
+namespace MDcart\Admin\Model\Design;
 /**
  * Class Layout
  *
  * Can be loaded using $this->load->model('design/layout');
  *
- * @package Opencart\Admin\Model\Design
+ * @package MDcart\Admin\Model\Design
  */
-class Layout extends \Opencart\System\Engine\Model {
+class Layout extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Layout
 	 *

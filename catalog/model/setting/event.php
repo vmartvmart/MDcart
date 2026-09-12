@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Setting;
+namespace MDcart\Catalog\Model\Setting;
 /**
  * Class Event
  *
  * Can be called using $this->load->model('setting/event');
  *
- * @package Opencart\Catalog\Model\Setting
+ * @package MDcart\Catalog\Model\Setting
  */
-class Event extends \Opencart\System\Engine\Model {
+class Event extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Events
 	 *

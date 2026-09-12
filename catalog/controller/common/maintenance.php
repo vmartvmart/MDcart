@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Common;
+namespace MDcart\Catalog\Controller\Common;
 /**
  * Class Maintenance
  *
  * Can be called from $this->load->controller('common/maintenance');
  *
- * @package Opencart\Catalog\Controller\Common
+ * @package MDcart\Catalog\Controller\Common
  */
-class Maintenance extends \Opencart\System\Engine\Controller {
+class Maintenance extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

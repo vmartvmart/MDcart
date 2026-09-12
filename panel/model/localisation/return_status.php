@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Localisation;
+namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Return Status
  *
  * Can be loaded using $this->load->model('localisation/return_status');
  *
- * @package Opencart\Admin\Model\Localisation
+ * @package MDcart\Admin\Model\Localisation
  */
-class ReturnStatus extends \Opencart\System\Engine\Model {
+class ReturnStatus extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Return Status
 	 *

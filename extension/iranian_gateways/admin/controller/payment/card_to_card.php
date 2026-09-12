@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\IranianGateways\Payment;
+namespace MDcart\Admin\Controller\Extension\IranianGateways\Payment;
 /**
  * Class Card To Card
  *
@@ -8,9 +8,9 @@ namespace Opencart\Admin\Controller\Extension\IranianGateways\Payment;
  * checkout. The customer transfers manually and confirms; the order is put
  * into a "pending verification" status for the admin to confirm by hand.
  *
- * @package Opencart\Admin\Controller\Extension\IranianGateways\Payment
+ * @package MDcart\Admin\Controller\Extension\IranianGateways\Payment
  */
-class CardToCard extends \Opencart\System\Engine\Controller {
+class CardToCard extends \MDcart\System\Engine\Controller {
 	/**
 	 * @var array<string, string>
 	 */

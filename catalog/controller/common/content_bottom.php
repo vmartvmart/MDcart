@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Common;
+namespace MDcart\Catalog\Controller\Common;
 /**
  * Class Content Bottom
  *
  * Can be called from $this->load->controller('common/column_bottom');
  *
- * @package Opencart\Catalog\Controller\Common
+ * @package MDcart\Catalog\Controller\Common
  */
-class ContentBottom extends \Opencart\System\Engine\Controller {
+class ContentBottom extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

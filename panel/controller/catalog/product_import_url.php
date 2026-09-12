@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Catalog;
+namespace MDcart\Admin\Controller\Catalog;
 /**
  * Class ProductImportUrl
  *
@@ -7,14 +7,14 @@ namespace Opencart\Admin\Controller\Catalog;
  * (Amazon, Digikala, Virgin Megastore, or any other storefront that
  * publishes Open Graph / Schema.org metadata). Ported from the equivalent
  * Bagisto "Import Product from URL" feature - see
- * Opencart\Admin\Model\Catalog\ProductImportUrl for the actual extraction/
+ * MDcart\Admin\Model\Catalog\ProductImportUrl for the actual extraction/
  * import logic.
  *
  * Can be loaded using $this->load->controller('catalog/product_import_url');
  *
- * @package Opencart\Admin\Controller\Catalog
+ * @package MDcart\Admin\Controller\Catalog
  */
-class ProductImportUrl extends \Opencart\System\Engine\Controller {
+class ProductImportUrl extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

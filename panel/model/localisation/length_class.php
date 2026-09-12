@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Localisation;
+namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Length Class
  *
  * Can be loaded using $this->load->model('localisation/length_class');
  *
- * @package Opencart\Admin\Model\Localisation
+ * @package MDcart\Admin\Model\Localisation
  */
-class LengthClass extends \Opencart\System\Engine\Model {
+class LengthClass extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Length Class
 	 *

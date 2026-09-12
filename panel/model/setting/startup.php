@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Setting;
+namespace MDcart\Admin\Model\Setting;
 /**
  * Class Startup
  *
  * Can be loaded using $this->load->model('setting/startup');
  *
- * @package Opencart\Admin\Model\Setting
+ * @package MDcart\Admin\Model\Setting
  */
-class Startup extends \Opencart\System\Engine\Model {
+class Startup extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Startup
 	 *

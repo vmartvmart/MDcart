@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Catalog;
+namespace MDcart\Admin\Controller\Catalog;
 /**
  * Class PurchaseInvoice
  *
@@ -10,9 +10,9 @@ namespace Opencart\Admin\Controller\Catalog;
  *
  * Can be loaded using $this->load->controller('catalog/purchase_invoice');
  *
- * @package Opencart\Admin\Controller\Catalog
+ * @package MDcart\Admin\Controller\Catalog
  */
-class PurchaseInvoice extends \Opencart\System\Engine\Controller {
+class PurchaseInvoice extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

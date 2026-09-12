@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Catalog;
+namespace MDcart\Catalog\Model\Catalog;
 /**
  * Class Product
  *
  * Can be called using $this->load->model('catalog/product');
  *
- * @package Opencart\Catalog\Model\Catalog
+ * @package MDcart\Catalog\Model\Catalog
  */
-class Product extends \Opencart\System\Engine\Model {
+class Product extends \MDcart\System\Engine\Model {
 	/**
 	 * @var array<string, string>
 	 */
@@ -16,9 +16,9 @@ class Product extends \Opencart\System\Engine\Model {
 	/**
 	 * Constructor
 	 *
-	 * @param \Opencart\System\Engine\Registry $registry
+	 * @param \MDcart\System\Engine\Registry $registry
 	 */
-	public function __construct(\Opencart\System\Engine\Registry $registry) {
+	public function __construct(\MDcart\System\Engine\Registry $registry) {
 		$this->registry = $registry;
 
 		// Storing some sub queries so that we are not typing them out multiple times.

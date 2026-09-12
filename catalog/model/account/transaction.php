@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Transaction
  *
  * Can be called using $this->load->model('account/transaction');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Transaction extends \Opencart\System\Engine\Model {
+class Transaction extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Transaction
 	 *

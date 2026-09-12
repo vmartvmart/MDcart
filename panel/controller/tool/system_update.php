@@ -1,14 +1,14 @@
 <?php
-namespace Opencart\Admin\Controller\Tool;
+namespace MDcart\Admin\Controller\Tool;
 /**
  * Class SystemUpdate
  *
  * Admin page for checking and applying updates from the private
- * distribution repository (see Opencart\Admin\Model\Tool\SystemUpdate).
+ * distribution repository (see MDcart\Admin\Model\Tool\SystemUpdate).
  *
- * @package Opencart\Admin\Controller\Tool
+ * @package MDcart\Admin\Controller\Tool
  */
-class SystemUpdate extends \Opencart\System\Engine\Controller {
+class SystemUpdate extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

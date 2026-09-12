@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Product;
+namespace MDcart\Catalog\Controller\Product;
 /**
  * Class Related
  *
  * Can be loaded using $this->load->controller('product/related');
  *
- * @package Opencart\Catalog\Controller\Product
+ * @package MDcart\Catalog\Controller\Product
  */
-class Related extends \Opencart\System\Engine\Controller {
+class Related extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

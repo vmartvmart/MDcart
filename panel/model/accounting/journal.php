@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Model\Accounting;
+namespace MDcart\Admin\Model\Accounting;
 /**
  * Class Journal
  *
@@ -14,9 +14,9 @@ namespace Opencart\Admin\Model\Accounting;
  *
  * Can be loaded using $this->load->model('accounting/journal');
  *
- * @package Opencart\Admin\Model\Accounting
+ * @package MDcart\Admin\Model\Accounting
  */
-class Journal extends \Opencart\System\Engine\Model {
+class Journal extends \MDcart\System\Engine\Model {
 	/**
 	 * Add a free-form, multi-line manual journal entry. $data['lines'] is
 	 * an array of ['account_id' => int, 'debit' => float, 'credit' => float,

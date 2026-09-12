@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Accounting;
+namespace MDcart\Admin\Controller\Accounting;
 /**
  * Class Report
  *
@@ -10,9 +10,9 @@ namespace Opencart\Admin\Controller\Accounting;
  *
  * Can be loaded using $this->load->controller('accounting/report');
  *
- * @package Opencart\Admin\Controller\Accounting
+ * @package MDcart\Admin\Controller\Accounting
  */
-class Report extends \Opencart\System\Engine\Controller {
+class Report extends \MDcart\System\Engine\Controller {
 	/**
 	 * Ledger
 	 *

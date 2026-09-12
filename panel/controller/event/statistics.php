@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Event;
+namespace MDcart\Admin\Controller\Event;
 /**
  * Class Statistics
  *
- * @package Opencart\Admin\Controller\Event
+ * @package MDcart\Admin\Controller\Event
  */
-class Statistics extends \Opencart\System\Engine\Controller {
+class Statistics extends \MDcart\System\Engine\Controller {
 	/**
 	 * Add Review
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Developer
  *
  * Can be loaded using $this->load->controller('common/developer');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class Developer extends \Opencart\System\Engine\Controller {
+class Developer extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

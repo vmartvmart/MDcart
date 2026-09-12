@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\System\Helper\Utf8;
+namespace MDcart\System\Helper\Utf8;
 mb_internal_encoding('UTF-8');
 
 /**

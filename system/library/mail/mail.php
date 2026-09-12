@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\System\Library\Mail;
+namespace MDcart\System\Library\Mail;
 /**
  * Class Mail
  *

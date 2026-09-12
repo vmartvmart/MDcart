@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Localisation;
+namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Address Format
  *
  * Can be loaded using $this->load->model('localisation/address_format');
  *
- * @package Opencart\Admin\Model\Localisation
+ * @package MDcart\Admin\Model\Localisation
  */
-class AddressFormat extends \Opencart\System\Engine\Model {
+class AddressFormat extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Address Format
 	 *

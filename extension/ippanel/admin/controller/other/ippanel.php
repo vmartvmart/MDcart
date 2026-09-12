@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Ippanel\Other;
+namespace MDcart\Admin\Controller\Extension\Ippanel\Other;
 /**
  * Class Ippanel
  *
- * @package Opencart\Admin\Controller\Extension\Ippanel\Other
+ * @package MDcart\Admin\Controller\Extension\Ippanel\Other
  */
-class Ippanel extends \Opencart\System\Engine\Controller {
+class Ippanel extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Localisation;
+namespace MDcart\Catalog\Model\Localisation;
 /**
  * Class Return Reason
  *
  * Can be called using $this->load->model('localisation/return_reason');
  *
- * @package Opencart\Catalog\Model\Localisation
+ * @package MDcart\Catalog\Model\Localisation
  */
-class ReturnReason extends \Opencart\System\Engine\Model {
+class ReturnReason extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Return Reasons
 	 *

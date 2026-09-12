@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Startup;
+namespace MDcart\Catalog\Controller\Startup;
 /**
  * Class Extension
  *
- * @package Opencart\Catalog\Controller\Startup
+ * @package MDcart\Catalog\Controller\Startup
  */
-class Extension extends \Opencart\System\Engine\Controller {
+class Extension extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -21,9 +21,9 @@ class Extension extends \Opencart\System\Engine\Controller {
 			$extension = str_replace(['_', '/'], ['', '\\'], ucwords($result['extension'], '_/'));
 
 			// Register controllers, models and system extension folders
-			$this->autoloader->register('Opencart\Catalog\Controller\Extension\\' . $extension, DIR_EXTENSION . $result['extension'] . '/catalog/controller/');
-			$this->autoloader->register('Opencart\Catalog\Model\Extension\\' . $extension, DIR_EXTENSION . $result['extension'] . '/catalog/model/');
-			$this->autoloader->register('Opencart\System\Library\Extension\\' . $extension, DIR_EXTENSION . $result['extension'] . '/system/library/');
+			$this->autoloader->register('MDcart\Catalog\Controller\Extension\\' . $extension, DIR_EXTENSION . $result['extension'] . '/catalog/controller/');
+			$this->autoloader->register('MDcart\Catalog\Model\Extension\\' . $extension, DIR_EXTENSION . $result['extension'] . '/catalog/model/');
+			$this->autoloader->register('MDcart\System\Library\Extension\\' . $extension, DIR_EXTENSION . $result['extension'] . '/system/library/');
 
 			// Template directory
 			$this->template->addPath('extension/' . $result['extension'], DIR_EXTENSION . $result['extension'] . '/catalog/view/template/');
@@ -36,9 +36,9 @@ class Extension extends \Opencart\System\Engine\Controller {
 		}
 
 		// Register OCMOD
-		$this->autoloader->register('Opencart\Catalog\Controller\Extension\Ocmod', DIR_EXTENSION . 'ocmod/catalog/controller/');
-		$this->autoloader->register('Opencart\Catalog\Model\Extension\Ocmod', DIR_EXTENSION . 'ocmod/catalog/model/');
-		$this->autoloader->register('Opencart\System\Library\Extension\Ocmod', DIR_EXTENSION . 'ocmod/system/library/');
+		$this->autoloader->register('MDcart\Catalog\Controller\Extension\Ocmod', DIR_EXTENSION . 'ocmod/catalog/controller/');
+		$this->autoloader->register('MDcart\Catalog\Model\Extension\Ocmod', DIR_EXTENSION . 'ocmod/catalog/model/');
+		$this->autoloader->register('MDcart\System\Library\Extension\Ocmod', DIR_EXTENSION . 'ocmod/system/library/');
 		$this->template->addPath('extension/ocmod', DIR_EXTENSION . 'ocmod/catalog/view/template/');
 		$this->language->addPath('extension/ocmod', DIR_EXTENSION . 'ocmod/catalog/language/');
 		$this->config->addPath('extension/ocmod', DIR_EXTENSION . 'ocmod/system/config/');

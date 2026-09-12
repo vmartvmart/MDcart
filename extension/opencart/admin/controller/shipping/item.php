@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Opencart\Shipping;
+namespace MDcart\Admin\Controller\Extension\MDcart\Shipping;
 /**
  * Class Item
  *
- * @package Opencart\Admin\Controller\Extension\Opencart\Shipping
+ * @package MDcart\Admin\Controller\Extension\MDcart\Shipping
  */
-class Item extends \Opencart\System\Engine\Controller {
+class Item extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

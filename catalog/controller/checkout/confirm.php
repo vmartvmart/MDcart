@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Checkout;
+namespace MDcart\Catalog\Controller\Checkout;
 /**
  * Class Confirm
  *
  * Can be loaded using $this->load->controller('catalog/confirm');
  *
- * @package Opencart\Catalog\Controller\Checkout
+ * @package MDcart\Catalog\Controller\Checkout
  */
-class Confirm extends \Opencart\System\Engine\Controller {
+class Confirm extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

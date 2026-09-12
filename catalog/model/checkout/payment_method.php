@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Checkout;
+namespace MDcart\Catalog\Model\Checkout;
 /**
  * Class Payment Method
  *
  * Can be called using $this->load->model('checkout/payment_method');
  *
- * @package Opencart\Catalog\Model\Checkout
+ * @package MDcart\Catalog\Model\Checkout
  */
-class PaymentMethod extends \Opencart\System\Engine\Model {
+class PaymentMethod extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Methods
 	 *

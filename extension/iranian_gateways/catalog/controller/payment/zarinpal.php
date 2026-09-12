@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\IranianGateways\Payment;
+namespace MDcart\Catalog\Controller\Extension\IranianGateways\Payment;
 /**
  * Class Zarinpal
  *
- * @package Opencart\Catalog\Controller\Extension\IranianGateways\Payment
+ * @package MDcart\Catalog\Controller\Extension\IranianGateways\Payment
  */
-class Zarinpal extends \Opencart\System\Engine\Controller {
+class Zarinpal extends \MDcart\System\Engine\Controller {
 	private const API_REQUEST_URL = 'https://api.zarinpal.com/pg/v4/payment/request.json';
 	private const API_VERIFY_URL = 'https://api.zarinpal.com/pg/v4/payment/verify.json';
 	private const GATE_URL = 'https://www.zarinpal.com/pg/StartPay/';

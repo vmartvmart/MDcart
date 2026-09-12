@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Localisation;
+namespace MDcart\Admin\Controller\Localisation;
 /**
  * Class Geo Zone
  *
- * @package Opencart\Admin\Controller\Localisation
+ * @package MDcart\Admin\Controller\Localisation
  */
-class GeoZone extends \Opencart\System\Engine\Controller {
+class GeoZone extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

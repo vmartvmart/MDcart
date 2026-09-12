@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Checkout;
+namespace MDcart\Catalog\Controller\Checkout;
 /**
  * Class Register
  *
  * Can be loaded using $this->load->controller('checkout/register');
  *
- * @package Opencart\Catalog\Controller\Checkout
+ * @package MDcart\Catalog\Controller\Checkout
  */
-class Register extends \Opencart\System\Engine\Controller {
+class Register extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

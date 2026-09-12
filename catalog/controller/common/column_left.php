@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Common;
+namespace MDcart\Catalog\Controller\Common;
 /**
  * Class Column Left
  *
  * Can be called from $this->load->controller('common/column_left');
  *
- * @package Opencart\Catalog\Controller\Common
+ * @package MDcart\Catalog\Controller\Common
  */
-class ColumnLeft extends \Opencart\System\Engine\Controller {
+class ColumnLeft extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

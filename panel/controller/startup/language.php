@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Startup;
+namespace MDcart\Admin\Controller\Startup;
 /**
  * Class Language
  *
- * @package Opencart\Admin\Controller\Startup
+ * @package MDcart\Admin\Controller\Startup
  */
-class Language extends \Opencart\System\Engine\Controller {
+class Language extends \MDcart\System\Engine\Controller {
 	/**
 	 * @var array<string, array<string, string>>
 	 */

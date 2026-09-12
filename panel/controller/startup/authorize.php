@@ -1,17 +1,17 @@
 <?php
-namespace Opencart\Admin\Controller\Startup;
+namespace MDcart\Admin\Controller\Startup;
 /**
  * Class Authorize
  *
- * @package Opencart\Admin\Controller\Startup
+ * @package MDcart\Admin\Controller\Startup
  */
-class Authorize extends \Opencart\System\Engine\Controller {
+class Authorize extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function index(): ?\Opencart\System\Engine\Action {
+	public function index(): ?\MDcart\System\Engine\Action {
 		if (isset($this->request->get['route'])) {
 			$route = (string)$this->request->get['route'];
 		} else {
@@ -56,11 +56,11 @@ class Authorize extends \Opencart\System\Engine\Controller {
 
 			if (!in_array($route, $ignore)) {
 				if ($token_info && !$token_info['status'] && $token_info['attempts'] > 2) {
-					return new \Opencart\System\Engine\Action('common/authorize.reset');
+					return new \MDcart\System\Engine\Action('common/authorize.reset');
 				}
 
 				if (!$token_info || !$token_info['status'] && $token_info['attempts'] <= 2) {
-					return new \Opencart\System\Engine\Action('common/authorize');
+					return new \MDcart\System\Engine\Action('common/authorize');
 				}
 			}
 		}

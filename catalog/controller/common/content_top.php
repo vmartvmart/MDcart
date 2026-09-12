@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Common;
+namespace MDcart\Catalog\Controller\Common;
 /**
  * Class Content Top
  *
  * Can be called from $this->load->controller('common/content_top');
  *
- * @package Opencart\Catalog\Controller\Common
+ * @package MDcart\Catalog\Controller\Common
  */
-class ContentTop extends \Opencart\System\Engine\Controller {
+class ContentTop extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

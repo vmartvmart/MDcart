@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Localisation;
+namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Return Reason
  *
  * Can be loaded using $this->load->model('localisation/return_reason');
  *
- * @package Opencart\Admin\Model\Localisation
+ * @package MDcart\Admin\Model\Localisation
  */
-class ReturnReason extends \Opencart\System\Engine\Model {
+class ReturnReason extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Return Reason
 	 *

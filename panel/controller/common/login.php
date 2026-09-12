@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Login
  *
  * Can be loaded using $this->load->controller('common/login');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class Login extends \Opencart\System\Engine\Controller {
+class Login extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

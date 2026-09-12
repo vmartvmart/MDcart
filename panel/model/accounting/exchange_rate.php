@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Model\Accounting;
+namespace MDcart\Admin\Model\Accounting;
 /**
  * Class ExchangeRate
  *
@@ -13,9 +13,9 @@ namespace Opencart\Admin\Model\Accounting;
  *
  * Can be loaded using $this->load->model('accounting/exchange_rate');
  *
- * @package Opencart\Admin\Model\Accounting
+ * @package MDcart\Admin\Model\Accounting
  */
-class ExchangeRate extends \Opencart\System\Engine\Model {
+class ExchangeRate extends \MDcart\System\Engine\Model {
 	/**
 	 * UAE Dirham's official peg to the US Dollar. This has been fixed since
 	 * 1997 and essentially never changes, unlike the Rial side of things -

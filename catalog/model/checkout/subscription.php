@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Checkout;
+namespace MDcart\Catalog\Model\Checkout;
 /**
  * Class Subscription
  *
  * Can be called using $this->load->model('checkout/subscription');
  *
- * @package Opencart\Catalog\Model\Checkout
+ * @package MDcart\Catalog\Model\Checkout
  */
-class Subscription extends \Opencart\System\Engine\Model {
+class Subscription extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Subscription
 	 *

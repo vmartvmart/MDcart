@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Catalog;
+namespace MDcart\Admin\Controller\Catalog;
 /**
  * Class WarehouseTransfer
  *
@@ -10,9 +10,9 @@ namespace Opencart\Admin\Controller\Catalog;
  *
  * Can be loaded using $this->load->controller('catalog/warehouse_transfer');
  *
- * @package Opencart\Admin\Controller\Catalog
+ * @package MDcart\Admin\Controller\Catalog
  */
-class WarehouseTransfer extends \Opencart\System\Engine\Controller {
+class WarehouseTransfer extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

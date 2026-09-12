@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Setting;
+namespace MDcart\Admin\Controller\Setting;
 /**
  * Class Store
  *
- * @package Opencart\Admin\Controller\Setting
+ * @package MDcart\Admin\Controller\Setting
  */
-class Store extends \Opencart\System\Engine\Controller {
+class Store extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Order
  *
  * Can be called using $this->load->model('account/order');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Order extends \Opencart\System\Engine\Model {
+class Order extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Order
 	 *

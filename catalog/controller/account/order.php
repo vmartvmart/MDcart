@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Account;
+namespace MDcart\Catalog\Controller\Account;
 /**
  * Class Order
  *
- * @package Opencart\Catalog\Controller\Account
+ * @package MDcart\Catalog\Controller\Account
  */
-class Order extends \Opencart\System\Engine\Controller {
+class Order extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -107,9 +107,9 @@ class Order extends \Opencart\System\Engine\Controller {
 	/**
 	 * Info
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function info(): ?\Opencart\System\Engine\Action {
+	public function info(): ?\MDcart\System\Engine\Action {
 		$this->load->language('account/order');
 
 		if (isset($this->request->get['order_id'])) {
@@ -392,7 +392,7 @@ class Order extends \Opencart\System\Engine\Controller {
 
 			return null;
 		} else {
-			return new \Opencart\System\Engine\Action('error/not_found');
+			return new \MDcart\System\Engine\Action('error/not_found');
 		}
 	}
 

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Localisation;
+namespace MDcart\Catalog\Model\Localisation;
 /**
  * Class Currency
  *
  * Can be called using $this->load->model('localisation/currency');
  *
- * @package Opencart\Catalog\Model\Localisation
+ * @package MDcart\Catalog\Model\Localisation
  */
-class Currency extends \Opencart\System\Engine\Model {
+class Currency extends \MDcart\System\Engine\Model {
 	/**
 	 * Edit Value By Code
 	 *

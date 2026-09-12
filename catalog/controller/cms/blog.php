@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Cms;
+namespace MDcart\Catalog\Controller\Cms;
 /**
  * Class Blog
  *
- * @package Opencart\Catalog\Controller\Cms
+ * @package MDcart\Catalog\Controller\Cms
  */
-class Blog extends \Opencart\System\Engine\Controller {
+class Blog extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -313,9 +313,9 @@ class Blog extends \Opencart\System\Engine\Controller {
 	/**
 	 * Info
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function info(): ?\Opencart\System\Engine\Action {
+	public function info(): ?\MDcart\System\Engine\Action {
 		$this->load->language('cms/blog');
 
 		if (isset($this->request->get['article_id'])) {
@@ -434,7 +434,7 @@ class Blog extends \Opencart\System\Engine\Controller {
 
 			$this->response->setOutput($this->load->view('cms/blog_info', $data));
 		} else {
-			return new \Opencart\System\Engine\Action('error/not_found');
+			return new \MDcart\System\Engine\Action('error/not_found');
 		}
 
 		return null;

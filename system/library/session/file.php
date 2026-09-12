@@ -1,9 +1,9 @@
 <?php
-namespace Opencart\System\Library\Session;
+namespace MDcart\System\Library\Session;
 /**
  * Class File
  *
- * @package Opencart\System\Library\Session
+ * @package MDcart\System\Library\Session
  */
 class File {
 	/**
@@ -14,9 +14,9 @@ class File {
 	/**
 	 * Constructor
 	 *
-	 * @param \Opencart\System\Engine\Registry $registry
+	 * @param \MDcart\System\Engine\Registry $registry
 	 */
-	public function __construct(\Opencart\System\Engine\Registry $registry) {
+	public function __construct(\MDcart\System\Engine\Registry $registry) {
 		$this->config = $registry->get('config');
 	}
 

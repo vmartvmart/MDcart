@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Security
  *
  * Can be loaded using $this->load->controller('common/security');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class Security extends \Opencart\System\Engine\Controller {
+class Security extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -41,7 +41,7 @@ class Security extends \Opencart\System\Engine\Controller {
 	 */
 	public function getList(): string {
 		// Install directory exists
-		$path = DIR_OPENCART . 'install/';
+		$path = MCART_ROOT . 'install/';
 
 		if (is_dir($path)) {
 			$data['install'] = $path;
@@ -84,7 +84,7 @@ class Security extends \Opencart\System\Engine\Controller {
 		}
 
 		// Check admin directory is renamed
-		$path = DIR_OPENCART . 'admin/';
+		$path = MCART_ROOT . 'admin/';
 
 		if (DIR_APPLICATION == $path) {
 			$data['admin'] = 'admin';
@@ -93,7 +93,7 @@ class Security extends \Opencart\System\Engine\Controller {
 		}
 
 		// Admin delete
-		$path = DIR_OPENCART . 'admin/';
+		$path = MCART_ROOT . 'admin/';
 
 		if (is_dir($path) && DIR_APPLICATION != $path) {
 			$data['admin_delete'] = $path;
@@ -125,7 +125,7 @@ class Security extends \Opencart\System\Engine\Controller {
 		}
 
 		if (!$json) {
-			if (!is_dir(DIR_OPENCART . 'install/')) {
+			if (!is_dir(MCART_ROOT . 'install/')) {
 				$json['error'] = $this->language->get('error_install');
 			}
 		}
@@ -133,7 +133,7 @@ class Security extends \Opencart\System\Engine\Controller {
 		if (!$json) {
 			$files = [];
 
-			$path = DIR_OPENCART . 'install/';
+			$path = MCART_ROOT . 'install/';
 
 			// Make path into an array
 			$directory = [$path];
@@ -233,7 +233,7 @@ class Security extends \Opencart\System\Engine\Controller {
 
 			if (!$json) {
 				// check the config files are writeable, needed for modifications
-				if (!is_writable(DIR_OPENCART . 'config.php') || !is_writable(DIR_APPLICATION . 'config.php')) {
+				if (!is_writable(MCART_ROOT . 'config.php') || !is_writable(DIR_APPLICATION . 'config.php')) {
 					$json['error'] = $this->language->get('error_writable');
 				}
 			}
@@ -332,7 +332,7 @@ class Security extends \Opencart\System\Engine\Controller {
 				// Modify the config files
 				$files = [
 					DIR_APPLICATION . 'config.php',
-					DIR_OPENCART . 'config.php'
+					MCART_ROOT . 'config.php'
 				];
 
 				foreach ($files as $file) {
@@ -390,8 +390,8 @@ class Security extends \Opencart\System\Engine\Controller {
 		}
 
 		if (!$json) {
-			$base_old = DIR_OPENCART . 'admin/';
-			$base_new = DIR_OPENCART . $name . '/';
+			$base_old = MCART_ROOT . 'admin/';
+			$base_new = MCART_ROOT . $name . '/';
 
 			if (!is_dir($base_old)) {
 				$json['error'] = $this->language->get('error_admin');
@@ -414,7 +414,7 @@ class Security extends \Opencart\System\Engine\Controller {
 				$json['error'] = sprintf($this->language->get('error_admin_allowed'), $name);
 			}
 
-			if (!is_writable(DIR_OPENCART . 'config.php') || !is_writable(DIR_APPLICATION . 'config.php')) {
+			if (!is_writable(MCART_ROOT . 'config.php') || !is_writable(DIR_APPLICATION . 'config.php')) {
 				$json['error'] = $this->language->get('error_writable');
 			}
 		}
@@ -501,7 +501,7 @@ class Security extends \Opencart\System\Engine\Controller {
 					}
 
 					if (strpos($line, 'define(\'DIR_APPLICATION') !== false) {
-						$output .= 'define(\'DIR_APPLICATION\', DIR_OPENCART . \'' . $name . '/\');' . "\n";
+						$output .= 'define(\'DIR_APPLICATION\', MCART_ROOT . \'' . $name . '/\');' . "\n";
 
 						$status = false;
 					}
@@ -562,7 +562,7 @@ class Security extends \Opencart\System\Engine\Controller {
 
 			// Admin directory exists
 			if ($remove == 'admin') {
-				$path = DIR_OPENCART . 'admin/';
+				$path = MCART_ROOT . 'admin/';
 
 				if (!is_dir($path) || DIR_APPLICATION == $path) {
 					$json['error'] = $this->language->get('error_admin');

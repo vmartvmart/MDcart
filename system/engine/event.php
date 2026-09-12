@@ -8,7 +8,7 @@
  *
  * @see		https://www.opencart.com
  */
-namespace Opencart\System\Engine;
+namespace MDcart\System\Engine;
 /**
  * Class Event
  *
@@ -16,9 +16,9 @@ namespace Opencart\System\Engine;
  */
 class Event {
 	/**
-	 * @var \Opencart\System\Engine\Registry
+	 * @var \MDcart\System\Engine\Registry
 	 */
-	protected \Opencart\System\Engine\Registry $registry;
+	protected \MDcart\System\Engine\Registry $registry;
 	/**
 	 * @var array<int, array<string, mixed>>
 	 */
@@ -27,9 +27,9 @@ class Event {
 	/**
 	 * Constructor
 	 *
-	 * @param \Opencart\System\Engine\Registry $registry
+	 * @param \MDcart\System\Engine\Registry $registry
 	 */
-	public function __construct(\Opencart\System\Engine\Registry $registry) {
+	public function __construct(\MDcart\System\Engine\Registry $registry) {
 		$this->registry = $registry;
 	}
 
@@ -37,12 +37,12 @@ class Event {
 	 * Register
 	 *
 	 * @param string                         $trigger
-	 * @param \Opencart\System\Engine\Action $action
+	 * @param \MDcart\System\Engine\Action $action
 	 * @param int                            $priority
 	 *
 	 * @return void
 	 */
-	public function register(string $trigger, \Opencart\System\Engine\Action $action, int $priority = 0): void {
+	public function register(string $trigger, \MDcart\System\Engine\Action $action, int $priority = 0): void {
 		$this->data[] = [
 			'trigger'  => $trigger,
 			'action'   => $action,

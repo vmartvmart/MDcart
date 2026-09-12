@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\IranianGateways\Payment;
+namespace MDcart\Catalog\Controller\Extension\IranianGateways\Payment;
 /**
  * Class SizPay
  *
@@ -14,9 +14,9 @@ namespace Opencart\Catalog\Controller\Extension\IranianGateways\Payment;
  * the browser to this extension's own gateway() action, which renders a
  * tiny auto-submitting form.
  *
- * @package Opencart\Catalog\Controller\Extension\IranianGateways\Payment
+ * @package MDcart\Catalog\Controller\Extension\IranianGateways\Payment
  */
-class Sizpay extends \Opencart\System\Engine\Controller {
+class Sizpay extends \MDcart\System\Engine\Controller {
 	private const SOAP_URL = 'https://rt.sizpay.ir/KimiaIPGRouteService.asmx';
 	private const SOAP_NAMESPACE = 'https://rt.sizpay.com/';
 	private const GATE_URL = 'https://rt.sizpay.ir/Route/Payment';

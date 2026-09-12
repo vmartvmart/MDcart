@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\IranianGateways\Payment;
+namespace MDcart\Catalog\Model\Extension\IranianGateways\Payment;
 /**
  * Class SizPay
  *
  * Can be called from $this->load->model('extension/iranian_gateways/payment/sizpay');
  *
- * @package Opencart\Catalog\Model\Extension\IranianGateways\Payment
+ * @package MDcart\Catalog\Model\Extension\IranianGateways\Payment
  */
-class Sizpay extends \Opencart\System\Engine\Model {
+class Sizpay extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Methods
 	 *

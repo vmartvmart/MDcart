@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\Opencart\Total;
+namespace MDcart\Catalog\Model\Extension\MDcart\Total;
 /**
  * Class Low Order Fee
  *
  * Can be called from $this->load->model('extension/opencart/total/low_order_fee');
  *
- * @package Opencart\Catalog\Model\Extension\Opencart\Total
+ * @package MDcart\Catalog\Model\Extension\MDcart\Total
  */
-class LowOrderFee extends \Opencart\System\Engine\Model {
+class LowOrderFee extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Total
 	 *

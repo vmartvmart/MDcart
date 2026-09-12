@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Startup;
+namespace MDcart\Admin\Controller\Startup;
 /**
  * Class Session
  *
- * @package Opencart\Admin\Controller\Startup
+ * @package MDcart\Admin\Controller\Startup
  */
-class Session extends \Opencart\System\Engine\Controller {
+class Session extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -14,7 +14,7 @@ class Session extends \Opencart\System\Engine\Controller {
 	 * @return void
 	 */
 	public function index(): void {
-		$session = new \Opencart\System\Library\Session($this->config->get('session_engine'), $this->registry);
+		$session = new \MDcart\System\Library\Session($this->config->get('session_engine'), $this->registry);
 		$this->registry->set('session', $session);
 
 		if (isset($this->request->cookie[$this->config->get('session_name')])) {

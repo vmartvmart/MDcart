@@ -1,17 +1,17 @@
 <?php
-namespace Opencart\Catalog\Controller\Product;
+namespace MDcart\Catalog\Controller\Product;
 /**
  * Class Category
  *
- * @package Opencart\Catalog\Controller\Product
+ * @package MDcart\Catalog\Controller\Product
  */
-class Category extends \Opencart\System\Engine\Controller {
+class Category extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function index(): ?\Opencart\System\Engine\Action {
+	public function index(): ?\MDcart\System\Engine\Action {
 		$this->load->language('product/category');
 
 		if (isset($this->request->get['path'])) {
@@ -441,7 +441,7 @@ class Category extends \Opencart\System\Engine\Controller {
 
 			$this->response->setOutput($this->load->view('product/category', $data));
 		} else {
-			return new \Opencart\System\Engine\Action('error/not_found');
+			return new \MDcart\System\Engine\Action('error/not_found');
 		}
 
 		return null;

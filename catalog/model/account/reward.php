@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Reward
  *
  * Can be called using $this->load->model('account/reward');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Reward extends \Opencart\System\Engine\Model {
+class Reward extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Reward
 	 *

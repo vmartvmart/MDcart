@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 /**
  * Class WarehouseTransfer
  *
@@ -17,9 +17,9 @@ namespace Opencart\Admin\Model\Catalog;
  *
  * Can be loaded using $this->load->model('catalog/warehouse_transfer');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class WarehouseTransfer extends \Opencart\System\Engine\Model {
+class WarehouseTransfer extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Transfer
 	 *

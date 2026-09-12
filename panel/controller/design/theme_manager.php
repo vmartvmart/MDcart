@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Design;
+namespace MDcart\Admin\Controller\Design;
 /**
  * Class ThemeManager
  *
@@ -14,9 +14,9 @@ namespace Opencart\Admin\Controller\Design;
  *
  * Can be loaded using $this->load->controller('design/theme_manager');
  *
- * @package Opencart\Admin\Controller\Design
+ * @package MDcart\Admin\Controller\Design
  */
-class ThemeManager extends \Opencart\System\Engine\Controller {
+class ThemeManager extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -140,7 +140,7 @@ class ThemeManager extends \Opencart\System\Engine\Controller {
 
 					copy($tmp_dir . '/' . $name . '_header.twig', DIR_APPLICATION . 'view/theme_presets/' . $name . '_header.twig');
 					copy($tmp_dir . '/' . $name . '_home.twig', DIR_APPLICATION . 'view/theme_presets/' . $name . '_home.twig');
-					copy($tmp_dir . '/theme-' . $name . '.css', DIR_OPENCART . 'catalog/view/stylesheet/theme-' . $name . '.css');
+					copy($tmp_dir . '/theme-' . $name . '.css', MCART_ROOT . 'catalog/view/stylesheet/theme-' . $name . '.css');
 
 					if (is_file($tmp_dir . '/' . $name . '.json')) {
 						copy($tmp_dir . '/' . $name . '.json', DIR_APPLICATION . 'view/theme_presets/' . $name . '.json');
@@ -192,7 +192,7 @@ class ThemeManager extends \Opencart\System\Engine\Controller {
 					DIR_APPLICATION . 'view/theme_presets/' . $name . '_header.twig',
 					DIR_APPLICATION . 'view/theme_presets/' . $name . '_home.twig',
 					DIR_APPLICATION . 'view/theme_presets/' . $name . '.json',
-					DIR_OPENCART . 'catalog/view/stylesheet/theme-' . $name . '.css',
+					MCART_ROOT . 'catalog/view/stylesheet/theme-' . $name . '.css',
 				] as $file) {
 					if (is_file($file)) {
 						unlink($file);

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Marketplace;
+namespace MDcart\Admin\Controller\Marketplace;
 /**
  * Class Promotion
  *
  * Can be loaded using $this->load->controller('marketplace/promotion');
  *
- * @package Opencart\Admin\Controller\Marketplace
+ * @package MDcart\Admin\Controller\Marketplace
  */
-class Promotion extends \Opencart\System\Engine\Controller {
+class Promotion extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Model\Accounting;
+namespace MDcart\Admin\Model\Accounting;
 /**
  * Class BankAccount
  *
@@ -13,9 +13,9 @@ namespace Opencart\Admin\Model\Accounting;
  *
  * Can be loaded using $this->load->model('accounting/bank_account');
  *
- * @package Opencart\Admin\Model\Accounting
+ * @package MDcart\Admin\Model\Accounting
  */
-class BankAccount extends \Opencart\System\Engine\Model {
+class BankAccount extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Bank Account (creates the paired Chart-of-Accounts row too).
 	 *

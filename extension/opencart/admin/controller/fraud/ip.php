@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Opencart\Fraud;
+namespace MDcart\Admin\Controller\Extension\MDcart\Fraud;
 /**
  * Class IP
  *
- * @package Opencart\Admin\Controller\Extension\Opencart\Fraud
+ * @package MDcart\Admin\Controller\Extension\MDcart\Fraud
  */
-class Ip extends \Opencart\System\Engine\Controller {
+class Ip extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

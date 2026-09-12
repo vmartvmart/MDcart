@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Localisation;
+namespace MDcart\Catalog\Model\Localisation;
 /**
  * Class Stock Status
  *
  * Can be called using $this->load->model('localisation/stock_status');
  *
- * @package Opencart\Catalog\Model\Localisation
+ * @package MDcart\Catalog\Model\Localisation
  */
-class StockStatus extends \Opencart\System\Engine\Model {
+class StockStatus extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Stock Status
 	 *

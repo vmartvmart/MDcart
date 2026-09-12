@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\User;
+namespace MDcart\Catalog\Model\User;
 /**
  * Class Api
  *
  * Can be called using $this->load->model('user/api');
  *
- * @package Opencart\Catalog\Model\User
+ * @package MDcart\Catalog\Model\User
  */
-class Api extends \Opencart\System\Engine\Model {
+class Api extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Api By Username
 	 *

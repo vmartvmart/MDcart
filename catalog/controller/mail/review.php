@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Mail;
+namespace MDcart\Catalog\Controller\Mail;
 /**
  * Class Review
  *
- * @package Opencart\Catalog\Controller\Mail
+ * @package MDcart\Catalog\Controller\Mail
  */
-class Review extends \Opencart\System\Engine\Controller {
+class Review extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -51,7 +51,7 @@ class Review extends \Opencart\System\Engine\Controller {
 						'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 					];
 
-					$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+					$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 					$mail->setTo($this->config->get('config_email'));
 					$mail->setFrom($this->config->get('config_email'));
 					$mail->setSender($store_name);

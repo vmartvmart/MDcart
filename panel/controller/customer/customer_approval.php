@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Customer;
+namespace MDcart\Admin\Controller\Customer;
 /**
  * Class Customer Approval
  *
- * @package Opencart\Admin\Controller\Customer
+ * @package MDcart\Admin\Controller\Customer
  */
-class CustomerApproval extends \Opencart\System\Engine\Controller {
+class CustomerApproval extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

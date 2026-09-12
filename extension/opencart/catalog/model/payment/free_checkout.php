@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\Opencart\Payment;
+namespace MDcart\Catalog\Model\Extension\MDcart\Payment;
 /**
  * Class Free Checkout
  *
  * Can be called from $this->load->model('extension/opencart/payment/free_checkout');
  *
- * @package Opencart\Catalog\Model\Extension\Opencart\Payment
+ * @package MDcart\Catalog\Model\Extension\MDcart\Payment
  */
-class FreeCheckout extends \Opencart\System\Engine\Model {
+class FreeCheckout extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Methods
 	 *

@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Catalog\Controller\Product;
+namespace MDcart\Catalog\Controller\Product;
 /**
  * Class Thumb
  *
@@ -17,9 +17,9 @@ namespace Opencart\Catalog\Controller\Product;
  *     'href'        => ''
  * ];
  *
- * @package Opencart\Catalog\Controller\Product
+ * @package MDcart\Catalog\Controller\Product
  */
-class Thumb extends \Opencart\System\Engine\Controller {
+class Thumb extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

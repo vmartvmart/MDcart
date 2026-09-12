@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Design;
+namespace MDcart\Admin\Controller\Design;
 /**
  * Class ThemeSwitcher
  *
@@ -28,9 +28,9 @@ namespace Opencart\Admin\Controller\Design;
  *
  * Can be loaded using $this->load->controller('design/theme_switcher');
  *
- * @package Opencart\Admin\Controller\Design
+ * @package MDcart\Admin\Controller\Design
  */
-class ThemeSwitcher extends \Opencart\System\Engine\Controller {
+class ThemeSwitcher extends \MDcart\System\Engine\Controller {
 	/**
 	 * @var string[] the oc_theme routes every named theme overrides
 	 */
@@ -218,7 +218,7 @@ class ThemeSwitcher extends \Opencart\System\Engine\Controller {
 			}
 
 			$home_file = DIR_APPLICATION . 'view/theme_presets/' . $name . '_home.twig';
-			$css_file = DIR_OPENCART . 'catalog/view/stylesheet/theme-' . $name . '.css';
+			$css_file = MCART_ROOT . 'catalog/view/stylesheet/theme-' . $name . '.css';
 
 			if (!is_file($home_file) || !is_file($css_file)) {
 				continue;

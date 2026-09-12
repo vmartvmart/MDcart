@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Opencart\Payment;
+namespace MDcart\Admin\Controller\Extension\MDcart\Payment;
 /**
  * Class Bank Transfer
  *
- * @package Opencart\Admin\Controller\Extension\Opencart\Payment
+ * @package MDcart\Admin\Controller\Extension\MDcart\Payment
  */
-class BankTransfer extends \Opencart\System\Engine\Controller {
+class BankTransfer extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

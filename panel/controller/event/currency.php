@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Event;
+namespace MDcart\Admin\Controller\Event;
 /**
  * Class Currency
  *
- * @package Opencart\Admin\Controller\Event
+ * @package MDcart\Admin\Controller\Event
  */
-class Currency extends \Opencart\System\Engine\Controller {
+class Currency extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\System\Library\Extension\Whatsapp;
+namespace MDcart\System\Library\Extension\Whatsapp;
 /**
  * Class Whatsapp
  *
@@ -11,7 +11,7 @@ namespace Opencart\System\Library\Extension\Whatsapp;
  * window — any proactive notification (new order, status change, admin alert)
  * must use a template pre-approved in Meta Business Manager.
  *
- * @package Opencart\System\Library\Extension\Whatsapp
+ * @package MDcart\System\Library\Extension\Whatsapp
  */
 class Whatsapp {
 	private const API_VERSION = 'v23.0';

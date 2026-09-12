@@ -15,10 +15,10 @@
 ob_start();
 
 // Autoloader
-$autoloader = new \Opencart\System\Engine\Autoloader();
-$autoloader->register('Opencart\\' . APPLICATION, DIR_APPLICATION);
-$autoloader->register('Opencart\Extension', DIR_EXTENSION);
-$autoloader->register('Opencart\System', DIR_SYSTEM);
+$autoloader = new \MDcart\System\Engine\Autoloader();
+$autoloader->register('MDcart\\' . APPLICATION, DIR_APPLICATION);
+$autoloader->register('MDcart\Extension', DIR_EXTENSION);
+$autoloader->register('MDcart\System', DIR_SYSTEM);
 
 //require_once(DIR_SYSTEM . 'helper/vendor.php');
 //oc_generate_vendor();
@@ -29,11 +29,11 @@ if (defined('DIR_STORAGE') && is_file(DIR_STORAGE . 'vendor/autoload.php')) {
 }
 
 // Registry
-$registry = new \Opencart\System\Engine\Registry();
+$registry = new \MDcart\System\Engine\Registry();
 $registry->set('autoloader', $autoloader);
 
 // Config
-$config = new \Opencart\System\Engine\Config();
+$config = new \MDcart\System\Engine\Config();
 $config->addPath(DIR_CONFIG);
 // Load the default config
 $config->load('default');
@@ -47,7 +47,7 @@ $config->set('application', APPLICATION);
 date_default_timezone_set($config->get('date_timezone'));
 
 // Logging
-$log = new \Opencart\System\Library\Log($config->get('error_filename'));
+$log = new \MDcart\System\Library\Log($config->get('error_filename'));
 $registry->set('log', $log);
 
 // Error Handler
@@ -127,27 +127,27 @@ set_exception_handler(function(\Throwable $e) use ($log, $config): void {
 });
 
 // Event
-$event = new \Opencart\System\Engine\Event($registry);
+$event = new \MDcart\System\Engine\Event($registry);
 $registry->set('event', $event);
 
 // Event Register
 if ($config->has('action_event')) {
 	foreach ($config->get('action_event') as $key => $value) {
 		foreach ($value as $priority => $action) {
-			$event->register($key, new \Opencart\System\Engine\Action($action), $priority);
+			$event->register($key, new \MDcart\System\Engine\Action($action), $priority);
 		}
 	}
 }
 
 // Factory
-$registry->set('factory', new \Opencart\System\Engine\Factory($registry));
+$registry->set('factory', new \MDcart\System\Engine\Factory($registry));
 
 // Loader
-$loader = new \Opencart\System\Engine\Loader($registry);
+$loader = new \MDcart\System\Engine\Loader($registry);
 $registry->set('load', $loader);
 
 // Request
-$request = new \Opencart\System\Library\Request();
+$request = new \MDcart\System\Library\Request();
 $registry->set('request', $request);
 
 // Compatibility
@@ -157,7 +157,7 @@ if (isset($request->get['route'])) {
 }
 
 // Response
-$response = new \Opencart\System\Library\Response();
+$response = new \MDcart\System\Library\Response();
 $registry->set('response', $response);
 
 foreach ($config->get('response_header') as $header) {
@@ -176,13 +176,13 @@ $response->setCompression((int)$config->get('response_compression'));
 
 // Database
 if ($config->get('db_autostart')) {
-	$db = new \Opencart\System\Library\DB($config->get('db_engine'), $config->get('db_hostname'), $config->get('db_username'), $config->get('db_password'), $config->get('db_database'), $config->get('db_port'), $config->get('db_ssl_key'), $config->get('db_ssl_cert'), $config->get('db_ssl_ca'));
+	$db = new \MDcart\System\Library\DB($config->get('db_engine'), $config->get('db_hostname'), $config->get('db_username'), $config->get('db_password'), $config->get('db_database'), $config->get('db_port'), $config->get('db_ssl_key'), $config->get('db_ssl_cert'), $config->get('db_ssl_ca'));
 	$registry->set('db', $db);
 }
 
 // Session
 if ($config->get('session_autostart')) {
-	$session = new \Opencart\System\Library\Session($config->get('session_engine'), $registry);
+	$session = new \MDcart\System\Library\Session($config->get('session_engine'), $registry);
 	$registry->set('session', $session);
 
 	if (isset($request->cookie[$config->get('session_name')])) {
@@ -207,38 +207,38 @@ if ($config->get('session_autostart')) {
 }
 
 // Cache
-$registry->set('cache', new \Opencart\System\Library\Cache($config->get('cache_engine'), $config->get('cache_expire')));
+$registry->set('cache', new \MDcart\System\Library\Cache($config->get('cache_engine'), $config->get('cache_expire')));
 
 // Template
-$template = new \Opencart\System\Library\Template($config->get('template_engine'));
+$template = new \MDcart\System\Library\Template($config->get('template_engine'));
 $template->addPath(DIR_TEMPLATE);
 $registry->set('template', $template);
 
 // Language
-$language = new \Opencart\System\Library\Language($config->get('language_code'));
+$language = new \MDcart\System\Library\Language($config->get('language_code'));
 $language->addPath(DIR_LANGUAGE);
 $language->load('default');
 $registry->set('language', $language);
 
 // Url
-$registry->set('url', new \Opencart\System\Library\Url($config->get('site_url')));
+$registry->set('url', new \MDcart\System\Library\Url($config->get('site_url')));
 
 // Document
-$registry->set('document', new \Opencart\System\Library\Document());
+$registry->set('document', new \MDcart\System\Library\Document());
 
 $action = '';
 $args = [];
 
 // Action error object to execute if any other actions cannot be executed.
-$error = new \Opencart\System\Engine\Action($config->get('action_error'));
+$error = new \MDcart\System\Engine\Action($config->get('action_error'));
 
 // Pre Actions
 foreach ($config->get('action_pre_action') as $pre_action) {
-	$pre_action = new \Opencart\System\Engine\Action($pre_action);
+	$pre_action = new \MDcart\System\Engine\Action($pre_action);
 
 	$result = $pre_action->execute($registry, $args);
 
-	if ($result instanceof \Opencart\System\Engine\Action) {
+	if ($result instanceof \MDcart\System\Engine\Action) {
 		$action = $result;
 
 		break;
@@ -264,7 +264,7 @@ if (isset($request->get['route'])) {
 
 // To block calls to controller methods we want to keep from being accessed directly
 if (str_contains($route, '._')) {
-	$action = new \Opencart\System\Engine\Action($config->get('action_error'));
+	$action = new \MDcart\System\Engine\Action($config->get('action_error'));
 }
 
 if ($action) {
@@ -281,7 +281,7 @@ $event->trigger('controller/' . $trigger . '/before', [&$route, &$args]);
 
 // Action to execute
 if (!$action) {
-	$action = new \Opencart\System\Engine\Action($route);
+	$action = new \MDcart\System\Engine\Action($route);
 }
 
 // Dispatch
@@ -293,7 +293,7 @@ while ($action) {
 	$action = '';
 
 	// Action object returned then we keep the loop going
-	if ($output instanceof \Opencart\System\Engine\Action) {
+	if ($output instanceof \MDcart\System\Engine\Action) {
 		$action = $output;
 	}
 

@@ -1,7 +1,7 @@
 # Site-specific configuration - each install creates its own from the
 # *-dist.php templates below. Never commit real DB credentials or paths.
 /config.php
-/admin/config.php
+/panel/config.php
 
 # Runtime / generated storage - safe to regenerate, never versioned.
 /system/storage/cache/*
@@ -19,6 +19,18 @@
 # Generated image thumbnails - regenerated automatically on demand.
 /image/cache/*
 !/image/cache/index.html
+
+# One-off developer/maintenance tools - these are for OUR machine only and
+# must never be committed: this repo is exactly what "system update" ships
+# to every customer install, so anything here would land in their admin
+# panel / site root too. Some of these self-delete after one run, but are
+# ignored here as a safety net regardless.
+/install.php
+/install_starter.sql
+/install_starter-*.sql
+/rebrand.php
+/panel/gen_install_sql.php
+/admin/gen_install_sql.php
 
 # OS / editor junk
 .DS_Store

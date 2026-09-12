@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\IranianGateways\Payment;
+namespace MDcart\Catalog\Model\Extension\IranianGateways\Payment;
 /**
  * Class IDPay
  *
  * Can be called from $this->load->model('extension/iranian_gateways/payment/idpay');
  *
- * @package Opencart\Catalog\Model\Extension\IranianGateways\Payment
+ * @package MDcart\Catalog\Model\Extension\IranianGateways\Payment
  */
-class Idpay extends \Opencart\System\Engine\Model {
+class Idpay extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Methods
 	 *

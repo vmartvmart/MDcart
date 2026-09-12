@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Design;
+namespace MDcart\Admin\Model\Design;
 /**
  * Class Translation
  *
  * Can be loaded using $this->load->model('design/translation');
  *
- * @package Opencart\Admin\Model\Design
+ * @package MDcart\Admin\Model\Design
  */
-class Translation extends \Opencart\System\Engine\Model {
+class Translation extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Translation
 	 *

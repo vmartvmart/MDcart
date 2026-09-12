@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\Opencart\Module;
+namespace MDcart\Catalog\Model\Extension\MDcart\Module;
 /**
  * Class Bestseller
  *
  * Can be called from $this->load->model('extension/opencart/module/bestseller');
  *
- * @package Opencart\Catalog\Model\Extension\Opencart\Module
+ * @package MDcart\Catalog\Model\Extension\MDcart\Module
  */
-class Bestseller extends \Opencart\Catalog\Model\Catalog\Product {
+class Bestseller extends \MDcart\Catalog\Model\Catalog\Product {
 	/**
 	 * Get Best Sellers
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Setting;
+namespace MDcart\Catalog\Model\Setting;
 /**
  * Class Api
  *
  * Can be called using $this->load->model('setting/api');
  *
- * @package Opencart\Catalog\Model\Setting
+ * @package MDcart\Catalog\Model\Setting
  */
-class Api extends \Opencart\System\Engine\Model {
+class Api extends \MDcart\System\Engine\Model {
 	/**
 	 * Login
 	 *

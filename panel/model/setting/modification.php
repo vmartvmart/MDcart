@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Setting;
+namespace MDcart\Admin\Model\Setting;
 /**
  * Class Modification
  *
  * Can be loaded using $this->load->model('setting/modification');
  *
- * @package Opencart\Admin\Model\Setting
+ * @package MDcart\Admin\Model\Setting
  */
-class Modification extends \Opencart\System\Engine\Model {
+class Modification extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Modification
 	 *

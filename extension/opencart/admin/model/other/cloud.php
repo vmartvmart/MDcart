@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Extension\Opencart\Other;
+namespace MDcart\Admin\Model\Extension\MDcart\Other;
 /**
  * Class Cloud
  *
  * Can be called from $this->load->model('extension/opencart/other/cloud');
  *
- * @package Opencart\Admin\Model\Extension\Opencart\Other
+ * @package MDcart\Admin\Model\Extension\MDcart\Other
  */
-class Cloud extends \Opencart\System\Engine\Model {
+class Cloud extends \MDcart\System\Engine\Model {
 	/**
 	 * Install
 	 *

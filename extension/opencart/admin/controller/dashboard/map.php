@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Opencart\Dashboard;
+namespace MDcart\Admin\Controller\Extension\MDcart\Dashboard;
 /**
  * Class Map
  *
- * @package Opencart\Admin\Controller\Extension\Opencart\Dashboard
+ * @package MDcart\Admin\Controller\Extension\MDcart\Dashboard
  */
-class Map extends \Opencart\System\Engine\Controller {
+class Map extends \MDcart\System\Engine\Controller {
 	/**
 	 * Maps the numeric path IDs used by the Iran jqvmap SVG (jquery.vmap.iran.js) to the
 	 * matching zone_id values in the oc_zone table, since the two are named/keyed differently.

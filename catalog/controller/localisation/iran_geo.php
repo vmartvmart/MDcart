@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Localisation;
+namespace MDcart\Catalog\Controller\Localisation;
 /**
  * Class Iran Geo
  *
- * @package Opencart\Catalog\Controller\Localisation
+ * @package MDcart\Catalog\Controller\Localisation
  */
-class IranGeo extends \Opencart\System\Engine\Controller {
+class IranGeo extends \MDcart\System\Engine\Controller {
 	/**
 	 * County
 	 *

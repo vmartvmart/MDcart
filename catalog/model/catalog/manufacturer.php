@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Catalog;
+namespace MDcart\Catalog\Model\Catalog;
 /**
  * Class Manufacturer
  *
  * Can be called using $this->load->model('catalog/manufacturer');
  *
- * @package Opencart\Catalog\Model\Catalog
+ * @package MDcart\Catalog\Model\Catalog
  */
-class Manufacturer extends \Opencart\System\Engine\Model {
+class Manufacturer extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Manufacturer
 	 *

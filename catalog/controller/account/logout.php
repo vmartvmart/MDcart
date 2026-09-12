@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Account;
+namespace MDcart\Catalog\Controller\Account;
 /**
  * Class Logout
  *
- * @package Opencart\Catalog\Controller\Account
+ * @package MDcart\Catalog\Controller\Account
  */
-class Logout extends \Opencart\System\Engine\Controller {
+class Logout extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 /**
  * Class Option
  *
  * Can be loaded using $this->load->model('catalog/option');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class Option extends \Opencart\System\Engine\Model {
+class Option extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Option
 	 *

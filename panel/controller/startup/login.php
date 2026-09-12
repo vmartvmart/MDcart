@@ -1,15 +1,15 @@
 <?php
-namespace Opencart\Admin\Controller\Startup;
+namespace MDcart\Admin\Controller\Startup;
 /**
  * Class Login
  *
- * @package Opencart\Admin\Controller\Startup
+ * @package MDcart\Admin\Controller\Startup
  */
-class Login extends \Opencart\System\Engine\Controller {
+class Login extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
-	 * @return \Opencart\System\Engine\Action
+	 * @return \MDcart\System\Engine\Action
 	 */
 	public function index(): ?object {
 		if (isset($this->request->get['route'])) {
@@ -33,10 +33,10 @@ class Login extends \Opencart\System\Engine\Controller {
 		];
 
 		// User
-		$this->registry->set('user', new \Opencart\System\Library\Cart\User($this->registry));
+		$this->registry->set('user', new \MDcart\System\Library\Cart\User($this->registry));
 
 		if (!$this->user->isLogged() && !in_array($route, $ignore)) {
-			return new \Opencart\System\Engine\Action('common/login');
+			return new \MDcart\System\Engine\Action('common/login');
 		}
 
 		$ignore = [
@@ -57,7 +57,7 @@ class Login extends \Opencart\System\Engine\Controller {
 		];
 
 		if (!in_array($route, $ignore) && (!isset($this->request->get['user_token']) || !isset($this->session->data['user_token']) || ($this->request->get['user_token'] != $this->session->data['user_token']))) {
-			return new \Opencart\System\Engine\Action('common/login');
+			return new \MDcart\System\Engine\Action('common/login');
 		}
 
 		return null;

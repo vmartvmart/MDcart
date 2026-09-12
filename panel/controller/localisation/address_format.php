@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Localisation;
+namespace MDcart\Admin\Controller\Localisation;
 /**
  * Class Address Format
  *
- * @package Opencart\Admin\Controller\Localisation
+ * @package MDcart\Admin\Controller\Localisation
  */
-class AddressFormat extends \Opencart\System\Engine\Controller {
+class AddressFormat extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

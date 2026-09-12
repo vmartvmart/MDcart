@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Catalog;
+namespace MDcart\Admin\Controller\Catalog;
 /**
  * Class Subscription Plan
  *
  * Can be loaded using $this->load->controller('catalog/subscription_plan');
  *
- * @package Opencart\Admin\Controller\Catalog
+ * @package MDcart\Admin\Controller\Catalog
  */
-class SubscriptionPlan extends \Opencart\System\Engine\Controller {
+class SubscriptionPlan extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

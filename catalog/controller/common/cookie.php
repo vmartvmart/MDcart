@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Common;
+namespace MDcart\Catalog\Controller\Common;
 /**
  * Class Cookie
  *
  * Can be called from $this->load->controller('common/cookie');
  *
- * @package Opencart\Catalog\Controller\Common
+ * @package MDcart\Catalog\Controller\Common
  */
-class Cookie extends \Opencart\System\Engine\Controller {
+class Cookie extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

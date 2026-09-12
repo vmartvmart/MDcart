@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Sale;
+namespace MDcart\Admin\Model\Sale;
 /**
  * Class Subscription
  *
  * Can be loaded using $this->load->model('sale/subscription');
  *
- * @package Opencart\Admin\Model\Sale
+ * @package MDcart\Admin\Model\Sale
  */
-class Subscription extends \Opencart\System\Engine\Model {
+class Subscription extends \MDcart\System\Engine\Model {
 	/**
 	 * Delete Subscription
 	 *

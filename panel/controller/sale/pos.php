@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Sale;
+namespace MDcart\Admin\Controller\Sale;
 /**
  * Class Pos
  *
  * In-person point-of-sale screen. A sale always picks a warehouse to sell
  * from (any warehouse, not just the online storefront's selling warehouse)
- * and, on checkout, creates a REAL order through OpenCart's own checkout
+ * and, on checkout, creates a REAL order through MDcart's own checkout
  * pipeline (the same one the storefront and the admin's "Add Order" screen
  * use - see catalog/controller/api/order.php::confirm()) so it shows up
  * correctly under Sales > Orders, with a synthetic walk-in guest customer
@@ -20,9 +20,9 @@ namespace Opencart\Admin\Controller\Sale;
  *
  * Can be loaded using $this->load->controller('sale/pos');
  *
- * @package Opencart\Admin\Controller\Sale
+ * @package MDcart\Admin\Controller\Sale
  */
-class Pos extends \Opencart\System\Engine\Controller {
+class Pos extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -57,7 +57,7 @@ class Pos extends \Opencart\System\Engine\Controller {
 		// can be charged in AED, Toman (IRT), USD, or whatever else an admin
 		// has turned on under System > Localisation > Currencies. The order
 		// itself is still always recorded/accounted in the store's base
-		// currency underneath (OpenCart's normal behaviour); this only
+		// currency underneath (MDcart's normal behaviour); this only
 		// changes what the cashier and the receipt/order display shows.
 		$this->load->model('localisation/currency');
 
@@ -182,7 +182,7 @@ class Pos extends \Opencart\System\Engine\Controller {
 	}
 
 	/**
-	 * Builds a real order through OpenCart's own catalog checkout pipeline,
+	 * Builds a real order through MDcart's own catalog checkout pipeline,
 	 * running entirely inside this one request (no dependency on any
 	 * configured payment/shipping extension or API user).
 	 *

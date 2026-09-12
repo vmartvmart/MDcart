@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Report;
+namespace MDcart\Admin\Model\Report;
 /**
  * Class Online
  *
  * Can be loaded using $this->load->model('report/online');
  *
- * @package Opencart\Admin\Model\Report
+ * @package MDcart\Admin\Model\Report
  */
-class Online extends \Opencart\System\Engine\Model {
+class Online extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Online
 	 *

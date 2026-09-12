@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Whatsapp\Other;
+namespace MDcart\Admin\Controller\Extension\Whatsapp\Other;
 /**
  * Class Whatsapp
  *
- * @package Opencart\Admin\Controller\Extension\Whatsapp\Other
+ * @package MDcart\Admin\Controller\Extension\Whatsapp\Other
  */
-class Whatsapp extends \Opencart\System\Engine\Controller {
+class Whatsapp extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Localisation;
+namespace MDcart\Admin\Controller\Localisation;
 /**
  * Class Return Status
  *
- * @package Opencart\Admin\Controller\Localisation
+ * @package MDcart\Admin\Controller\Localisation
  */
-class ReturnStatus extends \Opencart\System\Engine\Controller {
+class ReturnStatus extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

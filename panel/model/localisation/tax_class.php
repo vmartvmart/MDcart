@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Localisation;
+namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Tax Class
  *
  * Can be loaded using $this->load->model('localisation/tax_class');
  *
- * @package Opencart\Admin\Model\Localisation
+ * @package MDcart\Admin\Model\Localisation
  */
-class TaxClass extends \Opencart\System\Engine\Model {
+class TaxClass extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Tax Class
 	 *

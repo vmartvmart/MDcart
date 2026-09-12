@@ -1,17 +1,17 @@
 <?php
-namespace Opencart\Catalog\Controller\Product;
+namespace MDcart\Catalog\Controller\Product;
 /**
  * Class Product
  *
- * @package Opencart\Catalog\Controller\Product
+ * @package MDcart\Catalog\Controller\Product
  */
-class Product extends \Opencart\System\Engine\Controller {
+class Product extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
-	 * @return ?\Opencart\System\Engine\Action
+	 * @return ?\MDcart\System\Engine\Action
 	 */
-	public function index(): ?\Opencart\System\Engine\Action {
+	public function index(): ?\MDcart\System\Engine\Action {
 		$this->load->language('product/product');
 
 		if (isset($this->request->get['product_id'])) {
@@ -520,7 +520,7 @@ class Product extends \Opencart\System\Engine\Controller {
 
 			$this->response->setOutput($this->load->view('product/product', $data));
 		} else {
-			return new \Opencart\System\Engine\Action('error/not_found');
+			return new \MDcart\System\Engine\Action('error/not_found');
 		}
 
 		return null;
@@ -542,13 +542,13 @@ class Product extends \Opencart\System\Engine\Controller {
 	 * @return string
 	 */
 	private function getStockAlertWidget(int $product_id): string {
-		if (!$this->config->get('other_stock_alert_status') || !class_exists('\Opencart\Catalog\Controller\Extension\StockAlert\Product\StockAlert')) {
+		if (!$this->config->get('other_stock_alert_status') || !class_exists('\MDcart\Catalog\Controller\Extension\StockAlert\Product\StockAlert')) {
 			return '';
 		}
 
 		// load->controller() only proxies a controller's index() method, so instantiate directly
 		// to call getWidgetData() instead.
-		$controller = new \Opencart\Catalog\Controller\Extension\StockAlert\Product\StockAlert($this->registry);
+		$controller = new \MDcart\Catalog\Controller\Extension\StockAlert\Product\StockAlert($this->registry);
 
 		$data = $controller->getWidgetData($product_id);
 

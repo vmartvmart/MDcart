@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Information;
+namespace MDcart\Catalog\Controller\Information;
 /**
  * Class Contact
  *
- * @package Opencart\Catalog\Controller\Information
+ * @package MDcart\Catalog\Controller\Information
  */
-class Contact extends \Opencart\System\Engine\Controller {
+class Contact extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -150,7 +150,7 @@ class Contact extends \Opencart\System\Engine\Controller {
 					'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 				];
 
-				$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+				$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 				$mail->setTo($this->config->get('config_email'));
 				// Less spam and fix bug when using SMTP like sendgrid.
 				$mail->setFrom($this->config->get('config_email'));

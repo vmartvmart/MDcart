@@ -8,7 +8,7 @@
  *
  * @see		https://www.opencart.com
  */
-namespace Opencart\System\Library;
+namespace MDcart\System\Library;
 /**
  * Class Session
  */
@@ -30,10 +30,10 @@ class Session {
 	 * Constructor
 	 *
 	 * @param string                           $adaptor
-	 * @param \Opencart\System\Engine\Registry $registry
+	 * @param \MDcart\System\Engine\Registry $registry
 	 */
-	public function __construct(string $adaptor, \Opencart\System\Engine\Registry $registry) {
-		$class = 'Opencart\System\Library\Session\\' . $adaptor;
+	public function __construct(string $adaptor, \MDcart\System\Engine\Registry $registry) {
+		$class = 'MDcart\System\Library\Session\\' . $adaptor;
 
 		if (class_exists($class)) {
 			$this->adaptor = new $class($registry);

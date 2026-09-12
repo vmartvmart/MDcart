@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Event;
+namespace MDcart\Admin\Controller\Event;
 /**
  * Class Modification
  *
  * Adds event handling of modification ocmod controllers, models, views and libraries easier
  *
- * @package Opencart\Admin\Controller\Event
+ * @package MDcart\Admin\Controller\Event
  */
-class Modification extends \Opencart\System\Engine\Controller {
+class Modification extends \MDcart\System\Engine\Controller {
 	/**
 	 * Controller
 	 *
@@ -21,7 +21,7 @@ class Modification extends \Opencart\System\Engine\Controller {
 			return;
 		}
 
-		$class = $this->prepareClassName($route, 'Opencart\Admin\Controller\Extension\Ocmod\\');
+		$class = $this->prepareClassName($route, 'MDcart\Admin\Controller\Extension\Ocmod\\');
 
 		if (class_exists($class)) {
 			$route = 'extension/ocmod/' . $route;
@@ -41,7 +41,7 @@ class Modification extends \Opencart\System\Engine\Controller {
 			return;
 		}
 
-		$class = $this->prepareClassName($route, 'Opencart\Admin\Model\Extension\Ocmod\\');
+		$class = $this->prepareClassName($route, 'MDcart\Admin\Model\Extension\Ocmod\\');
 
 		if (class_exists($class)) {
 			$route = 'extension/ocmod/' . $route;
@@ -85,7 +85,7 @@ class Modification extends \Opencart\System\Engine\Controller {
 			return;
 		}
 
-		$class = $this->prepareClassName($route, 'Opencart\System\Library\Extension\Ocmod\\');
+		$class = $this->prepareClassName($route, 'MDcart\System\Library\Extension\Ocmod\\');
 
 		if (class_exists($class)) {
 			$route = 'extension/ocmod/' . $route;

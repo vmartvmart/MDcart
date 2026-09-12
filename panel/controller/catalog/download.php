@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Catalog;
+namespace MDcart\Admin\Controller\Catalog;
 /**
  * Class Download
  *
  * Can be loaded using $this->load->controller('catalog/download');
  *
- * @package Opencart\Admin\Controller\Catalog
+ * @package MDcart\Admin\Controller\Catalog
  */
-class Download extends \Opencart\System\Engine\Controller {
+class Download extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

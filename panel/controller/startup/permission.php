@@ -1,17 +1,17 @@
 <?php
-namespace Opencart\Admin\Controller\Startup;
+namespace MDcart\Admin\Controller\Startup;
 /**
  * Class Permission
  *
- * @package Opencart\Admin\Controller\Startup
+ * @package MDcart\Admin\Controller\Startup
  */
-class Permission extends \Opencart\System\Engine\Controller {
+class Permission extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function index(): ?\Opencart\System\Engine\Action {
+	public function index(): ?\MDcart\System\Engine\Action {
 		if (isset($this->request->get['route'])) {
 			$pos = strrpos($this->request->get['route'], '.');
 
@@ -39,7 +39,7 @@ class Permission extends \Opencart\System\Engine\Controller {
 			];
 
 			if (!in_array($route, $ignore) && !$this->user->hasPermission('access', $route)) {
-				return new \Opencart\System\Engine\Action('error/permission');
+				return new \MDcart\System\Engine\Action('error/permission');
 			}
 		}
 

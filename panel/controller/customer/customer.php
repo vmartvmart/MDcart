@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Customer;
+namespace MDcart\Admin\Controller\Customer;
 /**
  * Class Customer
  *
  * Can be loaded using $this->load->controller('customer/customer');
  *
- * @package Opencart\Admin\Controller\Customer
+ * @package MDcart\Admin\Controller\Customer
  */
-class Customer extends \Opencart\System\Engine\Controller {
+class Customer extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -855,9 +855,9 @@ class Customer extends \Opencart\System\Engine\Controller {
 	/**
 	 * Login
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function login(): ?\Opencart\System\Engine\Action {
+	public function login(): ?\MDcart\System\Engine\Action {
 		if (isset($this->request->get['customer_id'])) {
 			$customer_id = (int)$this->request->get['customer_id'];
 		} else {
@@ -871,7 +871,7 @@ class Customer extends \Opencart\System\Engine\Controller {
 		}
 
 		if (!$this->user->hasPermission('modify', 'customer/customer')) {
-			return new \Opencart\System\Engine\Action('error/permission');
+			return new \MDcart\System\Engine\Action('error/permission');
 		}
 
 		// Store
@@ -881,7 +881,7 @@ class Customer extends \Opencart\System\Engine\Controller {
 			$store_info = $this->model_setting_store->getStore($store_id);
 
 			if (!$store_info) {
-				return new \Opencart\System\Engine\Action('error/not_found');
+				return new \MDcart\System\Engine\Action('error/not_found');
 			}
 		}
 
@@ -891,7 +891,7 @@ class Customer extends \Opencart\System\Engine\Controller {
 		$customer_info = $this->model_customer_customer->getCustomer($customer_id);
 
 		if (!$customer_info) {
-			return new \Opencart\System\Engine\Action('error/not_found');
+			return new \MDcart\System\Engine\Action('error/not_found');
 		}
 
 		// Create login token

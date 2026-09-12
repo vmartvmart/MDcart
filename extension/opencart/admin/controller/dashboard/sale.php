@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Opencart\Dashboard;
+namespace MDcart\Admin\Controller\Extension\MDcart\Dashboard;
 /**
  * Class Sale
  *
- * @package Opencart\Admin\Controller\Extension\Opencart\Dashboard
+ * @package MDcart\Admin\Controller\Extension\MDcart\Dashboard
  */
-class Sale extends \Opencart\System\Engine\Controller {
+class Sale extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

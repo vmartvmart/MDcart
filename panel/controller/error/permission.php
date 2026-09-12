@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Error;
+namespace MDcart\Admin\Controller\Error;
 /**
  * Class Permission
  *
- * @package Opencart\Admin\Controller\Error
+ * @package MDcart\Admin\Controller\Error
  */
-class Permission extends \Opencart\System\Engine\Controller {
+class Permission extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

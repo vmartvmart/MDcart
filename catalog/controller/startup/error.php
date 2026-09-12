@@ -1,18 +1,18 @@
 <?php
-namespace Opencart\Catalog\Controller\Startup;
+namespace MDcart\Catalog\Controller\Startup;
 /**
  * Class Error
  *
- * @package Opencart\Catalog\Controller\Startup
+ * @package MDcart\Catalog\Controller\Startup
  */
-class Error extends \Opencart\System\Engine\Controller {
+class Error extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
 	 * @return void
 	 */
 	public function index(): void {
-		$this->registry->set('log', new \Opencart\System\Library\Log($this->config->get('config_error_filename')));
+		$this->registry->set('log', new \MDcart\System\Library\Log($this->config->get('config_error_filename')));
 
 		set_error_handler([$this, 'error']);
 		set_exception_handler([$this, 'exception']);

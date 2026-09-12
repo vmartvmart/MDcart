@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Affiliate
  *
  * Can be called using $this->load->model('account/affiliate');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Affiliate extends \Opencart\System\Engine\Model {
+class Affiliate extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Affiliate
 	 *

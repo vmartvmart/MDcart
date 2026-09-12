@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Event;
+namespace MDcart\Catalog\Controller\Event;
 /**
  * Class Translation
  *
- * @package Opencart\Catalog\Controller\Event
+ * @package MDcart\Catalog\Controller\Event
  */
-class Translation extends \Opencart\System\Engine\Controller {
+class Translation extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

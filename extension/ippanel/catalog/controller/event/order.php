@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Ippanel\Event;
+namespace MDcart\Catalog\Controller\Extension\Ippanel\Event;
 /**
  * Class Order
  *
@@ -7,9 +7,9 @@ namespace Opencart\Catalog\Controller\Extension\Ippanel\Event;
  *
  * model/checkout/order.addHistory/before
  *
- * @package Opencart\Catalog\Controller\Extension\Ippanel\Event
+ * @package MDcart\Catalog\Controller\Extension\Ippanel\Event
  */
-class Order extends \Opencart\System\Engine\Controller {
+class Order extends \MDcart\System\Engine\Controller {
 	/**
 	 * @param string            $route
 	 * @param array<int, mixed> $args
@@ -37,7 +37,7 @@ class Order extends \Opencart\System\Engine\Controller {
 
 		$this->load->library('extension/ippanel/ippanel');
 
-		$ippanel = new \Opencart\System\Library\Extension\Ippanel\Ippanel(
+		$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
 			(string)$this->config->get('other_ippanel_api_key'),
 			(string)$this->config->get('other_ippanel_sender')
 		);

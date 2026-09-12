@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Account;
+namespace MDcart\Catalog\Controller\Account;
 /**
  * Class Returns
  *
- * @package Opencart\Catalog\Controller\Account
+ * @package MDcart\Catalog\Controller\Account
  */
-class Returns extends \Opencart\System\Engine\Controller {
+class Returns extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -92,9 +92,9 @@ class Returns extends \Opencart\System\Engine\Controller {
 	/**
 	 * Info
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function info(): ?\Opencart\System\Engine\Action {
+	public function info(): ?\MDcart\System\Engine\Action {
 		$this->load->language('account/returns');
 
 		if (isset($this->request->get['return_id'])) {
@@ -177,7 +177,7 @@ class Returns extends \Opencart\System\Engine\Controller {
 
 			$this->response->setOutput($this->load->view('account/returns_info', $data));
 		} else {
-			return new \Opencart\System\Engine\Action('error/not_found');
+			return new \MDcart\System\Engine\Action('error/not_found');
 		}
 
 		return null;

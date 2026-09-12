@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Api;
+namespace MDcart\Catalog\Controller\Api;
 /**
  * Class Cart
  *
  * Can be loaded using $this->load->controller('api/cart');
  *
- * @package Opencart\Catalog\Controller\Api
+ * @package MDcart\Catalog\Controller\Api
  */
-class Cart extends \Opencart\System\Engine\Controller {
+class Cart extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

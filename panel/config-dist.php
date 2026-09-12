@@ -7,12 +7,12 @@ define('HTTP_SERVER', 'http://localhost/admin/');
 define('HTTP_CATALOG', 'http://localhost/');
 
 // DIR
-define('DIR_OPENCART', dirname(__DIR__) . '/');
-define('DIR_APPLICATION', DIR_OPENCART . 'admin/');
-define('DIR_EXTENSION', DIR_OPENCART . 'extension/');
-define('DIR_IMAGE', DIR_OPENCART . 'image/');
-define('DIR_SYSTEM', DIR_OPENCART . 'system/');
-define('DIR_CATALOG', DIR_OPENCART . 'catalog/');
+define('MCART_ROOT', dirname(__DIR__) . '/');
+define('DIR_APPLICATION', MCART_ROOT . 'admin/');
+define('DIR_EXTENSION', MCART_ROOT . 'extension/');
+define('DIR_IMAGE', MCART_ROOT . 'image/');
+define('DIR_SYSTEM', MCART_ROOT . 'system/');
+define('DIR_CATALOG', MCART_ROOT . 'catalog/');
 define('DIR_STORAGE', DIR_SYSTEM . 'storage/');
 define('DIR_LANGUAGE', DIR_APPLICATION . 'language/');
 define('DIR_TEMPLATE', DIR_APPLICATION . 'view/template/');

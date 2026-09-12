@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 /**
  * Class Attribute
  *
  * Can be loaded using $this->load->model('catalog/attribute');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class Attribute extends \Opencart\System\Engine\Model {
+class Attribute extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Attribute
 	 *

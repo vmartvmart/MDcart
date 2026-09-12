@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Returns
  *
  * Can be called using $this->load->model('account/returns');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Returns extends \Opencart\System\Engine\Model {
+class Returns extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Return
 	 *

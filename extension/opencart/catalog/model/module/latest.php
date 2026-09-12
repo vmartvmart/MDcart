@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\Opencart\Module;
+namespace MDcart\Catalog\Model\Extension\MDcart\Module;
 /**
  * Class Latest
  *
  * Can be called from $this->load->model('extension/opencart/module/latest');
  *
- * @package Opencart\Catalog\Model\Extension\Opencart\Module
+ * @package MDcart\Catalog\Model\Extension\MDcart\Module
  */
-class Latest extends \Opencart\Catalog\Model\Catalog\Product {
+class Latest extends \MDcart\Catalog\Model\Catalog\Product {
 	/**
 	 * Get Latest
 	 *

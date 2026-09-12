@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Customer;
+namespace MDcart\Admin\Model\Customer;
 /**
  * Class Customer Approval
  *
  * Can be loaded using $this->load->model('customer/customer_approval');
  *
- * @package Opencart\Admin\Model\Customer
+ * @package MDcart\Admin\Model\Customer
  */
-class CustomerApproval extends \Opencart\System\Engine\Model {
+class CustomerApproval extends \MDcart\System\Engine\Model {
 	/**
 	 * Delete Approvals By Customer ID
 	 *

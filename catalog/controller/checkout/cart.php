@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Checkout;
+namespace MDcart\Catalog\Controller\Checkout;
 /**
  * Class Cart
  *
  * Can be loaded using $this->load->controller('checkout/cart');
  *
- * @package Opencart\Catalog\Controller\Checkout
+ * @package MDcart\Catalog\Controller\Checkout
  */
-class Cart extends \Opencart\System\Engine\Controller {
+class Cart extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

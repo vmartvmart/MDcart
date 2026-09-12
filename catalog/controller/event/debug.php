@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Event;
+namespace MDcart\Catalog\Controller\Event;
 /**
  * Class Debug
  *
- * @package Opencart\Catalog\Controller\Event
+ * @package MDcart\Catalog\Controller\Event
  */
-class Debug extends \Opencart\System\Engine\Controller {
+class Debug extends \MDcart\System\Engine\Controller {
 	/**
 	 * Before
 	 *

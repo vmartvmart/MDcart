@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 /**
  * Class Review
  *
  * Can be loaded using $this->load->model('catalog/review');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class Review extends \Opencart\System\Engine\Model {
+class Review extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Review
 	 *

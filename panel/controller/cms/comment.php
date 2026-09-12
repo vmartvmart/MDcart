@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Cms;
+namespace MDcart\Admin\Controller\Cms;
 /**
  * Class Comments
  *
- * @package Opencart\Admin\Controller\Cms
+ * @package MDcart\Admin\Controller\Cms
  */
-class Comment extends \Opencart\System\Engine\Controller {
+class Comment extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Cms;
+namespace MDcart\Catalog\Model\Cms;
 /**
  * Class Article
  *
  * Can be called using $this->load->model('cms/article');
  *
- * @package Opencart\Catalog\Model\Cms
+ * @package MDcart\Catalog\Model\Cms
  */
-class Article extends \Opencart\System\Engine\Model {
+class Article extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Article
 	 *

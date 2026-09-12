@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Design;
+namespace MDcart\Admin\Controller\Design;
 /**
  * Class SEO URL
  *
- * @package Opencart\Admin\Controller\Design
+ * @package MDcart\Admin\Controller\Design
  */
-class SeoUrl extends \Opencart\System\Engine\Controller {
+class SeoUrl extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

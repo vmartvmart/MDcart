@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Forgotten
  *
  * Can be loaded using $this->load->controller('common/forgotten');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class Forgotten extends \Opencart\System\Engine\Controller {
+class Forgotten extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

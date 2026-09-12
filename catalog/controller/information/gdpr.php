@@ -1,17 +1,17 @@
 <?php
-namespace Opencart\Catalog\Controller\Information;
+namespace MDcart\Catalog\Controller\Information;
 /**
  * Class Gdpr
  *
- * @package Opencart\Catalog\Controller\Information
+ * @package MDcart\Catalog\Controller\Information
  */
-class Gdpr extends \Opencart\System\Engine\Controller {
+class Gdpr extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function index(): ?\Opencart\System\Engine\Action {
+	public function index(): ?\MDcart\System\Engine\Action {
 		// Information
 		$this->load->model('catalog/information');
 
@@ -57,7 +57,7 @@ class Gdpr extends \Opencart\System\Engine\Controller {
 
 			return null;
 		} else {
-			return new \Opencart\System\Engine\Action('error/not_found');
+			return new \MDcart\System\Engine\Action('error/not_found');
 		}
 	}
 
@@ -147,9 +147,9 @@ class Gdpr extends \Opencart\System\Engine\Controller {
 	/**
 	 * Success
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function success(): ?\Opencart\System\Engine\Action {
+	public function success(): ?\MDcart\System\Engine\Action {
 		if (isset($this->request->get['code'])) {
 			$code = (string)$this->request->get['code'];
 		} else {
@@ -203,7 +203,7 @@ class Gdpr extends \Opencart\System\Engine\Controller {
 
 			return null;
 		} else {
-			return new \Opencart\System\Engine\Action('error/not_found');
+			return new \MDcart\System\Engine\Action('error/not_found');
 		}
 	}
 }

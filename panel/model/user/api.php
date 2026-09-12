@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\User;
+namespace MDcart\Admin\Model\User;
 /**
  * Class Api
  *
  * Can be loaded using $this->load->model('user/api');
  *
- * @package Opencart\Admin\Model\User
+ * @package MDcart\Admin\Model\User
  */
-class Api extends \Opencart\System\Engine\Model {
+class Api extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Api
 	 *

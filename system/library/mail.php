@@ -8,7 +8,7 @@
  *
  * @see		https://www.opencart.com
  */
-namespace Opencart\System\Library;
+namespace MDcart\System\Library;
 /**
  * Class Mail
  */
@@ -29,7 +29,7 @@ class Mail {
 	 * @param array<string, mixed> $option
 	 */
 	public function __construct(string $adaptor = 'mail', array $option = []) {
-		$class = 'Opencart\System\Library\Mail\\' . $adaptor;
+		$class = 'MDcart\System\Library\Mail\\' . $adaptor;
 
 		if (class_exists($class)) {
 			$this->class = $class;

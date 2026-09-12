@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Startup;
+namespace MDcart\Catalog\Controller\Startup;
 /**
  * Class Currency
  *
- * @package Opencart\Catalog\Controller\Startup
+ * @package MDcart\Catalog\Controller\Startup
  */
-class Currency extends \Opencart\System\Engine\Controller {
+class Currency extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -48,6 +48,6 @@ class Currency extends \Opencart\System\Engine\Controller {
 			setcookie('currency', $code, $option);
 		}
 
-		$this->registry->set('currency', new \Opencart\System\Library\Cart\Currency($this->registry));
+		$this->registry->set('currency', new \MDcart\System\Library\Cart\Currency($this->registry));
 	}
 }

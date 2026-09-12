@@ -45,7 +45,7 @@ if ((isset($_SERVER['HTTPS']) && (($_SERVER['HTTPS'] == 'on') || ($_SERVER['HTTP
 	$_SERVER['HTTPS'] = false;
 }
 
-// OpenCart Autoloader
+// MDcart Autoloader
 require_once(DIR_SYSTEM . 'engine/autoloader.php');
 
 // Need config to store application values

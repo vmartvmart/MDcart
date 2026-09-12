@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Startup;
+namespace MDcart\Admin\Controller\Startup;
 /**
  * Class Sass
  *
- * @package Opencart\Admin\Controller\Startup
+ * @package MDcart\Admin\Controller\Startup
  */
-class Sass extends \Opencart\System\Engine\Controller {
+class Sass extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

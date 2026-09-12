@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Accounting;
+namespace MDcart\Admin\Controller\Accounting;
 /**
  * Class BankAccount
  *
@@ -11,9 +11,9 @@ namespace Opencart\Admin\Controller\Accounting;
  *
  * Can be loaded using $this->load->controller('accounting/bank_account');
  *
- * @package Opencart\Admin\Controller\Accounting
+ * @package MDcart\Admin\Controller\Accounting
  */
-class BankAccount extends \Opencart\System\Engine\Controller {
+class BankAccount extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Accounting;
+namespace MDcart\Admin\Controller\Accounting;
 /**
  * Class Journal
  *
@@ -13,9 +13,9 @@ namespace Opencart\Admin\Controller\Accounting;
  *
  * Can be loaded using $this->load->controller('accounting/journal');
  *
- * @package Opencart\Admin\Controller\Accounting
+ * @package MDcart\Admin\Controller\Accounting
  */
-class Journal extends \Opencart\System\Engine\Controller {
+class Journal extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Account;
+namespace MDcart\Catalog\Controller\Account;
 /**
  * Class Affiliate
  *
- * @package Opencart\Catalog\Controller\Account
+ * @package MDcart\Catalog\Controller\Account
  */
-class Affiliate extends \Opencart\System\Engine\Controller {
+class Affiliate extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

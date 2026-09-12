@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Tool;
+namespace MDcart\Admin\Model\Tool;
 /**
  * Class Notification
  *
  * Can be loaded using $this->load->model('tool/notification');
  *
- * @package Opencart\Admin\Model\Tool
+ * @package MDcart\Admin\Model\Tool
  */
-class Notification extends \Opencart\System\Engine\Model {
+class Notification extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Notification
 	 *

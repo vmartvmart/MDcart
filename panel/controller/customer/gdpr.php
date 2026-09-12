@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Customer;
+namespace MDcart\Admin\Controller\Customer;
 /**
  * Class GDPR
  *
- * @package Opencart\Admin\Controller\Customer
+ * @package MDcart\Admin\Controller\Customer
  */
-class Gdpr extends \Opencart\System\Engine\Controller {
+class Gdpr extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

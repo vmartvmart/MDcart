@@ -42,6 +42,6 @@ $_['error_storage_name']              = 'هشدار: نام پوشه storage ب�
 $_['error_admin']                     = 'هشدار: پوشه ادمین وجود ندارد!';
 $_['error_admin_allowed']             = 'هشدار: این نام برای پوشه ادمین قابل استفاده نیست!';
 $_['error_admin_exists']              = 'هشدار: پوشه ادمین از قبل وجود دارد!';
-$_['error_writable']                  = 'هشدار: فایل‌های config.php و admin/config.php باید قابل نوشتن باشند!';
+$_['error_writable']                  = 'هشدار: فایل‌های config.php و panel/config.php باید قابل نوشتن باشند!';
 $_['error_writable_path']             = 'هشدار: پوشه \'%s\' باید قابل نوشتن باشد!';
 $_['error_remove']                    = 'هشدار: پوشه‌ای برای حذف وجود ندارد!';

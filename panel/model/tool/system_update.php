@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Model\Tool;
+namespace MDcart\Admin\Model\Tool;
 /**
  * Class SystemUpdate
  *
@@ -21,16 +21,16 @@ namespace Opencart\Admin\Model\Tool;
  * incrementally evolving custom build; a destructive sync was judged too
  * risky for a tool that runs unattended against a live store.
  *
- * @package Opencart\Admin\Model\Tool
+ * @package MDcart\Admin\Model\Tool
  */
-class SystemUpdate extends \Opencart\System\Engine\Model {
+class SystemUpdate extends \MDcart\System\Engine\Model {
 	/**
-	 * Paths (relative to DIR_OPENCART, forward slashes) that an update must
+	 * Paths (relative to MCART_ROOT, forward slashes) that an update must
 	 * never touch. Kept in sync with the repository's own .gitignore.
 	 */
 	private const EXCLUDE_PATHS = [
 		'config.php',
-		'admin/config.php',
+		'panel/config.php',
 		'system/storage/cache/',
 		'system/storage/logs/',
 		'system/storage/session/',
@@ -60,7 +60,7 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 
 	/**
 	 * Paths excluded from the storage snapshot, this time relative to
-	 * DIR_STORAGE itself rather than DIR_OPENCART — storage can live
+	 * DIR_STORAGE itself rather than MCART_ROOT — storage can live
 	 * completely outside the site folder (moved out for security, as
 	 * OpenCart's own dashboard recommends), so it's backed up as its own
 	 * zip rather than assumed to be a subfolder of the site.
@@ -325,7 +325,7 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 		// if this write fails (permissions), the marker just falls back to
 		// its previous value / the "admin" default, which only matters for
 		// that one shortcut URL, not for the admin panel itself.
-		@file_put_contents(DIR_OPENCART . '.admin_dir', $data['system_update_admin_dir']);
+		@file_put_contents(MCART_ROOT . '.admin_dir', $data['system_update_admin_dir']);
 	}
 
 	/**
@@ -358,7 +358,7 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 	 * @return string
 	 */
 	public function getLocalVersion(): string {
-		$file = DIR_OPENCART . 'VERSION';
+		$file = MCART_ROOT . 'VERSION';
 
 		if (!is_file($file)) {
 			return '';
@@ -670,7 +670,7 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 	 *
 	 * Takes a full backup (database + files), then downloads the configured
 	 * branch as a zip, extracts it and copies its contents over
-	 * DIR_OPENCART, skipping EXCLUDE_PATHS. Records the new commit as
+	 * MCART_ROOT, skipping EXCLUDE_PATHS. Records the new commit as
 	 * current on success. If the backup itself fails, the update is not
 	 * attempted — a pre-update backup that didn't happen is not worth the
 	 * risk of an update with no way back.
@@ -820,7 +820,7 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 			$path_remap['admin/'] = $settings['admin_dir'] . '/';
 		}
 
-		$this->copyRecursive($source_root, DIR_OPENCART, self::EXCLUDE_PATHS, $write_failures, $path_remap);
+		$this->copyRecursive($source_root, MCART_ROOT, self::EXCLUDE_PATHS, $write_failures, $path_remap);
 
 		$this->writeProgress('finalize', 95);
 
@@ -886,14 +886,14 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 			return ['error' => 'backup_failed'];
 		}
 
-		$this->zipDirectory(DIR_OPENCART, $zip_file, self::BACKUP_EXCLUDE_PATHS);
+		$this->zipDirectory(MCART_ROOT, $zip_file, self::BACKUP_EXCLUDE_PATHS);
 
 		if (!is_file($zip_file) || !filesize($zip_file)) {
 			return ['error' => 'backup_failed'];
 		}
 
 		// Storage is backed up as its own zip since it can live entirely
-		// outside DIR_OPENCART (moved out for security — see DIR_STORAGE).
+		// outside MCART_ROOT (moved out for security — see DIR_STORAGE).
 		// Skipped only if DIR_STORAGE itself doesn't exist at all, which
 		// shouldn't normally happen but is cheap to guard against.
 		$storage_zip = $dir . 'storage.zip';
@@ -969,7 +969,7 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 	 *
 	 * Restores the database (truncate + re-insert every table, same format
 	 * the files were dumped in) and extracts the files zip back over
-	 * DIR_OPENCART. Does not delete files that didn't exist at backup time
+	 * MCART_ROOT. Does not delete files that didn't exist at backup time
 	 * (same "add/overwrite only" limitation as applyUpdate, for the same
 	 * reason: never let an automated tool delete something on a live site).
 	 *
@@ -1003,7 +1003,7 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 			return ['error' => 'extract'];
 		}
 
-		$extracted_ok = $zip->extractTo(DIR_OPENCART);
+		$extracted_ok = $zip->extractTo(MCART_ROOT);
 
 		$zip->close();
 

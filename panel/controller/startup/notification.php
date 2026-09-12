@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Notification
  *
- * @package Opencart\Admin\Controller\Startup
+ * @package MDcart\Admin\Controller\Startup
  */
-class Notification extends \Opencart\System\Engine\Controller {
+class Notification extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

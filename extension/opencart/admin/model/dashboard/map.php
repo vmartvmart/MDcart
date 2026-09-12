@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Extension\Opencart\Dashboard;
+namespace MDcart\Admin\Model\Extension\MDcart\Dashboard;
 /**
  * Class Map
  *
  * Can be called from $this->load->model('extension/opencart/dashboard/map');
  *
- * @package Opencart\Admin\Model\Extension\Opencart\Dashboard
+ * @package MDcart\Admin\Model\Extension\MDcart\Dashboard
  */
-class Map extends \Opencart\System\Engine\Model {
+class Map extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Total Orders By Country
 	 *

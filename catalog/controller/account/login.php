@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Account;
+namespace MDcart\Catalog\Controller\Account;
 /**
  * Class Login
  *
  * Can be loaded using $this->load->controller('account/login');
  *
- * @package Opencart\Catalog\Controller\Account
+ * @package MDcart\Catalog\Controller\Account
  */
-class Login extends \Opencart\System\Engine\Controller {
+class Login extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

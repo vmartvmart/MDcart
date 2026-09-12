@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Bale\Other;
+namespace MDcart\Admin\Controller\Extension\Bale\Other;
 /**
  * Class Bale
  *
- * @package Opencart\Admin\Controller\Extension\Bale\Other
+ * @package MDcart\Admin\Controller\Extension\Bale\Other
  */
-class Bale extends \Opencart\System\Engine\Controller {
+class Bale extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -112,7 +112,7 @@ class Bale extends \Opencart\System\Engine\Controller {
 		if (!$json) {
 			$this->load->library('extension/bale/bale');
 
-			$bale = new \Opencart\System\Library\Extension\Bale\Bale($token);
+			$bale = new \MDcart\System\Library\Extension\Bale\Bale($token);
 
 			$url = $this->url->link('extension/bale/webhook/bale', '', true);
 

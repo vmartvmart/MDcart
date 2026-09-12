@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Accounting;
+namespace MDcart\Admin\Controller\Accounting;
 /**
  * Class ExchangeRate
  *
@@ -21,9 +21,9 @@ namespace Opencart\Admin\Controller\Accounting;
  *
  * Can be loaded using $this->load->controller('accounting/exchange_rate');
  *
- * @package Opencart\Admin\Controller\Accounting
+ * @package MDcart\Admin\Controller\Accounting
  */
-class ExchangeRate extends \Opencart\System\Engine\Controller {
+class ExchangeRate extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -52,7 +52,7 @@ class ExchangeRate extends \Opencart\System\Engine\Controller {
 		$this->load->model('accounting/exchange_rate');
 
 		$data['rates'] = $this->model_accounting_exchange_rate->getRates();
-		$data['aed_usd_peg'] = \Opencart\Admin\Model\Accounting\ExchangeRate::AED_USD_PEG;
+		$data['aed_usd_peg'] = \MDcart\Admin\Model\Accounting\ExchangeRate::AED_USD_PEG;
 
 		$data['user_token'] = $this->session->data['user_token'];
 

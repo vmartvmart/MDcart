@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Common;
+namespace MDcart\Catalog\Controller\Common;
 /**
  * Class Footer
  *
  * Can be called from $this->load->controller('common/footer');
  *
- * @package Opencart\Catalog\Controller\Common
+ * @package MDcart\Catalog\Controller\Common
  */
-class Footer extends \Opencart\System\Engine\Controller {
+class Footer extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

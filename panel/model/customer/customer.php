@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Customer;
+namespace MDcart\Admin\Model\Customer;
 /**
  * Class Customer
  *
  * Can be loaded using $this->load->model('customer/customer');
  *
- * @package Opencart\Admin\Model\Customer
+ * @package MDcart\Admin\Model\Customer
  */
-class Customer extends \Opencart\System\Engine\Model {
+class Customer extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Customer
 	 *

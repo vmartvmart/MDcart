@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Marketing;
+namespace MDcart\Admin\Controller\Marketing;
 /**
  * Class Coupon
  *
- * @package Opencart\Admin\Controller\Marketing
+ * @package MDcart\Admin\Controller\Marketing
  */
-class Coupon extends \Opencart\System\Engine\Controller {
+class Coupon extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

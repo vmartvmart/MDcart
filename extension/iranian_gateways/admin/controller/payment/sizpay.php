@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\IranianGateways\Payment;
+namespace MDcart\Admin\Controller\Extension\IranianGateways\Payment;
 /**
  * Class SizPay
  *
- * @package Opencart\Admin\Controller\Extension\IranianGateways\Payment
+ * @package MDcart\Admin\Controller\Extension\IranianGateways\Payment
  */
-class Sizpay extends \Opencart\System\Engine\Controller {
+class Sizpay extends \MDcart\System\Engine\Controller {
 	/**
 	 * @var array<string, string>
 	 */

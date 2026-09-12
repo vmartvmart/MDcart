@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 
 /**
  * Class ProductImportUrl
@@ -38,9 +38,9 @@ namespace Opencart\Admin\Model\Catalog;
  *
  * Can be loaded using $this->load->model('catalog/product_import_url');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class ProductImportUrl extends \Opencart\System\Engine\Model {
+class ProductImportUrl extends \MDcart\System\Engine\Model {
 
 	/**
 	 * Import a product from an external URL. Returns

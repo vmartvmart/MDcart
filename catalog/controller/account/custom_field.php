@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Account;
+namespace MDcart\Catalog\Controller\Account;
 /**
  * Class Custom Field
  *
- * @package Opencart\Catalog\Controller\Account
+ * @package MDcart\Catalog\Controller\Account
  */
-class CustomField extends \Opencart\System\Engine\Controller {
+class CustomField extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

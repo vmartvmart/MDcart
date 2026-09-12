@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\StockAlert\Event;
+namespace MDcart\Admin\Controller\Extension\StockAlert\Event;
 /**
  * Class Restock
  *
@@ -11,9 +11,9 @@ namespace Opencart\Admin\Controller\Extension\StockAlert\Event;
  * subscribed and unnotified simply gets sent once the product has stock,
  * which is simpler and self-healing if a notification attempt ever fails.
  *
- * @package Opencart\Admin\Controller\Extension\StockAlert\Event
+ * @package MDcart\Admin\Controller\Extension\StockAlert\Event
  */
-class Restock extends \Opencart\System\Engine\Controller {
+class Restock extends \MDcart\System\Engine\Controller {
 	/**
 	 * @param string            $route
 	 * @param array<int, mixed> $args
@@ -57,32 +57,32 @@ class Restock extends \Opencart\System\Engine\Controller {
 
 			switch ($subscriber['channel']) {
 				case 'sms':
-					if ($this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && class_exists('\Opencart\System\Library\Extension\Ippanel\Ippanel')) {
-						$client = new \Opencart\System\Library\Extension\Ippanel\Ippanel((string)$this->config->get('other_ippanel_api_key'), (string)$this->config->get('other_ippanel_sender'));
+					if ($this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && class_exists('\MDcart\System\Library\Extension\Ippanel\Ippanel')) {
+						$client = new \MDcart\System\Library\Extension\Ippanel\Ippanel((string)$this->config->get('other_ippanel_api_key'), (string)$this->config->get('other_ippanel_sender'));
 						$sent = $client->send($subscriber['phone'], $message);
 					}
 
 					break;
 
 				case 'whatsapp':
-					if ($this->config->get('other_whatsapp_status') && $this->config->get('other_whatsapp_template_order_add') && class_exists('\Opencart\System\Library\Extension\Whatsapp\Whatsapp')) {
-						$client = new \Opencart\System\Library\Extension\Whatsapp\Whatsapp((string)$this->config->get('other_whatsapp_phone_number_id'), (string)$this->config->get('other_whatsapp_access_token'));
+					if ($this->config->get('other_whatsapp_status') && $this->config->get('other_whatsapp_template_order_add') && class_exists('\MDcart\System\Library\Extension\Whatsapp\Whatsapp')) {
+						$client = new \MDcart\System\Library\Extension\Whatsapp\Whatsapp((string)$this->config->get('other_whatsapp_phone_number_id'), (string)$this->config->get('other_whatsapp_access_token'));
 						$sent = $client->sendTemplate($subscriber['phone'], (string)$this->config->get('other_whatsapp_template_order_add'), (string)($this->config->get('other_whatsapp_language_code') ?: 'en_US'), [$product_name, $this->language->get('text_available')]);
 					}
 
 					break;
 
 				case 'telegram':
-					if ($this->config->get('other_telegram_status') && $this->config->get('other_telegram_bot_token') && class_exists('\Opencart\System\Library\Extension\Telegram\Telegram')) {
-						$client = new \Opencart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
+					if ($this->config->get('other_telegram_status') && $this->config->get('other_telegram_bot_token') && class_exists('\MDcart\System\Library\Extension\Telegram\Telegram')) {
+						$client = new \MDcart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
 						$sent = $client->sendMessage($subscriber['chat_id'], $message);
 					}
 
 					break;
 
 				case 'bale':
-					if ($this->config->get('other_bale_status') && $this->config->get('other_bale_bot_token') && class_exists('\Opencart\System\Library\Extension\Bale\Bale')) {
-						$client = new \Opencart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
+					if ($this->config->get('other_bale_status') && $this->config->get('other_bale_bot_token') && class_exists('\MDcart\System\Library\Extension\Bale\Bale')) {
+						$client = new \MDcart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
 						$sent = $client->sendMessage($subscriber['chat_id'], $message);
 					}
 

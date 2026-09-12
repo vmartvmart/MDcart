@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Sale;
+namespace MDcart\Admin\Model\Sale;
 /**
  * Class Returns
  *
  * Can be loaded using $this->load->model('sale/returns');
  *
- * @package Opencart\Admin\Model\Sale
+ * @package MDcart\Admin\Model\Sale
  */
-class Returns extends \Opencart\System\Engine\Model {
+class Returns extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Return
 	 *

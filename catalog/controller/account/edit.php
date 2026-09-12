@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Account;
+namespace MDcart\Catalog\Controller\Account;
 /**
  * Class Edit
  *
- * @package Opencart\Catalog\Controller\Account
+ * @package MDcart\Catalog\Controller\Account
  */
-class Edit extends \Opencart\System\Engine\Controller {
+class Edit extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

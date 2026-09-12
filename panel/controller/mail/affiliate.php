@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Mail;
+namespace MDcart\Admin\Controller\Mail;
 /**
  * Class Affiliate
  *
- * @package Opencart\Admin\Controller\Mail
+ * @package MDcart\Admin\Controller\Mail
  */
-class Affiliate extends \Opencart\System\Engine\Controller {
+class Affiliate extends \MDcart\System\Engine\Controller {
 	/**
 	 * Approve
 	 *
@@ -84,7 +84,7 @@ class Affiliate extends \Opencart\System\Engine\Controller {
 					'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 				];
 
-				$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+				$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 				$mail->setTo($customer_info['email']);
 				$mail->setFrom($this->config->get('config_email'));
 				$mail->setSender($store_name);
@@ -173,7 +173,7 @@ class Affiliate extends \Opencart\System\Engine\Controller {
 					'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 				];
 
-				$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+				$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 				$mail->setTo($customer_info['email']);
 				$mail->setFrom($this->config->get('config_email'));
 				$mail->setSender($store_name);

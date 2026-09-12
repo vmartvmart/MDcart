@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Catalog\Model\Localisation;
+namespace MDcart\Catalog\Model\Localisation;
 /**
  * Class Iran Geo
  *
@@ -7,9 +7,9 @@ namespace Opencart\Catalog\Model\Localisation;
  * (imported from Iran Statistics Center administrative division data) so address
  * forms can offer a real, structured picker instead of free-text city entry.
  *
- * @package Opencart\Catalog\Model\Localisation
+ * @package MDcart\Catalog\Model\Localisation
  */
-class IranGeo extends \Opencart\System\Engine\Model {
+class IranGeo extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Counties By Zone Id
 	 *

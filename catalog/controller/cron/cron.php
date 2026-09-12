@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Cron;
+namespace MDcart\Catalog\Controller\Cron;
 /**
  * Class Cron
  *
- * @package Opencart\Catalog\Controller\Cron
+ * @package MDcart\Catalog\Controller\Cron
  */
-class Cron extends \Opencart\System\Engine\Controller {
+class Cron extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

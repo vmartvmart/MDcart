@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Subscription
  *
  * Can be called using $this->load->model('account/subscription');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Subscription extends \Opencart\System\Engine\Model {
+class Subscription extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Subscription
 	 *

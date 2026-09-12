@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Event;
+namespace MDcart\Catalog\Controller\Event;
 /**
  * Class Theme
  *
- * @package Opencart\Catalog\Controller\Event
+ * @package MDcart\Catalog\Controller\Event
  */
-class Theme extends \Opencart\System\Engine\Controller {
+class Theme extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Marketplace;
+namespace MDcart\Admin\Controller\Marketplace;
 /**
  * Class Event
  *
- * @package Opencart\Admin\Controller\Marketplace
+ * @package MDcart\Admin\Controller\Marketplace
  */
-class Event extends \Opencart\System\Engine\Controller {
+class Event extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Tool;
+namespace MDcart\Catalog\Model\Tool;
 /**
  * Class Online
  *
  * Can be called using $this->load->model('tool/online');
  *
- * @package Opencart\Catalog\Model\Tool
+ * @package MDcart\Catalog\Model\Tool
  */
-class Online extends \Opencart\System\Engine\Model {
+class Online extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Online
 	 *

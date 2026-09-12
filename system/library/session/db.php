@@ -1,9 +1,9 @@
 <?php
-namespace Opencart\System\Library\Session;
+namespace MDcart\System\Library\Session;
 /**
  * Class DB
  *
- * @package Opencart\System\Library\Session
+ * @package MDcart\System\Library\Session
  */
 class DB {
 	/**
@@ -18,9 +18,9 @@ class DB {
 	/**
 	 * Constructor
 	 *
-	 * @param \Opencart\System\Engine\Registry $registry
+	 * @param \MDcart\System\Engine\Registry $registry
 	 */
-	public function __construct(\Opencart\System\Engine\Registry $registry) {
+	public function __construct(\MDcart\System\Engine\Registry $registry) {
 		$this->db = $registry->get('db');
 		$this->config = $registry->get('config');
 	}

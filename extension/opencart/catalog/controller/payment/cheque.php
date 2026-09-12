@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Opencart\Payment;
+namespace MDcart\Catalog\Controller\Extension\MDcart\Payment;
 /**
  * Class Cheque
  *
- * @package Opencart\Catalog\Controller\Extension\Opencart\Payment
+ * @package MDcart\Catalog\Controller\Extension\MDcart\Payment
  */
-class Cheque extends \Opencart\System\Engine\Controller {
+class Cheque extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

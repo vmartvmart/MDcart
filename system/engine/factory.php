@@ -8,22 +8,22 @@
  *
  * @see           https://www.opencart.com
  */
-namespace Opencart\System\Engine;
+namespace MDcart\System\Engine;
 /**
  * Class Factory
  */
 class Factory {
 	/**
-	 * @var \Opencart\System\Engine\Registry
+	 * @var \MDcart\System\Engine\Registry
 	 */
-	protected \Opencart\System\Engine\Registry $registry;
+	protected \MDcart\System\Engine\Registry $registry;
 
 	/**
 	 * Constructor
 	 *
-	 * @param \Opencart\System\Engine\Registry $registry
+	 * @param \MDcart\System\Engine\Registry $registry
 	 */
-	public function __construct(\Opencart\System\Engine\Registry $registry) {
+	public function __construct(\MDcart\System\Engine\Registry $registry) {
 		$this->registry = $registry;
 	}
 
@@ -32,14 +32,14 @@ class Factory {
 	 *
 	 * @param string $route
 	 *
-	 * @return \Exception|\Opencart\System\Engine\Controller
+	 * @return \Exception|\MDcart\System\Engine\Controller
 	 */
 	public function controller(string $route): object {
 		// Sanitize the call
 		$route = preg_replace('/[^a-zA-Z0-9_\/]/', '', $route);
 
 		// Class path
-		$class = 'Opencart\\' . $this->registry->get('config')->get('application') . '\Controller\\' . str_replace(['_', '/'], ['', '\\'], ucwords($route, '_/'));
+		$class = 'MDcart\\' . $this->registry->get('config')->get('application') . '\Controller\\' . str_replace(['_', '/'], ['', '\\'], ucwords($route, '_/'));
 
 		if (class_exists($class)) {
 			return new $class($this->registry);
@@ -53,14 +53,14 @@ class Factory {
 	 *
 	 * @param string $route
 	 *
-	 * @return \Exception|\Opencart\System\Engine\Model
+	 * @return \Exception|\MDcart\System\Engine\Model
 	 */
 	public function model(string $route): object {
 		// Sanitize the call
 		$route = preg_replace('/[^a-zA-Z0-9_\/]/', '', $route);
 
 		// Generate the class
-		$class = 'Opencart\\' . $this->registry->get('config')->get('application') . '\Model\\' . str_replace(['_', '/'], ['', '\\'], ucwords($route, '_/'));
+		$class = 'MDcart\\' . $this->registry->get('config')->get('application') . '\Model\\' . str_replace(['_', '/'], ['', '\\'], ucwords($route, '_/'));
 
 		// Check if the requested model is already stored in the registry.
 		if (class_exists($class)) {
@@ -83,7 +83,7 @@ class Factory {
 		$route = preg_replace('/[^a-zA-Z0-9_\/]/', '', $route);
 
 		// Generate the class
-		$class = 'Opencart\System\Library\\' . str_replace(['_', '/'], ['', '\\'], ucwords($route, '_/'));
+		$class = 'MDcart\System\Library\\' . str_replace(['_', '/'], ['', '\\'], ucwords($route, '_/'));
 
 		// Check if the requested model is already stored in the registry.
 		if (class_exists($class)) {

@@ -1,9 +1,9 @@
 <?php
-namespace Opencart\System\Library\Cache;
+namespace MDcart\System\Library\Cache;
 /**
  * Class APCU
  *
- * @package Opencart\System\Library\Cache
+ * @package MDcart\System\Library\Cache
  */
 class Apcu {
 	/**

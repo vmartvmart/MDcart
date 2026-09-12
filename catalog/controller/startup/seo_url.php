@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Startup;
+namespace MDcart\Catalog\Controller\Startup;
 /**
  * Class SeoUrl
  *
- * @package Opencart\Catalog\Controller\Startup
+ * @package MDcart\Catalog\Controller\Startup
  */
-class SeoUrl extends \Opencart\System\Engine\Controller {
+class SeoUrl extends \MDcart\System\Engine\Controller {
 	/**
 	 * @var array<int, array<string, array<string, string>>>
 	 */

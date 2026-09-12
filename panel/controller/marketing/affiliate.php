@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Marketing;
+namespace MDcart\Admin\Controller\Marketing;
 /**
  * Class Affiliate
  *
- * @package Opencart\Admin\Controller\Marketing
+ * @package MDcart\Admin\Controller\Marketing
  */
-class Affiliate extends \Opencart\System\Engine\Controller {
+class Affiliate extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -875,7 +875,7 @@ class Affiliate extends \Opencart\System\Engine\Controller {
 	/**
 	 * Csv
 	 *
-	 * @return \Opencart\System\Engine\Action|void
+	 * @return \MDcart\System\Engine\Action|void
 	 */
 	public function csv() {
 		$this->load->language('marketing/affiliate');
@@ -925,7 +925,7 @@ class Affiliate extends \Opencart\System\Engine\Controller {
 				exit('Error: Headers already sent out!');
 			}
 		} else {
-			return new \Opencart\System\Engine\Action('error/permission');
+			return new \MDcart\System\Engine\Action('error/permission');
 		}
 	}
 

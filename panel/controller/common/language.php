@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Language
  *
  * Can be loaded using $this->load->controller('common/language');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class Language extends \Opencart\System\Engine\Controller {
+class Language extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Product;
+namespace MDcart\Catalog\Controller\Product;
 /**
  * Class Review
  *
  * Can be loaded using $this->load->controller('product/review');
  *
- * @package Opencart\Catalog\Controller\Product
+ * @package MDcart\Catalog\Controller\Product
  */
-class Review extends \Opencart\System\Engine\Controller {
+class Review extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

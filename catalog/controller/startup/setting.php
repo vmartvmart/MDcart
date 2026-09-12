@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Startup;
+namespace MDcart\Catalog\Controller\Startup;
 /**
  * Class Setting
  *
- * @package Opencart\Catalog\Controller\Startup
+ * @package MDcart\Catalog\Controller\Startup
  */
-class Setting extends \Opencart\System\Engine\Controller {
+class Setting extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -50,7 +50,7 @@ class Setting extends \Opencart\System\Engine\Controller {
 		}
 
 		// Url
-		$this->registry->set('url', new \Opencart\System\Library\Url($this->config->get('config_url')));
+		$this->registry->set('url', new \MDcart\System\Library\Url($this->config->get('config_url')));
 
 		// Set time zone
 		if ($this->config->get('config_timezone')) {

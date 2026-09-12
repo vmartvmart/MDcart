@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Information;
+namespace MDcart\Catalog\Controller\Information;
 /**
  * Class Sitemap
  *
- * @package Opencart\Catalog\Controller\Information
+ * @package MDcart\Catalog\Controller\Information
  */
-class Sitemap extends \Opencart\System\Engine\Controller {
+class Sitemap extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Opencart\Payment;
+namespace MDcart\Catalog\Controller\Extension\MDcart\Payment;
 /**
  * Class Free Checkout
  *
- * @package Opencart\Catalog\Controller\Extension\Opencart\Payment
+ * @package MDcart\Catalog\Controller\Extension\MDcart\Payment
  */
-class FreeCheckout extends \Opencart\System\Engine\Controller {
+class FreeCheckout extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

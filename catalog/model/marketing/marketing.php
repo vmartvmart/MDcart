@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Marketing;
+namespace MDcart\Catalog\Model\Marketing;
 /**
  * Class Marketing
  *
  * Can be called using $this->load->model('marketing/marketing');
  *
- * @package Opencart\Catalog\Model\Marketing
+ * @package MDcart\Catalog\Model\Marketing
  */
-class Marketing extends \Opencart\System\Engine\Model {
+class Marketing extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Marketing By Code
 	 *

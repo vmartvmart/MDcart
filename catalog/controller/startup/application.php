@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Startup;
+namespace MDcart\Catalog\Controller\Startup;
 /**
  * Class Application
  *
- * @package Opencart\Catalog\Controller\Startup
+ * @package MDcart\Catalog\Controller\Startup
  */
-class Application extends \Opencart\System\Engine\Controller {
+class Application extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

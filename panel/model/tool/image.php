@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Tool;
+namespace MDcart\Admin\Model\Tool;
 /**
  * Class Image
  *
  * Can be loaded using $this->load->model('tool/image');
  *
- * @package Opencart\Admin\Model\Tool
+ * @package MDcart\Admin\Model\Tool
  */
-class Image extends \Opencart\System\Engine\Model {
+class Image extends \MDcart\System\Engine\Model {
 	/**
 	 * Resize
 	 *
@@ -67,7 +67,7 @@ class Image extends \Opencart\System\Engine\Model {
 			}
 
 			if ($width_orig != $width || $height_orig != $height) {
-				$image = new \Opencart\System\Library\Image(DIR_IMAGE . $image_old);
+				$image = new \MDcart\System\Library\Image(DIR_IMAGE . $image_old);
 				$image->resize($width, $height);
 				$image->save(DIR_IMAGE . $image_new);
 			} else {

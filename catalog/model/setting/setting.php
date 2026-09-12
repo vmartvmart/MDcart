@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Setting;
+namespace MDcart\Catalog\Model\Setting;
 /**
  * Class Setting
  *
  * Can be called using $this->load->model('setting/setting');
  *
- * @package Opencart\Catalog\Model\Setting
+ * @package MDcart\Catalog\Model\Setting
  */
-class Setting extends \Opencart\System\Engine\Model {
+class Setting extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Settings
 	 *

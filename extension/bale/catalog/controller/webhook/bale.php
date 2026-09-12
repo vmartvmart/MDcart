@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Bale\Webhook;
+namespace MDcart\Catalog\Controller\Extension\Bale\Webhook;
 /**
  * Class Bale
  *
  * Public endpoint Bale POSTs Update objects to (registered via setWebhook).
  *
- * @package Opencart\Catalog\Controller\Extension\Bale\Webhook
+ * @package MDcart\Catalog\Controller\Extension\Bale\Webhook
  */
-class Bale extends \Opencart\System\Engine\Controller {
+class Bale extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -60,7 +60,7 @@ class Bale extends \Opencart\System\Engine\Controller {
 
 		$this->load->library('extension/bale/bale');
 
-		$bale = new \Opencart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
+		$bale = new \MDcart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
 		$bale->sendMessage($chat_id, 'حساب مدیر با موفقیت به فروشگاه متصل شد. از این پس اعلان سفارش‌های جدید به همین چت ارسال می‌شود.');
 	}
 
@@ -92,7 +92,7 @@ class Bale extends \Opencart\System\Engine\Controller {
 
 		$this->load->library('extension/bale/bale');
 
-		$bale = new \Opencart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
+		$bale = new \MDcart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
 		$bale->sendMessage($chat_id, sprintf('اتصال شما با موفقیت انجام شد. بروزرسانی‌های سفارش #%s از این طریق ارسال خواهد شد.', $query->row['order_id']));
 	}
 
@@ -117,7 +117,7 @@ class Bale extends \Opencart\System\Engine\Controller {
 
 		$this->load->library('extension/bale/bale');
 
-		$bale = new \Opencart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
+		$bale = new \MDcart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
 		$bale->sendMessage($chat_id, 'اتصال شما با موفقیت انجام شد. به محض موجود شدن این محصول، از این طریق مطلع خواهید شد.');
 	}
 }

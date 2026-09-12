@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Marketing;
+namespace MDcart\Admin\Model\Marketing;
 /**
  * Class Coupon
  *
  * Can be loaded using $this->load->model('marketing/coupon');
  *
- * @package Opencart\Admin\Model\Marketing
+ * @package MDcart\Admin\Model\Marketing
  */
-class Coupon extends \Opencart\System\Engine\Model {
+class Coupon extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Coupon
 	 *

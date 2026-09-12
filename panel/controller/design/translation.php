@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Design;
+namespace MDcart\Admin\Controller\Design;
 /**
  * Class Translation
  *
- * @package Opencart\Admin\Controller\Design
+ * @package MDcart\Admin\Controller\Design
  */
-class Translation extends \Opencart\System\Engine\Controller {
+class Translation extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -8,11 +8,11 @@
  *
  * @see           https://www.opencart.com
  */
-namespace Opencart\System\Library;
+namespace MDcart\System\Library;
 /**
  * Class DB Adaptor
  *
- * @package Opencart\System\Library
+ * @package MDcart\System\Library
  */
 class DB {
 	/**
@@ -34,7 +34,7 @@ class DB {
 	 * @param string $ssl_ca
 	 */
 	public function __construct(string $adaptor, string $hostname, string $username, string $password, string $database, string $port = '', string $ssl_key = '', string $ssl_cert = '', string $ssl_ca = '') {
-		$class = 'Opencart\System\Library\DB\\' . $adaptor;
+		$class = 'MDcart\System\Library\DB\\' . $adaptor;
 
 		if (class_exists($class)) {
 			$this->adaptor = new $class($hostname, $username, $password, $database, $port, $ssl_key, $ssl_cert, $ssl_ca);

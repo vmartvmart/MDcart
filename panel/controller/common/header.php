@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Header
  *
  * Can be loaded using $this->load->controller('common/header');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class Header extends \Opencart\System\Engine\Controller {
+class Header extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

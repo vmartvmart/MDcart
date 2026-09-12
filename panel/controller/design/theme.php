@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Design;
+namespace MDcart\Admin\Controller\Design;
 /**
  * Class Theme
  *
  * Can be loaded using $this->load->controller('design/theme');
  *
- * @package Opencart\Admin\Controller\Design
+ * @package MDcart\Admin\Controller\Design
  */
-class Theme extends \Opencart\System\Engine\Controller {
+class Theme extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

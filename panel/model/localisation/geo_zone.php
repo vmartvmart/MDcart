@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Localisation;
+namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Geo Zone
  *
  * Can be loaded using $this->load->model('localisation/geo_zone');
  *
- * @package Opencart\Admin\Model\Localisation
+ * @package MDcart\Admin\Model\Localisation
  */
-class GeoZone extends \Opencart\System\Engine\Model {
+class GeoZone extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Geo Zone
 	 *

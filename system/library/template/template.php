@@ -1,9 +1,9 @@
 <?php
-namespace Opencart\System\Library\Template;
+namespace MDcart\System\Library\Template;
 /**
  * Class Template
  *
- * @package Opencart\System\Library\Template
+ * @package MDcart\System\Library\Template
  */
 class Template {
 	/**

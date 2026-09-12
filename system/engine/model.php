@@ -12,24 +12,24 @@
 /**
  * Model class
  */
-namespace Opencart\System\Engine;
+namespace MDcart\System\Engine;
 /**
  * Class Model
  *
- * @mixin \Opencart\System\Engine\Registry
+ * @mixin \MDcart\System\Engine\Registry
  */
 class Model {
 	/**
-	 * @var \Opencart\System\Engine\Registry
+	 * @var \MDcart\System\Engine\Registry
 	 */
-	protected \Opencart\System\Engine\Registry $registry;
+	protected \MDcart\System\Engine\Registry $registry;
 
 	/**
 	 * Constructor
 	 *
-	 * @param \Opencart\System\Engine\Registry $registry
+	 * @param \MDcart\System\Engine\Registry $registry
 	 */
-	public function __construct(\Opencart\System\Engine\Registry $registry) {
+	public function __construct(\MDcart\System\Engine\Registry $registry) {
 		$this->registry = $registry;
 	}
 

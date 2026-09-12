@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Product;
+namespace MDcart\Catalog\Controller\Product;
 /**
  * Class Manufacturer
  *
- * @package Opencart\Catalog\Controller\Product
+ * @package MDcart\Catalog\Controller\Product
  */
-class Manufacturer extends \Opencart\System\Engine\Controller {
+class Manufacturer extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -64,9 +64,9 @@ class Manufacturer extends \Opencart\System\Engine\Controller {
 	/**
 	 * Info
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function info(): ?\Opencart\System\Engine\Action {
+	public function info(): ?\MDcart\System\Engine\Action {
 		$this->load->language('product/manufacturer');
 
 		if (isset($this->request->get['manufacturer_id'])) {
@@ -353,7 +353,7 @@ class Manufacturer extends \Opencart\System\Engine\Controller {
 
 			$this->response->setOutput($this->load->view('product/manufacturer_info', $data));
 		} else {
-			return new \Opencart\System\Engine\Action('error/not_found');
+			return new \MDcart\System\Engine\Action('error/not_found');
 		}
 
 		return null;

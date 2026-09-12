@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Account;
+namespace MDcart\Catalog\Controller\Account;
 /**
  * Class Subscription
  *
- * @package Opencart\Catalog\Controller\Account
+ * @package MDcart\Catalog\Controller\Account
  */
-class Subscription extends \Opencart\System\Engine\Controller {
+class Subscription extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -132,9 +132,9 @@ class Subscription extends \Opencart\System\Engine\Controller {
 	/**
 	 * Info
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function info(): ?\Opencart\System\Engine\Action {
+	public function info(): ?\MDcart\System\Engine\Action {
 		$this->load->language('account/subscription');
 
 		if (isset($this->request->get['subscription_id'])) {
@@ -410,7 +410,7 @@ class Subscription extends \Opencart\System\Engine\Controller {
 
 			$this->response->setOutput($this->load->view('account/subscription_info', $data));
 		} else {
-			return new \Opencart\System\Engine\Action('error/not_found');
+			return new \MDcart\System\Engine\Action('error/not_found');
 		}
 
 		return null;

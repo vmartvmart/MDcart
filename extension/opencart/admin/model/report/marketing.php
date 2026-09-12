@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Extension\Opencart\Report;
+namespace MDcart\Admin\Model\Extension\MDcart\Report;
 /**
  * Class Marketing
  *
  * Can be called from $this->load->model('extension/opencart/report/marketing');
  *
- * @package Opencart\Admin\Model\Extension\Opencart\Report
+ * @package MDcart\Admin\Model\Extension\MDcart\Report
  */
-class Marketing extends \Opencart\System\Engine\Model {
+class Marketing extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Marketing
 	 *

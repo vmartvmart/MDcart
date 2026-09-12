@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Customer;
+namespace MDcart\Admin\Model\Customer;
 /**
  * Class Custom Field
  *
  * Can be loaded using $this->load->model('customer/custom_field');
  *
- * @package Opencart\Admin\Model\Customer
+ * @package MDcart\Admin\Model\Customer
  */
-class CustomField extends \Opencart\System\Engine\Model {
+class CustomField extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Custom Field
 	 *

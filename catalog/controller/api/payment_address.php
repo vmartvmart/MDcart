@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Api;
+namespace MDcart\Catalog\Controller\Api;
 /**
  * Class Payment Address
  *
  * Can be loaded using $this->load->controller('api/payment_address');
  *
- * @package Opencart\Catalog\Controller\Api
+ * @package MDcart\Catalog\Controller\Api
  */
-class PaymentAddress extends \Opencart\System\Engine\Controller {
+class PaymentAddress extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Gdpr
  *
  * Can be called using $this->load->model('account/gdpr');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Gdpr extends \Opencart\System\Engine\Model {
+class Gdpr extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Gdpr
 	 *

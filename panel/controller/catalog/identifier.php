@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Catalog;
+namespace MDcart\Admin\Controller\Catalog;
 /**
  * Class Identifier
  *
- * @package Opencart\Admin\Controller\Catalog
+ * @package MDcart\Admin\Controller\Catalog
  */
-class Identifier extends \Opencart\System\Engine\Controller {
+class Identifier extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

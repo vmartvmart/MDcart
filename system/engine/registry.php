@@ -8,7 +8,7 @@
  *
  * @see		https://www.opencart.com
  */
-namespace Opencart\System\Engine;
+namespace MDcart\System\Engine;
 /**
  * Class Registry
  */

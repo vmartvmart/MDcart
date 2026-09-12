@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Address
  *
  * Can be called using $this->load->model('account/address');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Address extends \Opencart\System\Engine\Model {
+class Address extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Address
 	 *

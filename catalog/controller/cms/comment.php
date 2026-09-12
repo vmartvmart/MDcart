@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Cms;
+namespace MDcart\Catalog\Controller\Cms;
 /**
  * Class Comment
  *
  * Can be loaded using $this->load->controller('cms/comment');
  *
- * @package Opencart\Catalog\Controller\Cms
+ * @package MDcart\Catalog\Controller\Cms
  */
-class Comment extends \Opencart\System\Engine\Controller {
+class Comment extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

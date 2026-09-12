@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Opencart\Currency;
+namespace MDcart\Catalog\Controller\Extension\MDcart\Currency;
 /**
  * Class ECB
  *
- * @package Opencart\Catalog\Controller\Extension\Opencart\Currency
+ * @package MDcart\Catalog\Controller\Extension\MDcart\Currency
  */
-class ECB extends \Opencart\System\Engine\Controller {
+class ECB extends \MDcart\System\Engine\Controller {
 	/**
 	 * Currency
 	 *

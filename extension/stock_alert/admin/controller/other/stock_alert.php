@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\StockAlert\Other;
+namespace MDcart\Admin\Controller\Extension\StockAlert\Other;
 /**
  * Class StockAlert
  *
- * @package Opencart\Admin\Controller\Extension\StockAlert\Other
+ * @package MDcart\Admin\Controller\Extension\StockAlert\Other
  */
-class StockAlert extends \Opencart\System\Engine\Controller {
+class StockAlert extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

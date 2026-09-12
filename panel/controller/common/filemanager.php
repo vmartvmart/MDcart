@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class File Manager
  *
  * Can be loaded using $this->load->controller('common/filemanager');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class FileManager extends \Opencart\System\Engine\Controller {
+class FileManager extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

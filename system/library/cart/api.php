@@ -1,9 +1,9 @@
 <?php
-namespace Opencart\System\Library\Cart;
+namespace MDcart\System\Library\Cart;
 /**
  * Class Api
  *
- * @package Opencart\System\Library\Cart
+ * @package MDcart\System\Library\Cart
  */
 class Api {
 	/**

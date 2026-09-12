@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 /**
  * Class Filter
  *
  * Can be loaded using $this->load->model('catalog/filter');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class Filter extends \Opencart\System\Engine\Model {
+class Filter extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Filter
 	 *

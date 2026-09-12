@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Cms;
+namespace MDcart\Admin\Controller\Cms;
 /**
  * Class Anti-Spam
  *
- * @package Opencart\Admin\Controller\Cms
+ * @package MDcart\Admin\Controller\Cms
  */
-class Antispam extends \Opencart\System\Engine\Controller {
+class Antispam extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

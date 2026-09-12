@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Mail;
+namespace MDcart\Catalog\Controller\Mail;
 /**
  * Class Order
  *
- * @package Opencart\Catalog\Controller\Mail
+ * @package MDcart\Catalog\Controller\Mail
  */
-class Order extends \Opencart\System\Engine\Controller {
+class Order extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -354,7 +354,7 @@ class Order extends \Opencart\System\Engine\Controller {
 				'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 			];
 
-			$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+			$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 			$mail->setTo($order_info['email']);
 			$mail->setFrom($from);
 			$mail->setSender($store_name);
@@ -463,7 +463,7 @@ class Order extends \Opencart\System\Engine\Controller {
 				'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 			];
 
-			$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+			$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 			$mail->setTo($order_info['email']);
 			$mail->setFrom($from);
 			$mail->setSender($store_name);
@@ -612,7 +612,7 @@ class Order extends \Opencart\System\Engine\Controller {
 					'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 				];
 
-				$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+				$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 				$mail->setTo($this->config->get('config_email'));
 				$mail->setFrom($this->config->get('config_email'));
 				$mail->setSender(html_entity_decode($order_info['store_name'], ENT_QUOTES, 'UTF-8'));

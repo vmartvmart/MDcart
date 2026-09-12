@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\IranianGateways\Payment;
+namespace MDcart\Catalog\Model\Extension\IranianGateways\Payment;
 /**
  * Class PayPing
  *
  * Can be called from $this->load->model('extension/iranian_gateways/payment/payping');
  *
- * @package Opencart\Catalog\Model\Extension\IranianGateways\Payment
+ * @package MDcart\Catalog\Model\Extension\IranianGateways\Payment
  */
-class Payping extends \Opencart\System\Engine\Model {
+class Payping extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Methods
 	 *

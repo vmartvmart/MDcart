@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Catalog;
+namespace MDcart\Admin\Controller\Catalog;
 /**
  * Class Attribute Group
  *
  * Can be loaded using $this->load->controller('catalog/attribute_group');
  *
- * @package Opencart\Admin\Controller\Catalog
+ * @package MDcart\Admin\Controller\Catalog
  */
-class AttributeGroup extends \Opencart\System\Engine\Controller {
+class AttributeGroup extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

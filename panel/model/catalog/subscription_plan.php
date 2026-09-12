@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 /**
  * Class Subscription Plan
  *
  * Can be loaded using $this->load->model('catalog/subscription_plan');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class SubscriptionPlan extends \Opencart\System\Engine\Model {
+class SubscriptionPlan extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Subscription Plan
 	 *

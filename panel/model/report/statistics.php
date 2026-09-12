@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Report;
+namespace MDcart\Admin\Model\Report;
 /**
  * Class Statistics
  *
  * Can be loaded using $this->load->model('report/statistics');
  *
- * @package Opencart\Admin\Model\Report
+ * @package MDcart\Admin\Model\Report
  */
-class Statistics extends \Opencart\System\Engine\Model {
+class Statistics extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Statistics
 	 *

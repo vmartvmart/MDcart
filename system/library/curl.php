@@ -1,9 +1,9 @@
 <?php
-namespace Opencart\System\Library;
+namespace MDcart\System\Library;
 /**
  * Class Curl
  *
- * @package Opencart\System\Library
+ * @package MDcart\System\Library
  */
 class Curl {
 	/**

@@ -10,13 +10,13 @@ Upgrade Process
 
 4. Redirect to upgrade page
 */
-namespace Opencart\Admin\Controller\Tool;
+namespace MDcart\Admin\Controller\Tool;
 /**
  * Class Upgrade
  *
- * @package Opencart\Admin\Controller\Tool
+ * @package MDcart\Admin\Controller\Tool
  */
-class Upgrade extends \Opencart\System\Engine\Controller {
+class Upgrade extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -214,18 +214,18 @@ class Upgrade extends \Opencart\System\Engine\Controller {
 									$path = $path . '/' . $directory;
 								}
 
-								if (!is_dir(DIR_OPENCART . $path) && !@mkdir(DIR_OPENCART . $path, 0777)) {
+								if (!is_dir(MCART_ROOT . $path) && !@mkdir(MCART_ROOT . $path, 0777)) {
 									$json['error'] = sprintf($this->language->get('error_directory'), $path);
 								}
 							}
 
 							// Check if the path is not directory and check there is no existing file
 							if (substr($destination, -1) != '/') {
-								if (is_file(DIR_OPENCART . $destination)) {
-									unlink(DIR_OPENCART . $destination);
+								if (is_file(MCART_ROOT . $destination)) {
+									unlink(MCART_ROOT . $destination);
 								}
 
-								if (file_put_contents(DIR_OPENCART . $destination, $zip->getFromIndex($i)) === false) {
+								if (file_put_contents(MCART_ROOT . $destination, $zip->getFromIndex($i)) === false) {
 									$json['error'] = sprintf($this->language->get('error_copy'), $source, $destination);
 								}
 							}
@@ -237,7 +237,7 @@ class Upgrade extends \Opencart\System\Engine\Controller {
 
 				$json['text'] = $this->language->get('text_patch');
 
-				$json['next'] = HTTP_CATALOG . 'install/index.php?route=upgrade/upgrade_1&version=' . $version . '&admin=' . rtrim(substr(DIR_APPLICATION, strlen(DIR_OPENCART), -1));
+				$json['next'] = HTTP_CATALOG . 'install/index.php?route=upgrade/upgrade_1&version=' . $version . '&admin=' . rtrim(substr(DIR_APPLICATION, strlen(MCART_ROOT), -1));
 			} else {
 				$json['error'] = $this->language->get('error_unzip');
 			}

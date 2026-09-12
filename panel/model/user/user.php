@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\User;
+namespace MDcart\Admin\Model\User;
 /**
  * Class User
  *
  * Can be loaded using $this->load->model('user/user');
  *
- * @package Opencart\Admin\Model\User
+ * @package MDcart\Admin\Model\User
  */
-class User extends \Opencart\System\Engine\Model {
+class User extends \MDcart\System\Engine\Model {
 	/**
 	 * Add User
 	 *

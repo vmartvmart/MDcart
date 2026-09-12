@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Telegram\Event;
+namespace MDcart\Catalog\Controller\Extension\Telegram\Event;
 /**
  * Class Order
  *
@@ -7,9 +7,9 @@ namespace Opencart\Catalog\Controller\Extension\Telegram\Event;
  *
  * model/checkout/order.addHistory/before
  *
- * @package Opencart\Catalog\Controller\Extension\Telegram\Event
+ * @package MDcart\Catalog\Controller\Extension\Telegram\Event
  */
-class Order extends \Opencart\System\Engine\Controller {
+class Order extends \MDcart\System\Engine\Controller {
 	/**
 	 * @param string            $route
 	 * @param array<int, mixed> $args
@@ -36,7 +36,7 @@ class Order extends \Opencart\System\Engine\Controller {
 		$this->load->language('extension/telegram/event/order');
 		$this->load->library('extension/telegram/telegram');
 
-		$telegram = new \Opencart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
+		$telegram = new \MDcart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
 
 		// New order
 		if (!$order_info['order_status_id'] && $order_status_id) {

@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Tool;
+namespace MDcart\Admin\Controller\Tool;
 /**
  * Class Backup
  *
- * @package Opencart\Admin\Controller\Tool
+ * @package MDcart\Admin\Controller\Tool
  */
-class Backup extends \Opencart\System\Engine\Controller {
+class Backup extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

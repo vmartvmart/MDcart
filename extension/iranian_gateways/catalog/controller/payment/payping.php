@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\IranianGateways\Payment;
+namespace MDcart\Catalog\Controller\Extension\IranianGateways\Payment;
 /**
  * Class PayPing
  *
- * @package Opencart\Catalog\Controller\Extension\IranianGateways\Payment
+ * @package MDcart\Catalog\Controller\Extension\IranianGateways\Payment
  */
-class Payping extends \Opencart\System\Engine\Controller {
+class Payping extends \MDcart\System\Engine\Controller {
 	private const API_PAY_URL = 'https://api.payping.ir/v2/pay';
 	private const API_VERIFY_URL = 'https://api.payping.ir/v2/pay/verify';
 	private const GATE_URL = 'https://api.payping.ir/v2/pay/gotoipg/';

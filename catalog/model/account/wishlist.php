@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Wishlist
  *
  * Can be called using $this->load->model('account/wishlist');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Wishlist extends \Opencart\System\Engine\Model {
+class Wishlist extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Wishlist
 	 *

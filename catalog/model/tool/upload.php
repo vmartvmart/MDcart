@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Tool;
+namespace MDcart\Catalog\Model\Tool;
 /**
  * Class Upload
  *
  * Can be called using $this->load->model('tool/upload');
  *
- * @package Opencart\Catalog\Model\Tool
+ * @package MDcart\Catalog\Model\Tool
  */
-class Upload extends \Opencart\System\Engine\Model {
+class Upload extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Upload
 	 *

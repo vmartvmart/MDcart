@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Tool;
+namespace MDcart\Catalog\Controller\Tool;
 /**
  * Class Upload
  *
- * @package Opencart\Catalog\Controller\Tool
+ * @package MDcart\Catalog\Controller\Tool
  */
-class Upload extends \Opencart\System\Engine\Controller {
+class Upload extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

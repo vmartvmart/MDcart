@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Tool;
+namespace MDcart\Admin\Controller\Tool;
 /**
  * Class Log
  *
- * @package Opencart\Admin\Controller\Tool
+ * @package MDcart\Admin\Controller\Tool
  */
-class Log extends \Opencart\System\Engine\Controller {
+class Log extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\MarketingBroadcast\Other;
+namespace MDcart\Admin\Controller\Extension\MarketingBroadcast\Other;
 /**
  * Class MarketingBroadcast
  *
- * @package Opencart\Admin\Controller\Extension\MarketingBroadcast\Other
+ * @package MDcart\Admin\Controller\Extension\MarketingBroadcast\Other
  */
-class MarketingBroadcast extends \Opencart\System\Engine\Controller {
+class MarketingBroadcast extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -116,16 +116,16 @@ class MarketingBroadcast extends \Opencart\System\Engine\Controller {
 		$sent = 0;
 		$failed = 0;
 
-		if (in_array('sms', $channels, true) && $this->config->get('other_ippanel_status') && class_exists('\Opencart\System\Library\Extension\Ippanel\Ippanel')) {
-			$client = new \Opencart\System\Library\Extension\Ippanel\Ippanel((string)$this->config->get('other_ippanel_api_key'), (string)$this->config->get('other_ippanel_sender'));
+		if (in_array('sms', $channels, true) && $this->config->get('other_ippanel_status') && class_exists('\MDcart\System\Library\Extension\Ippanel\Ippanel')) {
+			$client = new \MDcart\System\Library\Extension\Ippanel\Ippanel((string)$this->config->get('other_ippanel_api_key'), (string)$this->config->get('other_ippanel_sender'));
 
 			foreach ($this->getCustomerPhones($audience) as $phone) {
 				$client->send($phone, $message) ? $sent++ : $failed++;
 			}
 		}
 
-		if (in_array('whatsapp', $channels, true) && $this->config->get('other_whatsapp_status') && $this->config->get('other_whatsapp_template_order_add') && class_exists('\Opencart\System\Library\Extension\Whatsapp\Whatsapp')) {
-			$client = new \Opencart\System\Library\Extension\Whatsapp\Whatsapp((string)$this->config->get('other_whatsapp_phone_number_id'), (string)$this->config->get('other_whatsapp_access_token'));
+		if (in_array('whatsapp', $channels, true) && $this->config->get('other_whatsapp_status') && $this->config->get('other_whatsapp_template_order_add') && class_exists('\MDcart\System\Library\Extension\Whatsapp\Whatsapp')) {
+			$client = new \MDcart\System\Library\Extension\Whatsapp\Whatsapp((string)$this->config->get('other_whatsapp_phone_number_id'), (string)$this->config->get('other_whatsapp_access_token'));
 			$language_code = (string)($this->config->get('other_whatsapp_language_code') ?: 'en_US');
 
 			foreach ($this->getCustomerPhones($audience) as $phone) {
@@ -133,16 +133,16 @@ class MarketingBroadcast extends \Opencart\System\Engine\Controller {
 			}
 		}
 
-		if (in_array('telegram', $channels, true) && $this->config->get('other_telegram_status') && class_exists('\Opencart\System\Library\Extension\Telegram\Telegram')) {
-			$client = new \Opencart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
+		if (in_array('telegram', $channels, true) && $this->config->get('other_telegram_status') && class_exists('\MDcart\System\Library\Extension\Telegram\Telegram')) {
+			$client = new \MDcart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
 
 			foreach ($this->getLinkedChatIds('telegram', $audience) as $chat_id) {
 				$client->sendMessage($chat_id, $message) ? $sent++ : $failed++;
 			}
 		}
 
-		if (in_array('bale', $channels, true) && $this->config->get('other_bale_status') && class_exists('\Opencart\System\Library\Extension\Bale\Bale')) {
-			$client = new \Opencart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
+		if (in_array('bale', $channels, true) && $this->config->get('other_bale_status') && class_exists('\MDcart\System\Library\Extension\Bale\Bale')) {
+			$client = new \MDcart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
 
 			foreach ($this->getLinkedChatIds('bale', $audience) as $chat_id) {
 				$client->sendMessage($chat_id, $message) ? $sent++ : $failed++;

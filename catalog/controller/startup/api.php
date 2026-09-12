@@ -1,17 +1,17 @@
 <?php
-namespace Opencart\Catalog\Controller\Startup;
+namespace MDcart\Catalog\Controller\Startup;
 /**
  * Class Api
  *
- * @package Opencart\Catalog\Controller\Startup
+ * @package MDcart\Catalog\Controller\Startup
  */
-class Api extends \Opencart\System\Engine\Controller {
+class Api extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function index(): ?\Opencart\System\Engine\Action {
+	public function index(): ?\MDcart\System\Engine\Action {
 		if (isset($this->request->get['route'])) {
 			$route = strtolower((string)$this->request->get['route']);
 		} else {
@@ -25,7 +25,7 @@ class Api extends \Opencart\System\Engine\Controller {
 
 		// Block direct access to other methods
 		if (substr($route, 0, 4) == 'api/' && !in_array($route, $allowed)) {
-			return new \Opencart\System\Engine\Action('startup/api.permission');
+			return new \MDcart\System\Engine\Action('startup/api.permission');
 		}
 
 		if (in_array($route, $allowed)) {
@@ -101,7 +101,7 @@ class Api extends \Opencart\System\Engine\Controller {
 			if ($status) {
 				$this->model_user_api->addHistory($api_info['api_id'], $this->request->get['call'], oc_get_ip());
 			} else {
-				return new \Opencart\System\Engine\Action('startup/api.permission');
+				return new \MDcart\System\Engine\Action('startup/api.permission');
 			}
 		}
 

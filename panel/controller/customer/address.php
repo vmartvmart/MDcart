@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Customer;
+namespace MDcart\Admin\Controller\Customer;
 /**
  * Class Address
  *
  * Can be loaded using $this->load->controller('customer/address');
  *
- * @package Opencart\Admin\Controller\Customer
+ * @package MDcart\Admin\Controller\Customer
  */
-class Address extends \Opencart\System\Engine\Controller {
+class Address extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

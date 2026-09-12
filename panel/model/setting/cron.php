@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Setting;
+namespace MDcart\Admin\Model\Setting;
 /**
  * Class Cron
  *
  * Can be loaded using $this->load->model('setting/cron');
  *
- * @package Opencart\Admin\Model\Setting
+ * @package MDcart\Admin\Model\Setting
  */
-class Cron extends \Opencart\System\Engine\Model {
+class Cron extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Cron
 	 *

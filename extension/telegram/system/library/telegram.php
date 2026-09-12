@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\System\Library\Extension\Telegram;
+namespace MDcart\System\Library\Extension\Telegram;
 /**
  * Class Telegram
  *
  * Minimal client for the Telegram Bot API (https://core.telegram.org/bots/api).
  *
- * @package Opencart\System\Library\Extension\Telegram
+ * @package MDcart\System\Library\Extension\Telegram
  */
 class Telegram {
 	private string $token;

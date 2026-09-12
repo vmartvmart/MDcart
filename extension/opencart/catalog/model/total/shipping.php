@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\Opencart\Total;
+namespace MDcart\Catalog\Model\Extension\MDcart\Total;
 /**
  * Class Shipping
  *
  * Can be called from $this->load->model('extension/opencart/total/shipping');
  *
- * @package Opencart\Catalog\Model\Extension\Opencart\Total
+ * @package MDcart\Catalog\Model\Extension\MDcart\Total
  */
-class Shipping extends \Opencart\System\Engine\Model {
+class Shipping extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Total
 	 *

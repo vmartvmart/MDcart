@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\Opencart\Shipping;
+namespace MDcart\Catalog\Model\Extension\MDcart\Shipping;
 /**
  * Class Weight
  *
  * Can be called from $this->load->model('extension/opencart/shipping/weight');
  *
- * @package Opencart\Catalog\Model\Extension\Opencart\Shipping
+ * @package MDcart\Catalog\Model\Extension\MDcart\Shipping
  */
-class Weight extends \Opencart\System\Engine\Model {
+class Weight extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Quote
 	 *

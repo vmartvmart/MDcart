@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Opencart\Total;
+namespace MDcart\Admin\Controller\Extension\MDcart\Total;
 /**
  * Class Sub Total
  *
- * @package Opencart\Admin\Controller\Extension\Opencart\Total
+ * @package MDcart\Admin\Controller\Extension\MDcart\Total
  */
-class SubTotal extends \Opencart\System\Engine\Controller {
+class SubTotal extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

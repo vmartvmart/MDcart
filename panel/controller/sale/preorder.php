@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Sale;
+namespace MDcart\Admin\Controller\Sale;
 /**
  * Class Preorder
  *
@@ -21,9 +21,9 @@ namespace Opencart\Admin\Controller\Sale;
  *
  * Can be loaded using $this->load->controller('sale/preorder');
  *
- * @package Opencart\Admin\Controller\Sale
+ * @package MDcart\Admin\Controller\Sale
  */
-class Preorder extends \Opencart\System\Engine\Controller {
+class Preorder extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

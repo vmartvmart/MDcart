@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Checkout;
+namespace MDcart\Catalog\Controller\Checkout;
 /**
  * Class Failure
  *
- * @package Opencart\Catalog\Controller\Checkout
+ * @package MDcart\Catalog\Controller\Checkout
  */
-class Failure extends \Opencart\System\Engine\Controller {
+class Failure extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

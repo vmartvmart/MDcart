@@ -1,9 +1,9 @@
 <?php
-namespace Opencart\System\Library\Cart;
+namespace MDcart\System\Library\Cart;
 /**
  * Class Weight
  *
- * @package Opencart\System\Library\Cart
+ * @package MDcart\System\Library\Cart
  */
 class Weight {
 	/**
@@ -22,9 +22,9 @@ class Weight {
 	/**
 	 * Constructor
 	 *
-	 * @param \Opencart\System\Engine\Registry $registry
+	 * @param \MDcart\System\Engine\Registry $registry
 	 */
-	public function __construct(\Opencart\System\Engine\Registry $registry) {
+	public function __construct(\MDcart\System\Engine\Registry $registry) {
 		$this->db = $registry->get('db');
 		$this->config = $registry->get('config');
 

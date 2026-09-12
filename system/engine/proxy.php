@@ -8,11 +8,11 @@
  *
  * @see           https://www.opencart.com
  */
-namespace Opencart\System\Engine;
+namespace MDcart\System\Engine;
 /**
  * Class Proxy
  *
- * @template TWraps of \Opencart\System\Engine\Model
+ * @template TWraps of \MDcart\System\Engine\Model
  *
  * @mixin TWraps
  */

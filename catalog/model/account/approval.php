@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Customer
  *
  * Can be called using $this->load->model('account/approval');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Approval extends \Opencart\System\Engine\Model {
+class Approval extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Customer Approval
 	 *

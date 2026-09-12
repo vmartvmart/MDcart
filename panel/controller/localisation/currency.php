@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Localisation;
+namespace MDcart\Admin\Controller\Localisation;
 /**
  * Class Currency
  *
- * @package Opencart\Admin\Controller\Localisation
+ * @package MDcart\Admin\Controller\Localisation
  */
-class Currency extends \Opencart\System\Engine\Controller {
+class Currency extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

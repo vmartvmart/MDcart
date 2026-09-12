@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Event;
+namespace MDcart\Admin\Controller\Event;
 /**
  * Class Language
  *
- * @package Opencart\Admin\Controller\Event
+ * @package MDcart\Admin\Controller\Event
  */
-class Language extends \Opencart\System\Engine\Controller {
+class Language extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

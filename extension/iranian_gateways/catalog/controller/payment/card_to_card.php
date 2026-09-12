@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\IranianGateways\Payment;
+namespace MDcart\Catalog\Controller\Extension\IranianGateways\Payment;
 /**
  * Class Card To Card
  *
- * @package Opencart\Catalog\Controller\Extension\IranianGateways\Payment
+ * @package MDcart\Catalog\Controller\Extension\IranianGateways\Payment
  */
-class CardToCard extends \Opencart\System\Engine\Controller {
+class CardToCard extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

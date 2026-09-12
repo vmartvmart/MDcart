@@ -15,4 +15,4 @@ $_['text_account']      = 'حساب کاربری من';
 $_['text_order']        = 'تاریخچه سفارش‌ها';
 $_['text_wishlist']     = 'لیست علاقه‌مندی‌ها';
 $_['text_newsletter']   = 'خبرنامه';
-$_['text_powered']      = 'قدرت گرفته از MCart<br/> %s &copy; %s';
+$_['text_powered']      = 'قدرت گرفته از MDcart<br/> %s &copy; %s';

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\User;
+namespace MDcart\Admin\Model\User;
 /**
  * Class User Group
  *
  * Can be loaded using $this->load->model('user/user_group');
  *
- * @package Opencart\Admin\Model\User
+ * @package MDcart\Admin\Model\User
  */
-class UserGroup extends \Opencart\System\Engine\Model {
+class UserGroup extends \MDcart\System\Engine\Model {
 	/**
 	 * Add User Group
 	 *

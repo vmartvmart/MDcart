@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Telegram\Webhook;
+namespace MDcart\Catalog\Controller\Extension\Telegram\Webhook;
 /**
  * Class Telegram
  *
@@ -8,9 +8,9 @@ namespace Opencart\Catalog\Controller\Extension\Telegram\Webhook;
  * a connect link, linking their chat_id to either the admin alert setting or
  * a specific order's notify_link row.
  *
- * @package Opencart\Catalog\Controller\Extension\Telegram\Webhook
+ * @package MDcart\Catalog\Controller\Extension\Telegram\Webhook
  */
-class Telegram extends \Opencart\System\Engine\Controller {
+class Telegram extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -63,7 +63,7 @@ class Telegram extends \Opencart\System\Engine\Controller {
 
 		$this->load->library('extension/telegram/telegram');
 
-		$telegram = new \Opencart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
+		$telegram = new \MDcart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
 		$telegram->sendMessage($chat_id, 'حساب مدیر با موفقیت به فروشگاه متصل شد. از این پس اعلان سفارش‌های جدید به همین چت ارسال می‌شود.');
 	}
 
@@ -95,7 +95,7 @@ class Telegram extends \Opencart\System\Engine\Controller {
 
 		$this->load->library('extension/telegram/telegram');
 
-		$telegram = new \Opencart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
+		$telegram = new \MDcart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
 		$telegram->sendMessage($chat_id, sprintf('اتصال شما با موفقیت انجام شد. بروزرسانی‌های سفارش #%s از این طریق ارسال خواهد شد.', $query->row['order_id']));
 	}
 
@@ -120,7 +120,7 @@ class Telegram extends \Opencart\System\Engine\Controller {
 
 		$this->load->library('extension/telegram/telegram');
 
-		$telegram = new \Opencart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
+		$telegram = new \MDcart\System\Library\Extension\Telegram\Telegram((string)$this->config->get('other_telegram_bot_token'));
 		$telegram->sendMessage($chat_id, 'اتصال شما با موفقیت انجام شد. به محض موجود شدن این محصول، از این طریق مطلع خواهید شد.');
 	}
 }

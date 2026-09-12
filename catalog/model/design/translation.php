@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Design;
+namespace MDcart\Catalog\Model\Design;
 /**
  * Class Translation
  *
  * Can be called using $this->load->model('design/translation');
  *
- * @package Opencart\Catalog\Model\Design
+ * @package MDcart\Catalog\Model\Design
  */
-class Translation extends \Opencart\System\Engine\Model {
+class Translation extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Translations
 	 *

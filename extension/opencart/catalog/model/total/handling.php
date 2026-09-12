@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\Opencart\Total;
+namespace MDcart\Catalog\Model\Extension\MDcart\Total;
 /**
  * Class Handling
  *
  * Can be called from $this->load->model('extension/opencart/total/handling');
  *
- * @package Opencart\Catalog\Model\Extension\Opencart\Total
+ * @package MDcart\Catalog\Model\Extension\MDcart\Total
  */
-class Handling extends \Opencart\System\Engine\Model {
+class Handling extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Total
 	 *

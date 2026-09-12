@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Error;
+namespace MDcart\Admin\Controller\Error;
 /**
  * Class Not Found
  *
- * @package Opencart\Admin\Controller\Error
+ * @package MDcart\Admin\Controller\Error
  */
-class NotFound extends \Opencart\System\Engine\Controller {
+class NotFound extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

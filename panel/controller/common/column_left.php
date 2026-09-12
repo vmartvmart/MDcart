@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Column Left
  *
  * Can be loaded using $this->load->controller('common/column_left');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class ColumnLeft extends \Opencart\System\Engine\Controller {
+class ColumnLeft extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

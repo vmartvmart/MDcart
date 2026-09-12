@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Model\Sale;
+namespace MDcart\Admin\Model\Sale;
 /**
  * Class Preorder
  *
@@ -12,9 +12,9 @@ namespace Opencart\Admin\Model\Sale;
  *
  * Can be loaded using $this->load->model('sale/preorder');
  *
- * @package Opencart\Admin\Model\Sale
+ * @package MDcart\Admin\Model\Sale
  */
-class Preorder extends \Opencart\System\Engine\Model {
+class Preorder extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Preorders
 	 *

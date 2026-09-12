@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Design;
+namespace MDcart\Catalog\Model\Design;
 /**
  * Class Theme
  *
  * Can be called using $this->load->model('design/theme');
  *
- * @package Opencart\Catalog\Model\Design
+ * @package MDcart\Catalog\Model\Design
  */
-class Theme extends \Opencart\System\Engine\Model {
+class Theme extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Theme
 	 *

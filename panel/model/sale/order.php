@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Sale;
+namespace MDcart\Admin\Model\Sale;
 /**
  * Class Order
  *
  * Can be loaded using $this->load->model('sale/order');
  *
- * @package Opencart\Admin\Model\Sale
+ * @package MDcart\Admin\Model\Sale
  */
-class Order extends \Opencart\System\Engine\Model {
+class Order extends \MDcart\System\Engine\Model {
 	/**
 	 * Delete Order
 	 *

@@ -1,12 +1,12 @@
 <?php
-namespace Opencart\System\Library\Extension\Bale;
+namespace MDcart\System\Library\Extension\Bale;
 /**
  * Class Bale
  *
  * Minimal client for the Bale messenger Bot API (https://docs.bale.ai/),
  * which mirrors the Telegram Bot API's request/response shape.
  *
- * @package Opencart\System\Library\Extension\Bale
+ * @package MDcart\System\Library\Extension\Bale
  */
 class Bale {
 	private string $token;

@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Account;
+namespace MDcart\Catalog\Controller\Account;
 /**
  * Class Newsletter
  *
- * @package Opencart\Catalog\Controller\Account
+ * @package MDcart\Catalog\Controller\Account
  */
-class Newsletter extends \Opencart\System\Engine\Controller {
+class Newsletter extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

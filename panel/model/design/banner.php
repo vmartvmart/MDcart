@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Design;
+namespace MDcart\Admin\Model\Design;
 /**
  * Class Banner
  *
  * Can be loaded using $this->load->model('design/banner');
  *
- * @package Opencart\Admin\Model\Design
+ * @package MDcart\Admin\Model\Design
  */
-class Banner extends \Opencart\System\Engine\Model {
+class Banner extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Banner
 	 *

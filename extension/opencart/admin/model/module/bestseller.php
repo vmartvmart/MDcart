@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Extension\Opencart\Module;
+namespace MDcart\Admin\Model\Extension\MDcart\Module;
 /**
  * Class Bestseller
  *
  * Can be called from $this->load->model('extension/opencart/module/bestseller');
  *
- * @package Opencart\Admin\Model\Extension\Opencart\Module
+ * @package MDcart\Admin\Model\Extension\MDcart\Module
  */
-class Bestseller extends \Opencart\System\Engine\Model {
+class Bestseller extends \MDcart\System\Engine\Model {
 	/**
 	 * Install
 	 *

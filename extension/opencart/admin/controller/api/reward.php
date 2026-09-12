@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Opencart\Api;
+namespace MDcart\Admin\Controller\Extension\MDcart\Api;
 /**
  * Class Reward
  *
- * @package Opencart\Admin\Controller\Extension\Opencart\Api
+ * @package MDcart\Admin\Controller\Extension\MDcart\Api
  */
-class Reward extends \Opencart\System\Engine\Controller {
+class Reward extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

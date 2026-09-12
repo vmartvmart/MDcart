@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Opencart\Captcha;
+namespace MDcart\Catalog\Controller\Extension\MDcart\Captcha;
 /**
  * Class Basic
  *
- * @package Opencart\Catalog\Controller\Extension\Opencart\Captcha
+ * @package MDcart\Catalog\Controller\Extension\MDcart\Captcha
  */
-class Basic extends \Opencart\System\Engine\Controller {
+class Basic extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

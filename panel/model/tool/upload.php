@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Tool;
+namespace MDcart\Admin\Model\Tool;
 /**
  * Class Upload
  *
  * Can be loaded using $this->load->model('tool/upload');
  *
- * @package Opencart\Admin\Model\Tool
+ * @package MDcart\Admin\Model\Tool
  */
-class Upload extends \Opencart\System\Engine\Model {
+class Upload extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Upload
 	 *

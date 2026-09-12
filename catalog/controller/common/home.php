@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Common;
+namespace MDcart\Catalog\Controller\Common;
 /**
  * Class Home
  *
  * Can be called from $this->load->controller('common/home');
  *
- * @package Opencart\Catalog\Controller\Common
+ * @package MDcart\Catalog\Controller\Common
  */
-class Home extends \Opencart\System\Engine\Controller {
+class Home extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

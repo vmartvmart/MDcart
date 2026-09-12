@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 /**
  * Class Manufacturer
  *
  * Can be loaded using $this->load->model('catalog/manufacturer');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class Manufacturer extends \Opencart\System\Engine\Model {
+class Manufacturer extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Manufacturer
 	 *

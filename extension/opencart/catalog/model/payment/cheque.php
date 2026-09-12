@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\Opencart\Payment;
+namespace MDcart\Catalog\Model\Extension\MDcart\Payment;
 /**
  * Class Cheque
  *
  * Can be called from $this->load->model('extension/opencart/payment/cheque');
  *
- * @package Opencart\Catalog\Model\Extension\Opencart\Payment
+ * @package MDcart\Catalog\Model\Extension\MDcart\Payment
  */
-class Cheque extends \Opencart\System\Engine\Model {
+class Cheque extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Methods
 	 *

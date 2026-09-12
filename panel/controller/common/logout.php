@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Logout
  *
  * Can be loaded using $this->load->controller('common/logout');
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class Logout extends \Opencart\System\Engine\Controller {
+class Logout extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

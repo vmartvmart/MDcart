@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Checkout;
+namespace MDcart\Catalog\Model\Checkout;
 /**
  * Class Order
  *
  * Can be called using $this->load->model('checkout/order');
  *
- * @package Opencart\Catalog\Model\Checkout
+ * @package MDcart\Catalog\Model\Checkout
  */
-class Order extends \Opencart\System\Engine\Model {
+class Order extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Order
 	 *
@@ -908,7 +908,7 @@ class Order extends \Opencart\System\Engine\Model {
 						// Warehouses tab, and what a Purchase Invoice records). COGS/
 						// accounting/profit-loss, however, always deal in the store's
 						// base currency (config_currency) alongside order revenue,
-						// which OpenCart itself always stores in the base currency.
+						// which MDcart itself always stores in the base currency.
 						// So convert once, right here, at the exact moment cost is
 						// snapshotted - everything downstream (order_product_cost,
 						// the accounting COGS journal line, the Profit/Loss report)

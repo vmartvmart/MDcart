@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Localisation;
+namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Location
  *
  * Can be loaded using $this->load->model('localisation/location');
  *
- * @package Opencart\Admin\Model\Localisation
+ * @package MDcart\Admin\Model\Localisation
  */
-class Location extends \Opencart\System\Engine\Model {
+class Location extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Location
 	 *

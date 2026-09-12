@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Cron;
+namespace MDcart\Catalog\Controller\Cron;
 /**
  * Class Subscription
  *
  * Can be loaded using $this->load->controller('cron/subscription');
  *
- * @package Opencart\Catalog\Controller\Cron
+ * @package MDcart\Catalog\Controller\Cron
  */
-class Subscription extends \Opencart\System\Engine\Controller {
+class Subscription extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

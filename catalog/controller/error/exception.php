@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Error;
+namespace MDcart\Catalog\Controller\Error;
 /**
  * Class Exception
  *
- * @package Opencart\Catalog\Controller\Error
+ * @package MDcart\Catalog\Controller\Error
  */
-class Exception extends \Opencart\System\Engine\Controller {
+class Exception extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

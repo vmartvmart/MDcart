@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Event;
+namespace MDcart\Catalog\Controller\Event;
 /**
  * Class Modification
  *
- * @package Opencart\Catalog\Controller\Event
+ * @package MDcart\Catalog\Controller\Event
  */
-class Modification extends \Opencart\System\Engine\Controller {
+class Modification extends \MDcart\System\Engine\Controller {
 	/**
 	 * Controller
 	 *
@@ -19,7 +19,7 @@ class Modification extends \Opencart\System\Engine\Controller {
 			return;
 		}
 
-		$class = $this->prepareClassName($route, 'Opencart\Catalog\Controller\Extension\Ocmod\\');
+		$class = $this->prepareClassName($route, 'MDcart\Catalog\Controller\Extension\Ocmod\\');
 
 		if (class_exists($class)) {
 			$route = 'extension/ocmod/' . $route;
@@ -40,7 +40,7 @@ class Modification extends \Opencart\System\Engine\Controller {
 			return;
 		}
 
-		$class = $this->prepareClassName($route, 'Opencart\Catalog\Model\Extension\Ocmod\\');
+		$class = $this->prepareClassName($route, 'MDcart\Catalog\Model\Extension\Ocmod\\');
 
 		if (class_exists($class)) {
 			$route = 'extension/ocmod/' . $route;
@@ -84,7 +84,7 @@ class Modification extends \Opencart\System\Engine\Controller {
 			return;
 		}
 
-		$class = $this->prepareClassName($route, 'Opencart\System\Library\Extension\Ocmod\\');
+		$class = $this->prepareClassName($route, 'MDcart\System\Library\Extension\Ocmod\\');
 
 		if (class_exists($class)) {
 			$route = 'extension/ocmod/' . $route;

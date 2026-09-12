@@ -1,18 +1,18 @@
 <?php
-namespace Opencart\Catalog\Controller\Startup;
+namespace MDcart\Catalog\Controller\Startup;
 /**
  * Class Customer
  *
- * @package Opencart\Catalog\Controller\Startup
+ * @package MDcart\Catalog\Controller\Startup
  */
-class Customer extends \Opencart\System\Engine\Controller {
+class Customer extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
 	 * @return void
 	 */
 	public function index(): void {
-		$this->registry->set('customer', new \Opencart\System\Library\Cart\Customer($this->registry));
+		$this->registry->set('customer', new \MDcart\System\Library\Cart\Customer($this->registry));
 
 		// Customer Group
 		if (isset($this->session->data['customer'])) {

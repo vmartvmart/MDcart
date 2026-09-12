@@ -8,13 +8,13 @@
  *
  * @see        https://www.opencart.com
  */
-namespace Opencart\System\Engine;
+namespace MDcart\System\Engine;
 /**
  * Class Action
  *
  * Allows the stored action to be passed around and be executed by the framework and events.
  *
- * @package Opencart\System\Engine
+ * @package MDcart\System\Engine
  */
 class Action {
 	/**
@@ -63,12 +63,12 @@ class Action {
 	/**
 	 * Execute
 	 *
-	 * @param \Opencart\System\Engine\Registry $registry
+	 * @param \MDcart\System\Engine\Registry $registry
 	 * @param array<mixed>                     $args
 	 *
 	 * @return mixed
 	 */
-	public function execute(\Opencart\System\Engine\Registry $registry, array &$args = []) {
+	public function execute(\MDcart\System\Engine\Registry $registry, array &$args = []) {
 		// Stop any magical methods being called
 		if (substr($this->method, 0, 2) == '__') {
 			return new \Exception('Error: Calls to magic methods are not allowed!');
@@ -83,7 +83,7 @@ class Action {
 			$object = $registry->get($key);
 		}
 
-		if ($object instanceof \Opencart\System\Engine\Controller) {
+		if ($object instanceof \MDcart\System\Engine\Controller) {
 			$registry->set($key, $object);
 		} else {
 			// If action cannot be executed, we return an error object.

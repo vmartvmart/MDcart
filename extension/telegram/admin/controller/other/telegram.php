@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Telegram\Other;
+namespace MDcart\Admin\Controller\Extension\Telegram\Other;
 /**
  * Class Telegram
  *
- * @package Opencart\Admin\Controller\Extension\Telegram\Other
+ * @package MDcart\Admin\Controller\Extension\Telegram\Other
  */
-class Telegram extends \Opencart\System\Engine\Controller {
+class Telegram extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -112,7 +112,7 @@ class Telegram extends \Opencart\System\Engine\Controller {
 		if (!$json) {
 			$this->load->library('extension/telegram/telegram');
 
-			$telegram = new \Opencart\System\Library\Extension\Telegram\Telegram($token);
+			$telegram = new \MDcart\System\Library\Extension\Telegram\Telegram($token);
 
 			$url = $this->url->link('extension/telegram/webhook/telegram', '', true);
 

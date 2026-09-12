@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Download
  *
  * Can be called using $this->load->model('account/download');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Download extends \Opencart\System\Engine\Model {
+class Download extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Download
 	 *

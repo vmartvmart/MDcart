@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\User;
+namespace MDcart\Admin\Controller\User;
 /**
  * Class User Permission
  *
- * @package Opencart\Admin\Controller\User
+ * @package MDcart\Admin\Controller\User
  */
-class UserPermission extends \Opencart\System\Engine\Controller {
+class UserPermission extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

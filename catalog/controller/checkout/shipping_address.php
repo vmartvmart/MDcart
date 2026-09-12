@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Checkout;
+namespace MDcart\Catalog\Controller\Checkout;
 /**
  * Class ShippingAddress
  *
- * @package Opencart\Catalog\Controller\Checkout
+ * @package MDcart\Catalog\Controller\Checkout
  */
-class ShippingAddress extends \Opencart\System\Engine\Controller {
+class ShippingAddress extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Localisation;
+namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Country
  *
  * Can be loaded using $this->load->model('localisation/country');
  *
- * @package Opencart\Admin\Model\Localisation
+ * @package MDcart\Admin\Model\Localisation
  */
-class Country extends \Opencart\System\Engine\Model {
+class Country extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Country
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Setting;
+namespace MDcart\Admin\Model\Setting;
 /**
  * Class Store
  *
  * Can be loaded using $this->load->model('setting/store');
  *
- * @package Opencart\Admin\Model\Setting
+ * @package MDcart\Admin\Model\Setting
  */
-class Store extends \Opencart\System\Engine\Model {
+class Store extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Store
 	 *
@@ -215,7 +215,7 @@ class Store extends \Opencart\System\Engine\Model {
 	 *
 	 * @throws \Exception
 	 *
-	 * @return \Opencart\System\Engine\Registry
+	 * @return \MDcart\System\Engine\Registry
 	 *
 	 * @example
 	 *
@@ -223,15 +223,15 @@ class Store extends \Opencart\System\Engine\Model {
 	 *
 	 * $this->model_setting_store->createStoreInstance($store_id, $language, $currency);
 	 */
-	public function createStoreInstance(int $store_id = 0, string $language = '', string $currency = ''): \Opencart\System\Engine\Registry {
+	public function createStoreInstance(int $store_id = 0, string $language = '', string $currency = ''): \MDcart\System\Engine\Registry {
 		// Autoloader
-		$this->autoloader->register('Opencart\Catalog', DIR_CATALOG);
+		$this->autoloader->register('MDcart\Catalog', DIR_CATALOG);
 
 		// Registry
-		$registry = new \Opencart\System\Engine\Registry();
+		$registry = new \MDcart\System\Engine\Registry();
 		$registry->set('autoloader', $this->autoloader);
 
-		$config = new \Opencart\System\Engine\Config();
+		$config = new \MDcart\System\Engine\Config();
 		$registry->set('config', $config);
 
 		// Load the default config
@@ -247,23 +247,23 @@ class Store extends \Opencart\System\Engine\Model {
 		$registry->set('log', $this->log);
 
 		// Event
-		$event = new \Opencart\System\Engine\Event($registry);
+		$event = new \MDcart\System\Engine\Event($registry);
 		$registry->set('event', $event);
 
 		// Event Register
 		if ($config->has('action_event')) {
 			foreach ($config->get('action_event') as $key => $value) {
 				foreach ($value as $priority => $action) {
-					$event->register($key, new \Opencart\System\Engine\Action($action), $priority);
+					$event->register($key, new \MDcart\System\Engine\Action($action), $priority);
 				}
 			}
 		}
 
 		// Factory
-		$registry->set('factory', new \Opencart\System\Engine\Factory($registry));
+		$registry->set('factory', new \MDcart\System\Engine\Factory($registry));
 
 		// Loader
-		$loader = new \Opencart\System\Engine\Loader($registry);
+		$loader = new \MDcart\System\Engine\Loader($registry);
 		$registry->set('load', $loader);
 
 		// Create a dummy request class, so we can feed the data to the order editor
@@ -277,7 +277,7 @@ class Store extends \Opencart\System\Engine\Model {
 		$registry->set('request', $request);
 
 		// Response
-		$response = new \Opencart\System\Library\Response();
+		$response = new \MDcart\System\Library\Response();
 		$registry->set('response', $response);
 
 		// Database
@@ -287,12 +287,12 @@ class Store extends \Opencart\System\Engine\Model {
 		$registry->set('cache', $this->cache);
 
 		// Session
-		$session = new \Opencart\System\Library\Session($config->get('session_engine'), $registry);
+		$session = new \MDcart\System\Library\Session($config->get('session_engine'), $registry);
 		$session->start();
 		$registry->set('session', $session);
 
 		// Template
-		$template = new \Opencart\System\Library\Template($config->get('template_engine'));
+		$template = new \MDcart\System\Library\Template($config->get('template_engine'));
 		$template->addPath(DIR_CATALOG . 'view/template/');
 		$registry->set('template', $template);
 
@@ -304,16 +304,16 @@ class Store extends \Opencart\System\Engine\Model {
 		}
 
 		// Language
-		$language = new \Opencart\System\Library\Language($request->get['language']);
+		$language = new \MDcart\System\Library\Language($request->get['language']);
 		$language->addPath(DIR_CATALOG . 'language/');
 		$language->load('default');
 		$registry->set('language', $language);
 
 		// Url
-		$registry->set('url', new \Opencart\System\Library\Url($config->get('site_url')));
+		$registry->set('url', new \MDcart\System\Library\Url($config->get('site_url')));
 
 		// Document
-		$registry->set('document', new \Opencart\System\Library\Document());
+		$registry->set('document', new \MDcart\System\Library\Document());
 
 		// Run pre actions to load key settings and classes.
 		$pre_actions = [

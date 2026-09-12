@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 /**
  * Class PurchaseInvoice
  *
@@ -13,9 +13,9 @@ namespace Opencart\Admin\Model\Catalog;
  *
  * Can be loaded using $this->load->model('catalog/purchase_invoice');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class PurchaseInvoice extends \Opencart\System\Engine\Model {
+class PurchaseInvoice extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Purchase Invoice - applies the stock/cost increase immediately.
 	 *

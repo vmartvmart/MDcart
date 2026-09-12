@@ -7,12 +7,12 @@ define('HTTP_SERVER', 'http://opencart.local/panel/');
 define('HTTP_CATALOG', 'http://opencart.local/');
 
 // DIR
-define('DIR_OPENCART', 'C:/xampp/htdocs/opencart/');
-define('DIR_APPLICATION', DIR_OPENCART . 'panel/');
-define('DIR_EXTENSION', DIR_OPENCART . 'extension/');
-define('DIR_IMAGE', DIR_OPENCART . 'image/');
-define('DIR_SYSTEM', DIR_OPENCART . 'system/');
-define('DIR_CATALOG', DIR_OPENCART . 'catalog/');
+define('MCART_ROOT', 'C:/xampp/htdocs/opencart/');
+define('DIR_APPLICATION', MCART_ROOT . 'panel/');
+define('DIR_EXTENSION', MCART_ROOT . 'extension/');
+define('DIR_IMAGE', MCART_ROOT . 'image/');
+define('DIR_SYSTEM', MCART_ROOT . 'system/');
+define('DIR_CATALOG', MCART_ROOT . 'catalog/');
 define('DIR_STORAGE', 'C:/xampp/storage/');
 define('DIR_LANGUAGE', DIR_APPLICATION . 'language/');
 define('DIR_TEMPLATE', DIR_APPLICATION . 'view/template/');

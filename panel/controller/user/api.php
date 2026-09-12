@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\User;
+namespace MDcart\Admin\Controller\User;
 /**
  * Class Api
  *
- * @package Opencart\Admin\Controller\User
+ * @package MDcart\Admin\Controller\User
  */
-class Api extends \Opencart\System\Engine\Controller {
+class Api extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

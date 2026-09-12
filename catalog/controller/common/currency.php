@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Common;
+namespace MDcart\Catalog\Controller\Common;
 /**
  * Class Currency
  *
  * Can be called from $this->load->controller('common/currency');
  *
- * @package Opencart\Catalog\Controller\Common
+ * @package MDcart\Catalog\Controller\Common
  */
-class Currency extends \Opencart\System\Engine\Controller {
+class Currency extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

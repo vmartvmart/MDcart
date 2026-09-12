@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Startup;
+namespace MDcart\Admin\Controller\Startup;
 /**
  * Class Event
  *
- * @package Opencart\Admin\Controller\Startup
+ * @package MDcart\Admin\Controller\Startup
  */
-class Event extends \Opencart\System\Engine\Controller {
+class Event extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -24,11 +24,11 @@ class Event extends \Opencart\System\Engine\Controller {
 				if ($part[0] == 'admin') {
 					array_shift($part);
 
-					$this->event->register(implode('/', $part), new \Opencart\System\Engine\Action($result['action']), $result['sort_order']);
+					$this->event->register(implode('/', $part), new \MDcart\System\Engine\Action($result['action']), $result['sort_order']);
 				}
 
 				if ($part[0] == 'system') {
-					$this->event->register($result['trigger'], new \Opencart\System\Engine\Action($result['action']), $result['sort_order']);
+					$this->event->register($result['trigger'], new \MDcart\System\Engine\Action($result['action']), $result['sort_order']);
 				}
 			}
 		}

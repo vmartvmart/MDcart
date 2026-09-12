@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Marketing;
+namespace MDcart\Admin\Controller\Marketing;
 /**
  * Class Contact
  *
- * @package Opencart\Admin\Controller\Marketing
+ * @package MDcart\Admin\Controller\Marketing
  */
-class Contact extends \Opencart\System\Engine\Controller {
+class Contact extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -260,7 +260,7 @@ class Contact extends \Opencart\System\Engine\Controller {
 						'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 					];
 
-					$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+					$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 
 					foreach ($emails as $email) {
 						if (filter_var($email, FILTER_VALIDATE_EMAIL)) {

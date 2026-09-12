@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Api;
+namespace MDcart\Catalog\Controller\Api;
 /**
  * Class Affiliate
  *
  * Can be loaded using $this->load->controller('api/affiliate');
  *
- * @package Opencart\Catalog\Controller\Api\Sale
+ * @package MDcart\Catalog\Controller\Api\Sale
  */
-class Affiliate extends \Opencart\System\Engine\Controller {
+class Affiliate extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

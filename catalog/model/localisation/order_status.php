@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Localisation;
+namespace MDcart\Catalog\Model\Localisation;
 /**
  * Class Order Status
  *
  * Can be called using $this->load->model('localisation/order_status');
  *
- * @package Opencart\Catalog\Model\Localisation
+ * @package MDcart\Catalog\Model\Localisation
  */
-class OrderStatus extends \Opencart\System\Engine\Model {
+class OrderStatus extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Order Status
 	 *

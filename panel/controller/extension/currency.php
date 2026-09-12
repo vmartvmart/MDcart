@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension;
+namespace MDcart\Admin\Controller\Extension;
 /**
  * Class Currency
  *
- * @package Opencart\Admin\Controller\Extension
+ * @package MDcart\Admin\Controller\Extension
  */
-class Currency extends \Opencart\System\Engine\Controller {
+class Currency extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -119,9 +119,9 @@ class Currency extends \Opencart\System\Engine\Controller {
 			$namespace = str_replace(['_', '/'], ['', '\\'], ucwords($extension, '_/'));
 
 			// Register controllers, models and system extension folders
-			$this->autoloader->register('Opencart\Admin\Controller\Extension\\' . $namespace, DIR_EXTENSION . $extension . '/admin/controller/');
-			$this->autoloader->register('Opencart\Admin\Model\Extension\\' . $namespace, DIR_EXTENSION . $extension . '/admin/model/');
-			$this->autoloader->register('Opencart\System\Extension\\' . $namespace, DIR_EXTENSION . $extension . '/system/');
+			$this->autoloader->register('MDcart\Admin\Controller\Extension\\' . $namespace, DIR_EXTENSION . $extension . '/admin/controller/');
+			$this->autoloader->register('MDcart\Admin\Model\Extension\\' . $namespace, DIR_EXTENSION . $extension . '/admin/model/');
+			$this->autoloader->register('MDcart\System\Extension\\' . $namespace, DIR_EXTENSION . $extension . '/system/');
 
 			// Template directory
 			$this->template->addPath('extension/' . $extension, DIR_EXTENSION . $extension . '/admin/view/template/');

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Controller\Catalog;
+namespace MDcart\Admin\Controller\Catalog;
 /**
  * Class Information
  *
  * Can be loaded using $this->load->controller('catalog/information');
  *
- * @package Opencart\Admin\Controller\Catalog
+ * @package MDcart\Admin\Controller\Catalog
  */
-class Information extends \Opencart\System\Engine\Controller {
+class Information extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 /**
  * Class Warehouse
  *
  * Can be loaded using $this->load->model('catalog/warehouse');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class Warehouse extends \Opencart\System\Engine\Model {
+class Warehouse extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Warehouse
 	 *

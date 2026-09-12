@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Opencart\Payment;
+namespace MDcart\Admin\Controller\Extension\MDcart\Payment;
 /**
  * Class Cod
  *
- * @package Opencart\Admin\Controller\Extension\Opencart\Payment
+ * @package MDcart\Admin\Controller\Extension\MDcart\Payment
  */
-class Cod extends \Opencart\System\Engine\Controller {
+class Cod extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

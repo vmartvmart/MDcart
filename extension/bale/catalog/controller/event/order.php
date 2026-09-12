@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Bale\Event;
+namespace MDcart\Catalog\Controller\Extension\Bale\Event;
 /**
  * Class Order
  *
@@ -7,9 +7,9 @@ namespace Opencart\Catalog\Controller\Extension\Bale\Event;
  *
  * model/checkout/order.addHistory/before
  *
- * @package Opencart\Catalog\Controller\Extension\Bale\Event
+ * @package MDcart\Catalog\Controller\Extension\Bale\Event
  */
-class Order extends \Opencart\System\Engine\Controller {
+class Order extends \MDcart\System\Engine\Controller {
 	/**
 	 * @param string            $route
 	 * @param array<int, mixed> $args
@@ -36,7 +36,7 @@ class Order extends \Opencart\System\Engine\Controller {
 		$this->load->language('extension/bale/event/order');
 		$this->load->library('extension/bale/bale');
 
-		$bale = new \Opencart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
+		$bale = new \MDcart\System\Library\Extension\Bale\Bale((string)$this->config->get('other_bale_bot_token'));
 
 		// New order
 		if (!$order_info['order_status_id'] && $order_status_id) {

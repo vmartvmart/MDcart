@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Search
  *
  * Can be called using $this->load->model('account/search');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class Search extends \Opencart\System\Engine\Model {
+class Search extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Customer Search
 	 *

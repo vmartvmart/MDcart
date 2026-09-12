@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Api;
+namespace MDcart\Catalog\Controller\Api;
 /**
  * Class Payment Method
  *
  * Can be loaded using $this->load->controller('api/payment_method');
  *
- * @package Opencart\Catalog\Controller\Api
+ * @package MDcart\Catalog\Controller\Api
  */
-class PaymentMethod extends \Opencart\System\Engine\Controller {
+class PaymentMethod extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

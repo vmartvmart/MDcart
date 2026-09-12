@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Marketing;
+namespace MDcart\Admin\Model\Marketing;
 /**
  * Class Affiliate
  *
  * Can be loaded using $this->load->model('marketing/affiliate');
  *
- * @package Opencart\Admin\Model\Marketing
+ * @package MDcart\Admin\Model\Marketing
  */
-class Affiliate extends \Opencart\System\Engine\Model {
+class Affiliate extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Affiliate
 	 *

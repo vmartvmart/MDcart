@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Catalog;
+namespace MDcart\Catalog\Model\Catalog;
 /**
  * Class Category
  *
  * Can be called using $this->load->model('catalog/category');
  *
- * @package Opencart\Catalog\Model\Catalog
+ * @package MDcart\Catalog\Model\Catalog
  */
-class Category extends \Opencart\System\Engine\Model {
+class Category extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Category
 	 *

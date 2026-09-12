@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Common;
+namespace MDcart\Admin\Controller\Common;
 /**
  * Class Pagination
  *
@@ -14,9 +14,9 @@ namespace Opencart\Admin\Controller\Common;
  *     'url'   => ''
  * ];
  *
- * @package Opencart\Admin\Controller\Common
+ * @package MDcart\Admin\Controller\Common
  */
-class Pagination extends \Opencart\System\Engine\Controller {
+class Pagination extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

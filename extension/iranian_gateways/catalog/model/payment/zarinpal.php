@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\IranianGateways\Payment;
+namespace MDcart\Catalog\Model\Extension\IranianGateways\Payment;
 /**
  * Class Zarinpal
  *
  * Can be called from $this->load->model('extension/iranian_gateways/payment/zarinpal');
  *
- * @package Opencart\Catalog\Model\Extension\IranianGateways\Payment
+ * @package MDcart\Catalog\Model\Extension\IranianGateways\Payment
  */
-class Zarinpal extends \Opencart\System\Engine\Model {
+class Zarinpal extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Methods
 	 *

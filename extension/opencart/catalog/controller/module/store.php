@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Opencart\Module;
+namespace MDcart\Catalog\Controller\Extension\MDcart\Module;
 /**
  * Class Store
  *
- * @package Opencart\Catalog\Controller\Extension\Opencart\Module
+ * @package MDcart\Catalog\Controller\Extension\MDcart\Module
  */
-class Store extends \Opencart\System\Engine\Controller {
+class Store extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -15,7 +15,7 @@ class Store extends \Opencart\System\Engine\Controller {
 		$status = true;
 
 		if ($this->config->get('module_store_admin')) {
-			$this->user = new \Opencart\System\Library\Cart\User($this->registry);
+			$this->user = new \MDcart\System\Library\Cart\User($this->registry);
 
 			$status = $this->user->isLogged();
 		}

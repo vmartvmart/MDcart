@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\Torob\Feed;
+namespace MDcart\Admin\Controller\Extension\Torob\Feed;
 /**
  * Class Torob
  *
- * @package Opencart\Admin\Controller\Extension\Torob\Feed
+ * @package MDcart\Admin\Controller\Extension\Torob\Feed
  */
-class Torob extends \Opencart\System\Engine\Controller {
+class Torob extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

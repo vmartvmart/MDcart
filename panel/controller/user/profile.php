@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\User;
+namespace MDcart\Admin\Controller\User;
 /**
  * Class Profile
  *
- * @package Opencart\Admin\Controller\User
+ * @package MDcart\Admin\Controller\User
  */
-class Profile extends \Opencart\System\Engine\Controller {
+class Profile extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

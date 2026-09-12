@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Mail;
+namespace MDcart\Admin\Controller\Mail;
 /**
  * Class Subscription
  *
- * @package Opencart\Admin\Controller\Mail
+ * @package MDcart\Admin\Controller\Mail
  */
-class Subscription extends \Opencart\System\Engine\Controller {
+class Subscription extends \MDcart\System\Engine\Controller {
 	/**
 	 * History
 	 *
@@ -145,7 +145,7 @@ class Subscription extends \Opencart\System\Engine\Controller {
 											'smtp_port'     => $this->config->get('config_mail_smtp_port'),
 											'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 										];
-										$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+										$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 
 										$mail->setTo($customer_info['email']);
 										$mail->setFrom($from);
@@ -277,7 +277,7 @@ class Subscription extends \Opencart\System\Engine\Controller {
 										'smtp_port'     => $this->config->get('config_mail_smtp_port'),
 										'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 									];
-									$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+									$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 
 									$mail->setTo($from);
 									$mail->setFrom($from);

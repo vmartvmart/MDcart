@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Extension\IranianGateways\Payment;
+namespace MDcart\Admin\Controller\Extension\IranianGateways\Payment;
 /**
  * Class Zarinpal
  *
- * @package Opencart\Admin\Controller\Extension\IranianGateways\Payment
+ * @package MDcart\Admin\Controller\Extension\IranianGateways\Payment
  */
-class Zarinpal extends \Opencart\System\Engine\Controller {
+class Zarinpal extends \MDcart\System\Engine\Controller {
 	/**
 	 * @var array<string, string>
 	 */

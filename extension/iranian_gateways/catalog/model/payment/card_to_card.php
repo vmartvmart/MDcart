@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\IranianGateways\Payment;
+namespace MDcart\Catalog\Model\Extension\IranianGateways\Payment;
 /**
  * Class Card To Card
  *
  * Can be called from $this->load->model('extension/iranian_gateways/payment/card_to_card');
  *
- * @package Opencart\Catalog\Model\Extension\IranianGateways\Payment
+ * @package MDcart\Catalog\Model\Extension\IranianGateways\Payment
  */
-class CardToCard extends \Opencart\System\Engine\Model {
+class CardToCard extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Methods
 	 *

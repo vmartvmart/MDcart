@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Account;
+namespace MDcart\Catalog\Controller\Account;
 /**
  * Class Wish List
  *
- * @package Opencart\Catalog\Controller\Account
+ * @package MDcart\Catalog\Controller\Account
  */
-class WishList extends \Opencart\System\Engine\Controller {
+class WishList extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

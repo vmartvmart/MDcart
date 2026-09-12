@@ -8,7 +8,7 @@
  *
  * @see		https://www.opencart.com
  */
-namespace Opencart\System\Library;
+namespace MDcart\System\Library;
 /**
  * Class Language
  */

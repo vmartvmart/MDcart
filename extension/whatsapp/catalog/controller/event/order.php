@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Whatsapp\Event;
+namespace MDcart\Catalog\Controller\Extension\Whatsapp\Event;
 /**
  * Class Order
  *
@@ -9,9 +9,9 @@ namespace Opencart\Catalog\Controller\Extension\Whatsapp\Event;
  *
  * model/checkout/order.addHistory/before
  *
- * @package Opencart\Catalog\Controller\Extension\Whatsapp\Event
+ * @package MDcart\Catalog\Controller\Extension\Whatsapp\Event
  */
-class Order extends \Opencart\System\Engine\Controller {
+class Order extends \MDcart\System\Engine\Controller {
 	/**
 	 * @param string            $route
 	 * @param array<int, mixed> $args
@@ -37,7 +37,7 @@ class Order extends \Opencart\System\Engine\Controller {
 
 		$this->load->library('extension/whatsapp/whatsapp');
 
-		$whatsapp = new \Opencart\System\Library\Extension\Whatsapp\Whatsapp(
+		$whatsapp = new \MDcart\System\Library\Extension\Whatsapp\Whatsapp(
 			(string)$this->config->get('other_whatsapp_phone_number_id'),
 			(string)$this->config->get('other_whatsapp_access_token')
 		);

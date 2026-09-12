@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\Torob\Feed;
+namespace MDcart\Catalog\Controller\Extension\Torob\Feed;
 /**
  * Class Torob
  *
@@ -7,13 +7,13 @@ namespace Opencart\Catalog\Controller\Extension\Torob\Feed;
  * JSON contract used by Torob's official "Products Extractor" plugin
  * (https://wordpress.org/plugins/products-extractor-for-woocommerce/) so the
  * same crawler/API integration that platform offers for WooCommerce can be
- * pointed at this OpenCart store instead.
+ * pointed at this MDcart store instead.
  *
  * URL to give Torob: index.php?route=extension/torob/feed/torob
  *
- * @package Opencart\Catalog\Controller\Extension\Torob\Feed
+ * @package MDcart\Catalog\Controller\Extension\Torob\Feed
  */
-class Torob extends \Opencart\System\Engine\Controller {
+class Torob extends \MDcart\System\Engine\Controller {
 	/**
 	 * Torob's Ed25519 public key (base64-encoded, 32 bytes) used to verify the
 	 * JWT sent by Torob's crawler in the X-Torob-Token header.
@@ -123,7 +123,7 @@ class Torob extends \Opencart\System\Engine\Controller {
 	}
 
 	/**
-	 * Build the Torob product payload for a single OpenCart product row.
+	 * Build the Torob product payload for a single MDcart product row.
 	 *
 	 * Field names/shape match Torob's product-extraction contract:
 	 * title, subtitle, parent_id, page_unique, availability, current_price,
@@ -223,7 +223,7 @@ class Torob extends \Opencart\System\Engine\Controller {
 	}
 
 	/**
-	 * OpenCart stores product name/model/attribute/category text HTML-encoded
+	 * MDcart stores product name/model/attribute/category text HTML-encoded
 	 * (ready to drop straight into a page). Decode it back to plain text for
 	 * a JSON API consumer.
 	 *

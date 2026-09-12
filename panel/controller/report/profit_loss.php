@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Controller\Report;
+namespace MDcart\Admin\Controller\Report;
 /**
  * Class ProfitLoss
  *
@@ -11,9 +11,9 @@ namespace Opencart\Admin\Controller\Report;
  *
  * Can be loaded using $this->load->controller('report/profit_loss');
  *
- * @package Opencart\Admin\Controller\Report
+ * @package MDcart\Admin\Controller\Report
  */
-class ProfitLoss extends \Opencart\System\Engine\Controller {
+class ProfitLoss extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

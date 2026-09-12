@@ -6,11 +6,11 @@ define('APPLICATION', 'Catalog');
 define('HTTP_SERVER', 'http://localhost/');
 
 // DIR
-define('DIR_OPENCART', __DIR__ . '/');
-define('DIR_APPLICATION', DIR_OPENCART . 'catalog/');
-define('DIR_EXTENSION', DIR_OPENCART . 'extension/');
-define('DIR_IMAGE', DIR_OPENCART . 'image/');
-define('DIR_SYSTEM', DIR_OPENCART . 'system/');
+define('MCART_ROOT', __DIR__ . '/');
+define('DIR_APPLICATION', MCART_ROOT . 'catalog/');
+define('DIR_EXTENSION', MCART_ROOT . 'extension/');
+define('DIR_IMAGE', MCART_ROOT . 'image/');
+define('DIR_SYSTEM', MCART_ROOT . 'system/');
 define('DIR_STORAGE', DIR_SYSTEM . 'storage/');
 define('DIR_LANGUAGE', DIR_APPLICATION . 'language/');
 define('DIR_TEMPLATE', DIR_APPLICATION . 'view/template/');

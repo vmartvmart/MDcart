@@ -8,24 +8,24 @@
  *
  * @see           https://www.opencart.com
  */
-namespace Opencart\System\Engine;
+namespace MDcart\System\Engine;
 /**
  * Class Loader
  *
- * @mixin \Opencart\System\Engine\Registry
+ * @mixin \MDcart\System\Engine\Registry
  */
 class Loader {
 	/**
-	 * @var \Opencart\System\Engine\Registry
+	 * @var \MDcart\System\Engine\Registry
 	 */
-	protected \Opencart\System\Engine\Registry $registry;
+	protected \MDcart\System\Engine\Registry $registry;
 
 	/**
 	 * Constructor
 	 *
-	 * @param \Opencart\System\Engine\Registry $registry
+	 * @param \MDcart\System\Engine\Registry $registry
 	 */
-	public function __construct(\Opencart\System\Engine\Registry $registry) {
+	public function __construct(\MDcart\System\Engine\Registry $registry) {
 		$this->registry = $registry;
 	}
 
@@ -98,7 +98,7 @@ class Loader {
 			$object = $this->registry->get($key);
 		}
 
-		if ($object instanceof \Opencart\System\Engine\Controller) {
+		if ($object instanceof \MDcart\System\Engine\Controller) {
 			$this->registry->set($key, $object);
 		} else {
 			// If action cannot be executed, we return an error object.
@@ -143,13 +143,13 @@ class Loader {
 		}
 
 		// Initialize the class
-		if ($object instanceof \Opencart\System\Engine\Model) {
+		if ($object instanceof \MDcart\System\Engine\Model) {
 			$this->registry->set('fallback_' . $key, $object);
 		} else {
 			throw new \Exception('Error: Could not load model ' . $route . '!');
 		}
 
-		$proxy = new \Opencart\System\Engine\Proxy();
+		$proxy = new \MDcart\System\Engine\Proxy();
 
 		foreach (get_class_methods($object) as $method) {
 			if (substr($method, 0, 2) != '__') {
@@ -338,7 +338,7 @@ class Loader {
 				$object = $this->registry->get($key);
 			}
 
-			if ($object instanceof \Opencart\System\Engine\Model) {
+			if ($object instanceof \MDcart\System\Engine\Model) {
 				$this->registry->set($key, $object);
 			} else {
 				// If action cannot be executed, we return an error object.

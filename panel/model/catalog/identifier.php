@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 /**
  * Class Identifier
  *
  * Can be loaded using $this->load->model('catalog/identifier');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class Identifier extends \Opencart\System\Engine\Model {
+class Identifier extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Identifier
 	 *

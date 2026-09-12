@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Sale;
+namespace MDcart\Admin\Controller\Sale;
 /**
  * Class Returns
  *
- * @package Opencart\Admin\Controller\Sale
+ * @package MDcart\Admin\Controller\Sale
  */
-class Returns extends \Opencart\System\Engine\Controller {
+class Returns extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

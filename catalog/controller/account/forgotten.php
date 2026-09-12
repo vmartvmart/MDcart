@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Account;
+namespace MDcart\Catalog\Controller\Account;
 /**
  * Class Forgotten
  *
- * @package Opencart\Catalog\Controller\Account
+ * @package MDcart\Catalog\Controller\Account
  */
-class Forgotten extends \Opencart\System\Engine\Controller {
+class Forgotten extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

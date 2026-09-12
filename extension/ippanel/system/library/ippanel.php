@@ -1,12 +1,12 @@
 <?php
-namespace Opencart\System\Library\Extension\Ippanel;
+namespace MDcart\System\Library\Extension\Ippanel;
 /**
  * Class Ippanel
  *
  * Minimal client for IPPanel's Edge REST API (https://edge.ippanel.com).
  * Contract verified against https://ippanelcom.github.io/Edge-Document/docs/send/webservice
  *
- * @package Opencart\System\Library\Extension\Ippanel
+ * @package MDcart\System\Library\Extension\Ippanel
  */
 class Ippanel {
 	private const API_URL = 'https://edge.ippanel.com/v1/api/send';

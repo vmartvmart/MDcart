@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Localisation;
+namespace MDcart\Catalog\Model\Localisation;
 /**
  * Class Language
  *
  * Can be called using $this->load->model('localisation/language');
  *
- * @package Opencart\Catalog\Model\Localisation
+ * @package MDcart\Catalog\Model\Localisation
  */
-class Language extends \Opencart\System\Engine\Model {
+class Language extends \MDcart\System\Engine\Model {
 	/**
 	 * @var array<int|string, array<string, mixed>>
 	 */

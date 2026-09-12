@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Report;
+namespace MDcart\Admin\Controller\Report;
 /**
  * Class Online
  *
- * @package Opencart\Admin\Controller\Report
+ * @package MDcart\Admin\Controller\Report
  */
-class Online extends \Opencart\System\Engine\Controller {
+class Online extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

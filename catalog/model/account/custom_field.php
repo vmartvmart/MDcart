@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Account;
+namespace MDcart\Catalog\Model\Account;
 /**
  * Class Custom Field
  *
  * Can be called using $this->load->model('account/custom_field');
  *
- * @package Opencart\Catalog\Model\Account
+ * @package MDcart\Catalog\Model\Account
  */
-class CustomField extends \Opencart\System\Engine\Model {
+class CustomField extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Custom Field
 	 *

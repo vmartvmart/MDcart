@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Localisation;
+namespace MDcart\Catalog\Controller\Localisation;
 /**
  * Class Country
  *
- * @package Opencart\Catalog\Controller\Localisation
+ * @package MDcart\Catalog\Controller\Localisation
  */
-class Country extends \Opencart\System\Engine\Controller {
+class Country extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

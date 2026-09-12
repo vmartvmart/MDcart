@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Extension\IranianGateways\Payment;
+namespace MDcart\Catalog\Controller\Extension\IranianGateways\Payment;
 /**
  * Class IDPay
  *
- * @package Opencart\Catalog\Controller\Extension\IranianGateways\Payment
+ * @package MDcart\Catalog\Controller\Extension\IranianGateways\Payment
  */
-class Idpay extends \Opencart\System\Engine\Controller {
+class Idpay extends \MDcart\System\Engine\Controller {
 	private const API_URL = 'https://api.idpay.ir/v1.1/payment';
 	private const API_VERIFY_URL = 'https://api.idpay.ir/v1.1/payment/verify';
 

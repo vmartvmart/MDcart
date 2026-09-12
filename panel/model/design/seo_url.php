@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Design;
+namespace MDcart\Admin\Model\Design;
 /**
  * Class Seo Url
  *
  * Can be loaded using $this->load->model('design/seo_url');
  *
- * @package Opencart\Admin\Model\Design
+ * @package MDcart\Admin\Model\Design
  */
-class SeoUrl extends \Opencart\System\Engine\Model {
+class SeoUrl extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Seo Url
 	 *

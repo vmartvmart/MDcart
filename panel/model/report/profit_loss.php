@@ -1,5 +1,5 @@
 <?php
-namespace Opencart\Admin\Model\Report;
+namespace MDcart\Admin\Model\Report;
 /**
  * Class ProfitLoss
  *
@@ -13,9 +13,9 @@ namespace Opencart\Admin\Model\Report;
  *
  * Can be loaded using $this->load->model('report/profit_loss');
  *
- * @package Opencart\Admin\Model\Report
+ * @package MDcart\Admin\Model\Report
  */
-class ProfitLoss extends \Opencart\System\Engine\Model {
+class ProfitLoss extends \MDcart\System\Engine\Model {
 	/**
 	 * Whether the underlying order_product_cost table exists yet (it is
 	 * created by install-warehouse-schema-v4.php, which may not have been

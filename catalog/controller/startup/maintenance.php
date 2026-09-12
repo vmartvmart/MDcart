@@ -1,17 +1,17 @@
 <?php
-namespace Opencart\Catalog\Controller\Startup;
+namespace MDcart\Catalog\Controller\Startup;
 /**
  * Class Maintenance
  *
- * @package Opencart\Catalog\Controller\Startup
+ * @package MDcart\Catalog\Controller\Startup
  */
-class Maintenance extends \Opencart\System\Engine\Controller {
+class Maintenance extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
-	 * @return \Opencart\System\Engine\Action|null
+	 * @return \MDcart\System\Engine\Action|null
 	 */
-	public function index(): ?\Opencart\System\Engine\Action {
+	public function index(): ?\MDcart\System\Engine\Action {
 		if ($this->config->get('config_maintenance')) {
 			// Route
 			if (isset($this->request->get['route'])) {
@@ -26,10 +26,10 @@ class Maintenance extends \Opencart\System\Engine\Controller {
 			];
 
 			// Show site if logged in as admin
-			$user = new \Opencart\System\Library\Cart\User($this->registry);
+			$user = new \MDcart\System\Library\Cart\User($this->registry);
 
 			if (substr($route, 0, 3) != 'api' && !in_array($route, $ignore) && !$user->isLogged()) {
-				return new \Opencart\System\Engine\Action('common/maintenance');
+				return new \MDcart\System\Engine\Action('common/maintenance');
 			}
 		}
 

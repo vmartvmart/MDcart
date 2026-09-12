@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Checkout;
+namespace MDcart\Catalog\Model\Checkout;
 /**
  * Class Cart
  *
  * Can be called using $this->load->model('checkout/cart');
  *
- * @package Opencart\Catalog\Model\Checkout
+ * @package MDcart\Catalog\Model\Checkout
  */
-class Cart extends \Opencart\System\Engine\Model {
+class Cart extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Products
 	 *

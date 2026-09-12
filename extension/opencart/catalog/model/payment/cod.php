@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Extension\Opencart\Payment;
+namespace MDcart\Catalog\Model\Extension\MDcart\Payment;
 /**
  * Class COD
  *
  * Can be called from $this->load->model('extension/opencart/payment/cod');
  *
- * @package Opencart\Catalog\Model\Extension\Opencart\Payment
+ * @package MDcart\Catalog\Model\Extension\MDcart\Payment
  */
-class COD extends \Opencart\System\Engine\Model {
+class COD extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Methods
 	 *

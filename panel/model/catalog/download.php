@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Catalog;
+namespace MDcart\Admin\Model\Catalog;
 /**
  * Class Download
  *
  * Can be loaded using $this->load->model('catalog/download');
  *
- * @package Opencart\Admin\Model\Catalog
+ * @package MDcart\Admin\Model\Catalog
  */
-class Download extends \Opencart\System\Engine\Model {
+class Download extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Download
 	 *

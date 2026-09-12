@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Controller\Common;
+namespace MDcart\Catalog\Controller\Common;
 /**
  * Class Menu
  *
  * Can be called from $this->load->controller('common/menu');
  *
- * @package Opencart\Catalog\Controller\Common
+ * @package MDcart\Catalog\Controller\Common
  */
-class Menu extends \Opencart\System\Engine\Controller {
+class Menu extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

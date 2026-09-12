@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Catalog\Model\Design;
+namespace MDcart\Catalog\Model\Design;
 /**
  * Class Seo Url
  *
  * Can be called using $this->load->model('design/seo_url');
  *
- * @package Opencart\Catalog\Model\Design
+ * @package MDcart\Catalog\Model\Design
  */
-class SeoUrl extends \Opencart\System\Engine\Model {
+class SeoUrl extends \MDcart\System\Engine\Model {
 	/**
 	 * Get Seo Url By Keyword
 	 *

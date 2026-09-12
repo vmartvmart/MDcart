@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Catalog\Controller\Mail;
+namespace MDcart\Catalog\Controller\Mail;
 /**
  * Class Authorize
  *
- * @package Opencart\Catalog\Controller\Mail
+ * @package MDcart\Catalog\Controller\Mail
  */
-class Authorize extends \Opencart\System\Engine\Controller {
+class Authorize extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *
@@ -48,7 +48,7 @@ class Authorize extends \Opencart\System\Engine\Controller {
 					'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 				];
 
-				$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+				$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 				$mail->setTo($this->customer->getEmail());
 				$mail->setFrom($this->config->get('config_email'));
 				$mail->setSender($this->config->get('config_name'));
@@ -113,7 +113,7 @@ class Authorize extends \Opencart\System\Engine\Controller {
 					'smtp_timeout'  => $this->config->get('config_mail_smtp_timeout')
 				];
 
-				$mail = new \Opencart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
+				$mail = new \MDcart\System\Library\Mail($this->config->get('config_mail_engine'), $mail_option);
 				$mail->setTo($customer_info['email']);
 				$mail->setFrom($this->config->get('config_email'));
 				$mail->setSender($this->config->get('config_name'));

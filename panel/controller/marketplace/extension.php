@@ -1,11 +1,11 @@
 <?php
-namespace Opencart\Admin\Controller\Marketplace;
+namespace MDcart\Admin\Controller\Marketplace;
 /**
  * Class Extension
  *
- * @package Opencart\Admin\Controller\Marketplace
+ * @package MDcart\Admin\Controller\Marketplace
  */
-class Extension extends \Opencart\System\Engine\Controller {
+class Extension extends \MDcart\System\Engine\Controller {
 	/**
 	 * Index
 	 *

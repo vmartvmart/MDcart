@@ -1,13 +1,13 @@
 <?php
-namespace Opencart\Admin\Model\Localisation;
+namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Return Action
  *
  * Can be loaded using $this->load->model('localisation/return_action');
  *
- * @package Opencart\Admin\Model\Localisation
+ * @package MDcart\Admin\Model\Localisation
  */
-class ReturnAction extends \Opencart\System\Engine\Model {
+class ReturnAction extends \MDcart\System\Engine\Model {
 	/**
 	 * Add Return Action
 	 *
