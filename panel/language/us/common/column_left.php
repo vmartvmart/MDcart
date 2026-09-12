@@ -75,6 +75,7 @@ $_['text_tax_class']           = 'Tax Classes';
 $_['text_tax_rate']            = 'Tax Rates';
 $_['text_theme']               = 'Theme Editor';
 $_['text_theme_switcher']      = 'Storefront Theme';
+$_['text_color']               = 'Site Colors';
 $_['text_theme_manager']       = 'Manage Themes';
 $_['text_upgrade']             = 'Upgrade';
 $_['text_upload']              = 'Uploads';

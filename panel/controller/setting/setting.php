@@ -382,6 +382,23 @@ class Setting extends \MDcart\System\Engine\Controller {
 		} else {
 			$data['logo'] = $data['placeholder'];
 		}
+		// Admin Panel Logo — separate from the storefront logo above.
+		// Stored the same way (a path under image/, picked via the same
+		// image manager widget), so it survives "Apply Update" exactly like
+		// the storefront logo/icon do: updates only ever copy in files that
+		// exist in the downloaded release, they never delete a local file
+		// that isn't part of it, and no path here collides with anything
+		// the repo ships. Falls back to the packaged default admin logo
+		// (view/image/logo.png, tracked in git — see common/header.php)
+		// when no custom one has been set.
+		$data['config_logo_admin'] = $this->config->get('config_logo_admin');
+
+		if ($data['config_logo_admin'] && is_file(DIR_IMAGE . html_entity_decode($data['config_logo_admin'], ENT_QUOTES, 'UTF-8'))) {
+			$data['logo_admin'] = $this->model_tool_image->resize($data['config_logo_admin'], $this->config->get('config_image_default_width'), $this->config->get('config_image_default_height'));
+		} else {
+			$data['logo_admin'] = 'view/image/logo.png';
+		}
+
 		// Fav Icon
 		$data['config_icon'] = $this->config->get('config_icon');
 		$data['placeholder'] = $this->model_tool_image->resize('no_image.png', $this->config->get('config_image_default_width'), $this->config->get('config_image_default_height'));

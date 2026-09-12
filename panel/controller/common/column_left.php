@@ -371,6 +371,14 @@ class ColumnLeft extends \MDcart\System\Engine\Controller {
 				];
 			}
 
+			if ($this->user->hasPermission('access', 'design/color')) {
+				$design[] = [
+					'name'     => $this->language->get('text_color'),
+					'href'     => $this->url->link('design/color', 'user_token=' . $this->session->data['user_token']),
+					'children' => []
+				];
+			}
+
 			if ($design) {
 				$data['menus'][] = [
 					'id'       => 'menu-design',

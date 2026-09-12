@@ -1,0 +1,159 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="submit" form="form-color" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
+      </div>
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div id="alert"></div>
+    <div class="card">
+      <div class="card-header"><i class="fa-solid fa-palette"></i> {{ text_edit }}</div>
+      <div class="card-body">
+        <p class="text-muted">{{ text_help }}</p>
+        <form id="form-color" action="{{ save }}" method="post" data-oc-toggle="ajax">
+          <fieldset>
+            <legend>{{ text_store }}</legend>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="row mb-3">
+                  <label class="col-sm-5 col-form-label">{{ entry_store_menu_bg }}</label>
+                  <div class="col-sm-7">
+                    <div class="input-group">
+                      <div class="input-group-text"><input type="checkbox" class="form-check-input mt-0 color-switch" data-target="#input-store-menu-bg" {% if config_color_store_menu_bg %}checked{% endif %}/></div>
+                      <input type="color" name="config_color_store_menu_bg" value="{{ config_color_store_menu_bg ? config_color_store_menu_bg : '#229ac8' }}" id="input-store-menu-bg" class="form-control form-control-color" title="{{ entry_store_menu_bg }}" {% if not config_color_store_menu_bg %}disabled{% endif %}/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label class="col-sm-5 col-form-label">{{ entry_store_menu_text }}</label>
+                  <div class="col-sm-7">
+                    <div class="input-group">
+                      <div class="input-group-text"><input type="checkbox" class="form-check-input mt-0 color-switch" data-target="#input-store-menu-text" {% if config_color_store_menu_text %}checked{% endif %}/></div>
+                      <input type="color" name="config_color_store_menu_text" value="{{ config_color_store_menu_text ? config_color_store_menu_text : '#ffffff' }}" id="input-store-menu-text" class="form-control form-control-color" title="{{ entry_store_menu_text }}" {% if not config_color_store_menu_text %}disabled{% endif %}/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label class="col-sm-5 col-form-label">{{ entry_store_primary }}</label>
+                  <div class="col-sm-7">
+                    <div class="input-group">
+                      <div class="input-group-text"><input type="checkbox" class="form-check-input mt-0 color-switch" data-target="#input-store-primary" {% if config_color_store_primary %}checked{% endif %}/></div>
+                      <input type="color" name="config_color_store_primary" value="{{ config_color_store_primary ? config_color_store_primary : '#229ac8' }}" id="input-store-primary" class="form-control form-control-color" title="{{ entry_store_primary }}" {% if not config_color_store_primary %}disabled{% endif %}/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="row mb-3">
+                  <label class="col-sm-5 col-form-label">{{ entry_store_footer_bg }}</label>
+                  <div class="col-sm-7">
+                    <div class="input-group">
+                      <div class="input-group-text"><input type="checkbox" class="form-check-input mt-0 color-switch" data-target="#input-store-footer-bg" {% if config_color_store_footer_bg %}checked{% endif %}/></div>
+                      <input type="color" name="config_color_store_footer_bg" value="{{ config_color_store_footer_bg ? config_color_store_footer_bg : '#1a1a1a' }}" id="input-store-footer-bg" class="form-control form-control-color" title="{{ entry_store_footer_bg }}" {% if not config_color_store_footer_bg %}disabled{% endif %}/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label class="col-sm-5 col-form-label">{{ entry_store_footer_text }}</label>
+                  <div class="col-sm-7">
+                    <div class="input-group">
+                      <div class="input-group-text"><input type="checkbox" class="form-check-input mt-0 color-switch" data-target="#input-store-footer-text" {% if config_color_store_footer_text %}checked{% endif %}/></div>
+                      <input type="color" name="config_color_store_footer_text" value="{{ config_color_store_footer_text ? config_color_store_footer_text : '#ffffff' }}" id="input-store-footer-text" class="form-control form-control-color" title="{{ entry_store_footer_text }}" {% if not config_color_store_footer_text %}disabled{% endif %}/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label class="col-sm-5 col-form-label">{{ entry_store_card_bg }}</label>
+                  <div class="col-sm-7">
+                    <div class="input-group">
+                      <div class="input-group-text"><input type="checkbox" class="form-check-input mt-0 color-switch" data-target="#input-store-card-bg" {% if config_color_store_card_bg %}checked{% endif %}/></div>
+                      <input type="color" name="config_color_store_card_bg" value="{{ config_color_store_card_bg ? config_color_store_card_bg : '#ffffff' }}" id="input-store-card-bg" class="form-control form-control-color" title="{{ entry_store_card_bg }}" {% if not config_color_store_card_bg %}disabled{% endif %}/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <hr/>
+          <fieldset>
+            <legend>{{ text_admin }}</legend>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="row mb-3">
+                  <label class="col-sm-5 col-form-label">{{ entry_admin_header_bg }}</label>
+                  <div class="col-sm-7">
+                    <div class="input-group">
+                      <div class="input-group-text"><input type="checkbox" class="form-check-input mt-0 color-switch" data-target="#input-admin-header-bg" {% if config_color_admin_header_bg %}checked{% endif %}/></div>
+                      <input type="color" name="config_color_admin_header_bg" value="{{ config_color_admin_header_bg ? config_color_admin_header_bg : '#f8f9fa' }}" id="input-admin-header-bg" class="form-control form-control-color" title="{{ entry_admin_header_bg }}" {% if not config_color_admin_header_bg %}disabled{% endif %}/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label class="col-sm-5 col-form-label">{{ entry_admin_header_text }}</label>
+                  <div class="col-sm-7">
+                    <div class="input-group">
+                      <div class="input-group-text"><input type="checkbox" class="form-check-input mt-0 color-switch" data-target="#input-admin-header-text" {% if config_color_admin_header_text %}checked{% endif %}/></div>
+                      <input type="color" name="config_color_admin_header_text" value="{{ config_color_admin_header_text ? config_color_admin_header_text : '#1e1e1e' }}" id="input-admin-header-text" class="form-control form-control-color" title="{{ entry_admin_header_text }}" {% if not config_color_admin_header_text %}disabled{% endif %}/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label class="col-sm-5 col-form-label">{{ entry_admin_primary }}</label>
+                  <div class="col-sm-7">
+                    <div class="input-group">
+                      <div class="input-group-text"><input type="checkbox" class="form-check-input mt-0 color-switch" data-target="#input-admin-primary" {% if config_color_admin_primary %}checked{% endif %}/></div>
+                      <input type="color" name="config_color_admin_primary" value="{{ config_color_admin_primary ? config_color_admin_primary : '#1e91cf' }}" id="input-admin-primary" class="form-control form-control-color" title="{{ entry_admin_primary }}" {% if not config_color_admin_primary %}disabled{% endif %}/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="row mb-3">
+                  <label class="col-sm-5 col-form-label">{{ entry_admin_footer_bg }}</label>
+                  <div class="col-sm-7">
+                    <div class="input-group">
+                      <div class="input-group-text"><input type="checkbox" class="form-check-input mt-0 color-switch" data-target="#input-admin-footer-bg" {% if config_color_admin_footer_bg %}checked{% endif %}/></div>
+                      <input type="color" name="config_color_admin_footer_bg" value="{{ config_color_admin_footer_bg ? config_color_admin_footer_bg : '#f8f9fa' }}" id="input-admin-footer-bg" class="form-control form-control-color" title="{{ entry_admin_footer_bg }}" {% if not config_color_admin_footer_bg %}disabled{% endif %}/>
+                    </div>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <label class="col-sm-5 col-form-label">{{ entry_admin_footer_text }}</label>
+                  <div class="col-sm-7">
+                    <div class="input-group">
+                      <div class="input-group-text"><input type="checkbox" class="form-check-input mt-0 color-switch" data-target="#input-admin-footer-text" {% if config_color_admin_footer_text %}checked{% endif %}/></div>
+                      <input type="color" name="config_color_admin_footer_text" value="{{ config_color_admin_footer_text ? config_color_admin_footer_text : '#1e1e1e' }}" id="input-admin-footer-text" class="form-control form-control-color" title="{{ entry_admin_footer_text }}" {% if not config_color_admin_footer_text %}disabled{% endif %}/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript"><!--
+// Every field pairs a "use a custom color" switch with a disabled-by-default
+// <input type="color">. jQuery's form serialize() (used by the generic
+// data-oc-toggle="ajax" submit handler in common.js) skips disabled inputs
+// entirely, so unchecking a switch and saving is what actually clears that
+// setting back to "let the theme decide" server-side.
+$('.color-switch').on('change', function() {
+    var input = $($(this).data('target'));
+
+    input.prop('disabled', !$(this).is(':checked'));
+});
+//--></script>
+{{ footer }}

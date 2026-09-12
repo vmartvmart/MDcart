@@ -38,5 +38,15 @@
     "version": "5.2.4",
     "fa": "رفع باگ: پرچم زبان انگلیسی (هم در فروشگاه و هم در پنل مدیریت) از وقتی کد زبان به us تغییر کرد، شکسته بود (تصویر پیدا نمی‌شد) — چون هنگام تغییرنام پوشه‌ها، خودِ فایل پرچم به‌اشتباه با نام قدیمی (en-gb.png) باقی مانده بود، در حالی‌که سیستم آدرس پرچم را همیشه از روی «کد زبان + پسوند png» می‌سازد (یعنی به‌دنبال us.png می‌گردد). یک فایل تصویر یتیم و بلااستفاده هم از پوشه‌ی زبان فارسی پاک شد.",
     "en": "Fixed a bug where the English language's flag (both storefront and admin) had been broken (image not found) ever since the language code changed to us — the flag file itself was left with its old name (en-gb.png) when the folders were renamed, while the system always builds the flag's path from \"language code + .png\" (i.e. it looks for us.png). Also removed an unused, orphaned flag image left behind in the Persian language folder."
+  },
+  {
+    "version": "5.3.0",
+    "fa": "پرچم زبان انگلیسی حالا واقعاً یک پرچم آمریکا است (نوار‌های قرمز و سفید + کادر آبی)، نه فقط رنگ‌های مبهم قبلی. نام زبان فارسی در لیست زبان‌ها از «Persian» به «فارسی» تغییر کرد (نصب‌های موجود به یک migration کوچک SQL نیاز دارند، جداگانه ارسال می‌شود). یک لوگوی مجزا برای پنل مدیریت به تنظیمات عمومی اضافه شد (Setting > General، کنار لوگوی فروشگاه) — از همان مدیر تصویر همیشگی آپلود می‌شود و چون در پوشه‌ی image/ ذخیره می‌شود (نه در کد نصبی)، با بروزرسانی‌های بعدی سایت از بین نمی‌رود.",
+    "en": "The English language's flag is now an actual, unambiguous US flag (red/white stripes + blue canton), not the previous muddy colors. The Persian language's display name changed from \"Persian\" to \"فارسی\" in the language list (existing installs need a small SQL migration, delivered separately). Added a separate Admin Panel Logo field to Setting > General, next to the store logo — uploaded through the same image manager, and since it's stored under image/ (not shipped as installed code) it survives future site updates."
+  },
+  {
+    "version": "5.4.0",
+    "fa": "افزوده شدن صفحه جدید «طراحی > رنگ‌ها»: مدیر می‌تواند رنگ منوی بالا، رنگ اصلی/دکمه‌ها، فوتر و پس‌زمینه کارت محصول را برای فروشگاه، و رنگ هدر/دکمه‌ها/فوتر را برای خودِ پنل مدیریت، جداگانه انتخاب کند — بدون نیاز به تغییر قالب فعلی. هر رنگ اختیاری است؛ اگر خاموش بماند، همان ظاهر پیش‌فرض قالب دست‌نخورده باقی می‌ماند. نصب‌های موجود به یک migration کوچک SQL برای دسترسی نیاز دارند، جداگانه ارسال می‌شود.",
+    "en": "Added a new \"Design > Colors\" page: the admin can independently pick the top-menu color, primary/button color, footer, and product-card background for the storefront, and the header/button/footer colors for the admin panel itself — without touching whichever theme is active. Every color is optional; left off, the theme's own default look is untouched. Existing installs need a small SQL migration to grant access to the new page, delivered separately."
   }
 ]

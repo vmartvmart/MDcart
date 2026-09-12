@@ -38,13 +38,16 @@
   {% for script in scripts %}
     <script type="text/javascript" src="{{ script.href }}"></script>
   {% endfor %}
+  {% if color_overrides_css %}
+    <style>{{ color_overrides_css }}</style>
+  {% endif %}
 </head>
 <body>
 <div id="alert"></div>
 <div id="container">
   <header id="header" class="navbar navbar-expand navbar-light bg-light">
     <div class="container-fluid">
-      <a href="{{ home }}" class="navbar-brand d-none d-lg-block"><img src="view/image/logo.png" alt="{{ heading_title }}" title="{{ heading_title }}"/></a>
+      <a href="{{ home }}" class="navbar-brand d-none d-lg-block"><img src="{{ admin_logo }}" alt="{{ heading_title }}" title="{{ heading_title }}"/></a>
       {% if logged %}
         <button type="button" id="button-menu" class="btn btn-link d-inline-block d-lg-none"><i class="fa-solid fa-bars"></i></button>
         <ul class="nav navbar-nav">

@@ -35,6 +35,9 @@
   {% for analytic in analytics %}
     {{ analytic }}
   {% endfor %}
+  {% if color_overrides_css %}
+    <style>{{ color_overrides_css }}</style>
+  {% endif %}
 </head>
 <body>
 <div id="container">

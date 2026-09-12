@@ -274,3 +274,84 @@ function oc_jdate(string $format, ?int $timestamp = null): string {
 
 	return oc_persian_digits($result);
 }
+
+/**
+ * Oc Hex To Rgb
+ *
+ * Converts a "#rrggbb" (or shorthand "#rgb") color into an "r, g, b" string,
+ * the format Bootstrap's own *-rgb custom properties expect (they're
+ * consumed as e.g. rgba(var(--bs-primary-rgb), 0.5)). Used by the Design >
+ * Colors admin/store color overrides — see catalog/controller/common/header.php
+ * and panel/controller/common/header.php.
+ *
+ * @param string $hex
+ *
+ * @return string
+ */
+function oc_hex_to_rgb(string $hex): string {
+	$hex = ltrim($hex, '#');
+
+	if (strlen($hex) === 3) {
+		$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+	}
+
+	if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
+		return '0, 0, 0';
+	}
+
+	return implode(', ', [
+		hexdec(substr($hex, 0, 2)),
+		hexdec(substr($hex, 2, 2)),
+		hexdec(substr($hex, 4, 2)),
+	]);
+}
+
+/**
+ * Oc Color Shade
+ *
+ * Darkens (negative $percent) or lightens (positive $percent) a "#rrggbb"
+ * color by moving each channel that percentage of the way toward black or
+ * white respectively. Used to derive hover/active button shades from a
+ * single admin-picked "primary" color, the same way a Bootstrap theme
+ * build normally would at compile time — see oc_hex_to_rgb()'s docblock.
+ *
+ * @param string $hex
+ * @param float  $percent -100 to 100
+ *
+ * @return string
+ */
+function oc_color_shade(string $hex, float $percent): string {
+	$hex = ltrim($hex, '#');
+
+	if (strlen($hex) === 3) {
+		$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+	}
+
+	if (!preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
+		return '#' . $hex;
+	}
+
+	$percent = max(-100, min(100, $percent)) / 100;
+
+	$channels = [];
+
+	foreach ([substr($hex, 0, 2), substr($hex, 2, 2), substr($hex, 4, 2)] as $part) {
+		$value = hexdec($part);
+		$target = $percent < 0 ? 0 : 255;
+		$value = (int)round($value + ($target - $value) * abs($percent));
+		$channels[] = str_pad(dechex(max(0, min(255, $value))), 2, '0', STR_PAD_LEFT);
+	}
+
+	return '#' . implode('', $channels);
+}
+
+/**
+ * Oc Validate Hex Color
+ *
+ * @param string $value
+ *
+ * @return bool
+ */
+function oc_validate_hex_color(string $value): bool {
+	return (bool)preg_match('/^#[0-9a-fA-F]{6}$/', $value);
+}

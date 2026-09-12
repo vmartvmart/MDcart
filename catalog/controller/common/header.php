@@ -55,6 +55,11 @@ class Header extends \MDcart\System\Engine\Controller {
 		$data['styles'] = $this->document->getStyles();
 		$data['scripts'] = $this->document->getScripts('header');
 
+		// Design > Colors overrides (Setting: config_color_store_*), layered
+		// on top of whichever theme is active rather than tied to it — see
+		// buildColorOverridesCss()'s own docblock.
+		$data['color_overrides_css'] = $this->buildColorOverridesCss();
+
 		$data['name'] = $this->config->get('config_name');
 
 		// Fav icon
@@ -111,5 +116,78 @@ class Header extends \MDcart\System\Engine\Controller {
 		$data['menu'] = $this->load->controller('common/menu');
 
 		return $this->load->view('common/header', $data);
+	}
+
+	/**
+	 * Build Color Overrides Css
+	 *
+	 * Design > Colors (design/color) lets the admin pick a handful of
+	 * storefront colors — independent of, and layered on top of, whichever
+	 * Design > Theme Switcher preset (or the default theme) is active — see
+	 * that controller's own docblock for why it's kept separate rather than
+	 * baked into a theme preset. Every knob here is optional: an unset
+	 * (empty) setting is simply skipped, so a store that has never touched
+	 * this page renders byte-for-byte the same as before it existed.
+	 *
+	 * Returns plain CSS text (not wrapped in a <style> tag — the template
+	 * does that) meant to be output after every other stylesheet, so its
+	 * un-prefixed selectors win the cascade on specificity ties; the
+	 * !important on each declaration is a safety net against a theme
+	 * stylesheet that happens to be more specific.
+	 *
+	 * @return string
+	 */
+	private function buildColorOverridesCss(): string {
+		$css = '';
+
+		$menu_bg = (string)$this->config->get('config_color_store_menu_bg');
+		$menu_text = (string)$this->config->get('config_color_store_menu_text');
+		$primary = (string)$this->config->get('config_color_store_primary');
+		$footer_bg = (string)$this->config->get('config_color_store_footer_bg');
+		$footer_text = (string)$this->config->get('config_color_store_footer_text');
+		$card_bg = (string)$this->config->get('config_color_store_card_bg');
+
+		// #menu is the main colored navigation/category bar (the site's
+		// "top menu"). It ships with a gradient background image, which
+		// paints over a plain background-color, so a custom color has to
+		// switch the image off too or it would never actually show.
+		if ($menu_bg && oc_validate_hex_color($menu_bg)) {
+			$css .= '#menu { background-color: ' . $menu_bg . ' !important; background-image: none !important; }' . "\n";
+		}
+
+		if ($menu_text && oc_validate_hex_color($menu_text)) {
+			$css .= '#menu .navbar-nav > li > a { color: ' . $menu_text . ' !important; }' . "\n";
+		}
+
+		// Bootstrap's own compiled CSS hardcodes each button variant's
+		// colors as literal hex values on the .btn-primary rule itself
+		// (a normal result of how Bootstrap is built from Sass, not a bug
+		// here), so redefining the :root --bs-primary variable alone would
+		// not reach button backgrounds — .btn-primary's own --bs-btn-*
+		// variables need to be redeclared directly. Hover/active shades are
+		// derived from the one picked color the same way a real Bootstrap
+		// build would at compile time, so a single color still yields a
+		// natural-looking button instead of one flat, unshaded color.
+		if ($primary && oc_validate_hex_color($primary)) {
+			$hover = oc_color_shade($primary, -15);
+			$active = oc_color_shade($primary, -25);
+
+			$css .= ':root { --bs-primary: ' . $primary . '; --bs-primary-rgb: ' . oc_hex_to_rgb($primary) . '; --bs-link-color: ' . $primary . '; --bs-link-color-rgb: ' . oc_hex_to_rgb($primary) . '; --bs-link-hover-color: ' . $hover . '; }' . "\n";
+			$css .= '.btn-primary { --bs-btn-bg: ' . $primary . '; --bs-btn-border-color: ' . $primary . '; --bs-btn-hover-bg: ' . $hover . '; --bs-btn-hover-border-color: ' . $hover . '; --bs-btn-active-bg: ' . $active . '; --bs-btn-active-border-color: ' . $active . '; --bs-btn-disabled-bg: ' . $primary . '; --bs-btn-disabled-border-color: ' . $primary . '; }' . "\n";
+		}
+
+		if ($footer_bg && oc_validate_hex_color($footer_bg)) {
+			$css .= 'footer { background-color: ' . $footer_bg . ' !important; }' . "\n";
+		}
+
+		if ($footer_text && oc_validate_hex_color($footer_text)) {
+			$css .= 'footer, footer a, footer h5 { color: ' . $footer_text . ' !important; }' . "\n";
+		}
+
+		if ($card_bg && oc_validate_hex_color($card_bg)) {
+			$css .= '.product-thumb { background-color: ' . $card_bg . ' !important; }' . "\n";
+		}
+
+		return $css;
 	}
 }

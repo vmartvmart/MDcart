@@ -75,6 +75,7 @@ $_['text_tax_class']           = 'گروه‌های مالیاتی';
 $_['text_tax_rate']            = 'نرخ‌های مالیات';
 $_['text_theme']               = 'ویرایشگر قالب';
 $_['text_theme_switcher']      = 'قالب فروشگاه';
+$_['text_color']               = 'رنگ‌های سایت';
 $_['text_theme_manager']       = 'مدیریت قالب‌ها';
 $_['text_upgrade']             = 'بروزرسانی';
 $_['text_upload']              = 'بارگذاری‌ها';

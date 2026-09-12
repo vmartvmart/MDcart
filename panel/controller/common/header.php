@@ -53,11 +53,29 @@ class Header extends \MDcart\System\Engine\Controller {
 		$data['styles'] = $this->document->getStyles();
 		$data['scripts'] = $this->document->getScripts();
 
+		// Design > Colors overrides for the admin panel itself
+		// (config_color_admin_*) — see buildColorOverridesCss()'s docblock.
+		$data['color_overrides_css'] = $this->buildColorOverridesCss();
+
 		// Fav icon
 		if (is_file(DIR_IMAGE . $this->config->get('config_icon'))) {
 			$data['icon'] = HTTP_CATALOG . 'image/' . $this->config->get('config_icon');
 		} else {
 			$data['icon'] = '';
+		}
+
+		// Admin panel logo — a custom one can be set from Setting >
+		// General (config_logo_admin, stored under image/ like the
+		// storefront logo/icon), which survives updates since those only
+		// ever add files, never delete a local one that isn't part of the
+		// downloaded release. Falls back to the packaged default admin
+		// logo (tracked in git) when no custom logo has been set.
+		$config_logo_admin = $this->config->get('config_logo_admin');
+
+		if ($config_logo_admin && is_file(DIR_IMAGE . html_entity_decode($config_logo_admin, ENT_QUOTES, 'UTF-8'))) {
+			$data['admin_logo'] = HTTP_CATALOG . 'image/' . $config_logo_admin;
+		} else {
+			$data['admin_logo'] = 'view/image/logo.png';
 		}
 
 		$this->load->language('common/header');
@@ -135,5 +153,63 @@ class Header extends \MDcart\System\Engine\Controller {
 		}
 
 		return $this->load->view('common/header', $data);
+	}
+
+	/**
+	 * Build Color Overrides Css
+	 *
+	 * The admin-panel counterpart of Design > Colors — see
+	 * catalog/controller/common/header.php's buildColorOverridesCss() for
+	 * the full rationale (kept independent of any theme, every knob
+	 * optional, output after every other stylesheet). This one covers
+	 * #header (the admin's own top navbar), #footer, and the admin
+	 * panel's own Bootstrap build's primary/button colors — entirely
+	 * separate settings from the storefront's, since the two are picked
+	 * independently.
+	 *
+	 * @return string
+	 */
+	private function buildColorOverridesCss(): string {
+		$css = '';
+
+		$header_bg = (string)$this->config->get('config_color_admin_header_bg');
+		$header_text = (string)$this->config->get('config_color_admin_header_text');
+		$primary = (string)$this->config->get('config_color_admin_primary');
+		$footer_bg = (string)$this->config->get('config_color_admin_footer_bg');
+		$footer_text = (string)$this->config->get('config_color_admin_footer_text');
+
+		if ($header_bg && oc_validate_hex_color($header_bg)) {
+			$css .= '#header { background-color: ' . $header_bg . ' !important; }' . "\n";
+		}
+
+		if ($header_text && oc_validate_hex_color($header_text)) {
+			$css .= '#header .navbar-nav > li > .nav-link, #header .navbar-brand { color: ' . $header_text . ' !important; }' . "\n";
+		}
+
+		// See the storefront header's identical block for why .btn-primary
+		// needs its own --bs-btn-* variables redeclared (Bootstrap's
+		// compiled CSS hardcodes them as literal hex, it doesn't read
+		// --bs-primary at the component level) and why hover/active shades
+		// are derived rather than left flat.
+		if ($primary && oc_validate_hex_color($primary)) {
+			$hover = oc_color_shade($primary, -15);
+			$active = oc_color_shade($primary, -25);
+
+			$css .= ':root { --bs-primary: ' . $primary . '; --bs-primary-rgb: ' . oc_hex_to_rgb($primary) . '; --bs-link-color: ' . $primary . '; --bs-link-color-rgb: ' . oc_hex_to_rgb($primary) . '; --bs-link-hover-color: ' . $hover . '; }' . "\n";
+			$css .= '.btn-primary { --bs-btn-bg: ' . $primary . '; --bs-btn-border-color: ' . $primary . '; --bs-btn-hover-bg: ' . $hover . '; --bs-btn-hover-border-color: ' . $hover . '; --bs-btn-active-bg: ' . $active . '; --bs-btn-active-border-color: ' . $active . '; --bs-btn-disabled-bg: ' . $primary . '; --bs-btn-disabled-border-color: ' . $primary . '; }' . "\n";
+		}
+
+		// #footer has no background/text color of its own by default (it
+		// just reserves height and centers text) — these knobs add one
+		// rather than override an existing rule.
+		if ($footer_bg && oc_validate_hex_color($footer_bg)) {
+			$css .= '#footer { background-color: ' . $footer_bg . ' !important; }' . "\n";
+		}
+
+		if ($footer_text && oc_validate_hex_color($footer_text)) {
+			$css .= '#footer { color: ' . $footer_text . ' !important; }' . "\n";
+		}
+
+		return $css;
 	}
 }

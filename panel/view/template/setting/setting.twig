@@ -74,6 +74,19 @@
                   </div>
                 </div>
                 <div class="row mb-3">
+                  <label for="input-logo-admin" class="col-sm-2 col-form-label">{{ entry_logo_admin }}</label>
+                  <div class="col-sm-10">
+                    <div class="border rounded d-block" style="max-width: 300px;">
+                      <img src="{{ logo_admin }}" alt="" title="" id="thumb-logo-admin" data-oc-placeholder="view/image/logo.png" class="img-fluid"/> <input type="hidden" name="config_logo_admin" value="{{ config_logo_admin }}" id="input-logo-admin"/>
+                      <div class="d-grid">
+                        <button type="button" data-oc-toggle="image" data-oc-target="#input-logo-admin" data-oc-thumb="#thumb-logo-admin" class="btn btn-primary rounded-0"><i class="fa-solid fa-pencil"></i> {{ button_edit }}</button>
+                        <button type="button" data-oc-toggle="clear" data-oc-target="#input-logo-admin" data-oc-thumb="#thumb-logo-admin" class="btn btn-warning rounded-0"><i class="fa-regular fa-trash-can"></i> {{ button_clear }}</button>
+                      </div>
+                    </div>
+                    <div class="form-text">{{ help_logo_admin }}</div>
+                  </div>
+                </div>
+                <div class="row mb-3">
                   <label for="input-icon" class="col-sm-2 col-form-label">{{ entry_icon }}</label>
                   <div class="col-sm-10">
                     <div class="border rounded d-block" style="max-width: 300px;">
