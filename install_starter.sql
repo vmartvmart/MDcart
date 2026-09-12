@@ -106357,7 +106357,7 @@ CREATE TABLE `oc_language` (
   KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 INSERT INTO `oc_language` (`language_id`, `name`, `code`, `locale`, `extension`, `sort_order`, `status`) VALUES ('1', 'English', 'us', 'en-us,en', '', '2', '1');
-INSERT INTO `oc_language` (`language_id`, `name`, `code`, `locale`, `extension`, `sort_order`, `status`) VALUES ('2', 'Persian', 'fa', 'fa', '', '1', '1');
+INSERT INTO `oc_language` (`language_id`, `name`, `code`, `locale`, `extension`, `sort_order`, `status`) VALUES ('2', 'فارسی', 'fa', 'fa', '', '1', '1');
 
 DROP TABLE IF EXISTS `oc_layout`;
 CREATE TABLE `oc_layout` (
