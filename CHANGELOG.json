@@ -18,5 +18,10 @@
     "version": "5.2.0",
     "fa": "کد داخلی زبان انگلیسی از en-gb به us تغییر یافت (پرچم و لوکِیل هم به همین ترتیب اصلاح شدند) — این تغییر هم در پوشه‌های اصلی زبان (catalog/language، panel/language) و هم در ۹۵ فایل زبانِ افزونه‌های پیش‌فرض (extension/opencart) و هم در نصب‌کننده‌ی نصب‌های تازه اعمال شد. توجه: روی نصب‌های موجود، این تغییر باید همراه با یک اسکریپت SQL کوچک (که جداگانه ارسال می‌شود) روی دیتابیس اعمال شود تا با کد جدید هماهنگ بماند.",
     "en": "Renamed the English language's internal code from en-gb to us (with a matching flag and locale) — across the core language folders (catalog/language, panel/language), the 95 language files belonging to the built-in extensions (extension/opencart), and the fresh-install seed data. Note: on existing installs this must be paired with a small SQL migration (delivered separately) to keep the database in sync with the new code."
+  },
+  {
+    "version": "5.2.1",
+    "fa": "لیست بکاپ‌های خودکار قبل از بروزرسانی حالا به‌جای هش گیت (مثلاً «به fa9e389abc»)، شماره نسخه را نشان می‌دهد (مثلاً «5.2.0 → 5.2.1»)، هماهنگ با همان شماره نسخه‌ای که همه‌جای دیگر سایت نمایش داده می‌شود.",
+    "en": "The automatic pre-update backups list now labels each backup with version numbers (e.g. \"5.2.0 → 5.2.1\") instead of a raw git hash, matching how the version is shown everywhere else on the site."
   }
 ]

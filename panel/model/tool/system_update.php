@@ -728,7 +728,22 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 
 		$this->writeProgress('backup', 10);
 
-		$backup = $this->createBackup('پیش از بروزرسانی به ' . substr($sha, 0, 10), $settings['current_commit'], $sha);
+		// Label the backup with the version numbers involved (e.g.
+		// "5.1.1 → 5.2.0"), matching how the site's own version is shown
+		// everywhere else, instead of raw git commit hashes. Falls back to
+		// the commit-hash form when either VERSION file isn't available
+		// (e.g. an older repo state with no VERSION file yet on this
+		// branch), so a backup never goes unlabeled.
+		$current_version = $this->getLocalVersion();
+		$latest_version = $this->getRemoteVersion($settings['repo'], $settings['token'], $settings['branch']);
+
+		if ($current_version && $latest_version) {
+			$reason = 'پیش از بروزرسانی: ' . $current_version . ' → ' . $latest_version;
+		} else {
+			$reason = 'پیش از بروزرسانی به ' . substr($sha, 0, 10);
+		}
+
+		$backup = $this->createBackup($reason, $settings['current_commit'], $sha);
 
 		if (isset($backup['error'])) {
 			$this->writeProgress('error', 10);
