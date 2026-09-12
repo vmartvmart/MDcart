@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Catalog\Controller\Extension\MDcart\Checkout;
+namespace MDcart\Catalog\Controller\Extension\Opencart\Checkout;
 /**
  * Class Coupon
  *
- * @package MDcart\Catalog\Controller\Extension\MDcart\Checkout
+ * @package MDcart\Catalog\Controller\Extension\Opencart\Checkout
  */
 class Coupon extends \MDcart\System\Engine\Controller {
 	/**

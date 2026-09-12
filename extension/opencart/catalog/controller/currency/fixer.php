@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Catalog\Controller\Extension\MDcart\Currency;
+namespace MDcart\Catalog\Controller\Extension\Opencart\Currency;
 /**
  * Class Fixer
  *
- * @package MDcart\Catalog\Controller\Extension\MDcart\Currency
+ * @package MDcart\Catalog\Controller\Extension\Opencart\Currency
  */
 class Fixer extends \MDcart\System\Engine\Controller {
 	/**

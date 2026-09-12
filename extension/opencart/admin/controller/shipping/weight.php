@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Shipping;
+namespace MDcart\Admin\Controller\Extension\Opencart\Shipping;
 /**
  * Class Weight
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Shipping
+ * @package MDcart\Admin\Controller\Extension\Opencart\Shipping
  */
 class Weight extends \MDcart\System\Engine\Controller {
 	/**

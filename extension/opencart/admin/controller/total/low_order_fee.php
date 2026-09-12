@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Total;
+namespace MDcart\Admin\Controller\Extension\Opencart\Total;
 /**
  * Class Low Order Fee
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Total
+ * @package MDcart\Admin\Controller\Extension\Opencart\Total
  */
 class LowOrderFee extends \MDcart\System\Engine\Controller {
 	/**

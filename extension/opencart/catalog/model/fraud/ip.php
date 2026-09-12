@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Catalog\Model\Extension\MDcart\Fraud;
+namespace MDcart\Catalog\Model\Extension\Opencart\Fraud;
 /**
  * Class Ip
  *
  * Can be called from $this->load->model('extension/opencart/fraud/ip');
  *
- * @package MDcart\Catalog\Model\Extension\MDcart\Fraud
+ * @package MDcart\Catalog\Model\Extension\Opencart\Fraud
  */
 class Ip extends \MDcart\System\Engine\Model {
 	/**

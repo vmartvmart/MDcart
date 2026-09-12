@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Catalog\Controller\Extension\MDcart\Module;
+namespace MDcart\Catalog\Controller\Extension\Opencart\Module;
 /**
  * Class BestSeller
  *
- * @package MDcart\Catalog\Controller\Extension\MDcart\Module
+ * @package MDcart\Catalog\Controller\Extension\Opencart\Module
  */
 class BestSeller extends \MDcart\System\Engine\Controller {
 	/**

@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Admin\Model\Extension\MDcart\Report;
+namespace MDcart\Admin\Model\Extension\Opencart\Report;
 /**
  * Class Product Purchased
  *
  * Can be called from $this->load->model('extension/opencart/report/product_purchased');
  *
- * @package MDcart\Admin\Model\Extension\MDcart\Report
+ * @package MDcart\Admin\Model\Extension\Opencart\Report
  */
 class ProductPurchased extends \MDcart\System\Engine\Model {
 	/**

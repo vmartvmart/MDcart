@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Report;
+namespace MDcart\Admin\Controller\Extension\Opencart\Report;
 /**
  * Class Product Purchased
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Report
+ * @package MDcart\Admin\Controller\Extension\Opencart\Report
  */
 class ProductPurchased extends \MDcart\System\Engine\Controller {
 	/**

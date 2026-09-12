@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Catalog\Model\Extension\MDcart\Shipping;
+namespace MDcart\Catalog\Model\Extension\Opencart\Shipping;
 /**
  * Class Flat
  *
  * Can be called from $this->load->model('extension/opencart/shipping/flat');
  *
- * @package MDcart\Catalog\Model\Extension\MDcart\Shipping
+ * @package MDcart\Catalog\Model\Extension\Opencart\Shipping
  */
 class Flat extends \MDcart\System\Engine\Model {
 	/**

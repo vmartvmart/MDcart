@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Admin\Model\Extension\MDcart\Report;
+namespace MDcart\Admin\Model\Extension\Opencart\Report;
 /**
  * Class Coupon
  *
  * Can be called from $this->load->model('extension/opencart/report/coupon');
  *
- * @package MDcart\Admin\Model\Extension\MDcart\Report
+ * @package MDcart\Admin\Model\Extension\Opencart\Report
  */
 class Coupon extends \MDcart\System\Engine\Model {
 	/**

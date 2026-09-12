@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Admin\Model\Extension\MDcart\Report;
+namespace MDcart\Admin\Model\Extension\Opencart\Report;
 /**
  * Class Customer Transaction
  *
  * Can be called from $this->load->model('extension/opencart/report/customer_transaction');
  *
- * @package MDcart\Admin\Model\Extension\MDcart\Report
+ * @package MDcart\Admin\Model\Extension\Opencart\Report
  */
 class CustomerTransaction extends \MDcart\System\Engine\Model {
 	/**

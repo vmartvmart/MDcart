@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Dashboard;
+namespace MDcart\Admin\Controller\Extension\Opencart\Dashboard;
 /**
  * Class Recent
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Dashboard
+ * @package MDcart\Admin\Controller\Extension\Opencart\Dashboard
  */
 class Recent extends \MDcart\System\Engine\Controller {
 	/**

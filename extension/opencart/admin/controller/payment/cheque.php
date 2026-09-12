@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Payment;
+namespace MDcart\Admin\Controller\Extension\Opencart\Payment;
 /**
  * Class Cheque
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Payment
+ * @package MDcart\Admin\Controller\Extension\Opencart\Payment
  */
 class Cheque extends \MDcart\System\Engine\Controller {
 	/**

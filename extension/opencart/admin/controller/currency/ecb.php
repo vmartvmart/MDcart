@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Currency;
+namespace MDcart\Admin\Controller\Extension\Opencart\Currency;
 /**
  * Class ECB
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Currency
+ * @package MDcart\Admin\Controller\Extension\Opencart\Currency
  */
 class ECB extends \MDcart\System\Engine\Controller {
 	/**

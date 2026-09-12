@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Payment;
+namespace MDcart\Admin\Controller\Extension\Opencart\Payment;
 /**
  * Class Cod
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Payment
+ * @package MDcart\Admin\Controller\Extension\Opencart\Payment
  */
 class Cod extends \MDcart\System\Engine\Controller {
 	/**

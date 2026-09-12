@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Captcha;
+namespace MDcart\Admin\Controller\Extension\Opencart\Captcha;
 /**
  * Class Basic
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Captcha
+ * @package MDcart\Admin\Controller\Extension\Opencart\Captcha
  */
 class Basic extends \MDcart\System\Engine\Controller {
 	/**

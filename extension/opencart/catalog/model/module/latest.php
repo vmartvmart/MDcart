@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Catalog\Model\Extension\MDcart\Module;
+namespace MDcart\Catalog\Model\Extension\Opencart\Module;
 /**
  * Class Latest
  *
  * Can be called from $this->load->model('extension/opencart/module/latest');
  *
- * @package MDcart\Catalog\Model\Extension\MDcart\Module
+ * @package MDcart\Catalog\Model\Extension\Opencart\Module
  */
 class Latest extends \MDcart\Catalog\Model\Catalog\Product {
 	/**

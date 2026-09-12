@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Catalog\Model\Extension\MDcart\Total;
+namespace MDcart\Catalog\Model\Extension\Opencart\Total;
 /**
  * Class Tax
  *
  * Can be called from $this->load->model('extension/opencart/total/tax');
  *
- * @package MDcart\Catalog\Model\Extension\MDcart\Total
+ * @package MDcart\Catalog\Model\Extension\Opencart\Total
  */
 class Tax extends \MDcart\System\Engine\Model {
 	/**

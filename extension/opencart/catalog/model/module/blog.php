@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Catalog\Model\Extension\MDcart\Module;
+namespace MDcart\Catalog\Model\Extension\Opencart\Module;
 /**
  * Class Blog
  *
  * Can be called from $this->load->model('extension/opencart/module/blog');
  *
- * @package MDcart\Catalog\Model\Extension\MDcart\Module
+ * @package MDcart\Catalog\Model\Extension\Opencart\Module
  */
 class Blog extends \MDcart\System\Engine\Model {
 	/**

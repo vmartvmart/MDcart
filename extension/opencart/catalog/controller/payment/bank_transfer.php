@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Catalog\Controller\Extension\MDcart\Payment;
+namespace MDcart\Catalog\Controller\Extension\Opencart\Payment;
 /**
  * Class Bank Transfer
  *
- * @package MDcart\Catalog\Controller\Extension\MDcart\Payment
+ * @package MDcart\Catalog\Controller\Extension\Opencart\Payment
  */
 class BankTransfer extends \MDcart\System\Engine\Controller {
 	/**

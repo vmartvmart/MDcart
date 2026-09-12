@@ -1,5 +1,5 @@
 <?php
-namespace MDcart\Admin\Model\Extension\MDcart\Report;
+namespace MDcart\Admin\Model\Extension\Opencart\Report;
 /**
  * Class Subscription
  *
@@ -7,7 +7,7 @@ namespace MDcart\Admin\Model\Extension\MDcart\Report;
  *
  * $this->load->model('extension/opencart/report/subscription');
  *
- * @package MDcart\Admin\Model\Extension\MDcart\Report
+ * @package MDcart\Admin\Model\Extension\Opencart\Report
  */
 class Subscription extends \MDcart\System\Engine\Model {
 	/**

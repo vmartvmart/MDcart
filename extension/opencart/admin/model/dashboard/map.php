@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Admin\Model\Extension\MDcart\Dashboard;
+namespace MDcart\Admin\Model\Extension\Opencart\Dashboard;
 /**
  * Class Map
  *
  * Can be called from $this->load->model('extension/opencart/dashboard/map');
  *
- * @package MDcart\Admin\Model\Extension\MDcart\Dashboard
+ * @package MDcart\Admin\Model\Extension\Opencart\Dashboard
  */
 class Map extends \MDcart\System\Engine\Model {
 	/**

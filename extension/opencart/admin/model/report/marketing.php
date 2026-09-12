@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Admin\Model\Extension\MDcart\Report;
+namespace MDcart\Admin\Model\Extension\Opencart\Report;
 /**
  * Class Marketing
  *
  * Can be called from $this->load->model('extension/opencart/report/marketing');
  *
- * @package MDcart\Admin\Model\Extension\MDcart\Report
+ * @package MDcart\Admin\Model\Extension\Opencart\Report
  */
 class Marketing extends \MDcart\System\Engine\Model {
 	/**

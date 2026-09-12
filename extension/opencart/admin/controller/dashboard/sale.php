@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Dashboard;
+namespace MDcart\Admin\Controller\Extension\Opencart\Dashboard;
 /**
  * Class Sale
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Dashboard
+ * @package MDcart\Admin\Controller\Extension\Opencart\Dashboard
  */
 class Sale extends \MDcart\System\Engine\Controller {
 	/**

@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Total;
+namespace MDcart\Admin\Controller\Extension\Opencart\Total;
 /**
  * Class Sub Total
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Total
+ * @package MDcart\Admin\Controller\Extension\Opencart\Total
  */
 class SubTotal extends \MDcart\System\Engine\Controller {
 	/**

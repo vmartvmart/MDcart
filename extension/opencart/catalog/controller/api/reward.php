@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Catalog\Controller\Extension\MDcart\Api;
+namespace MDcart\Catalog\Controller\Extension\Opencart\Api;
 /**
  * Class Reward
  *
- * @package MDcart\Catalog\Controller\Extension\MDcart\Api
+ * @package MDcart\Catalog\Controller\Extension\Opencart\Api
  */
 class Reward extends \MDcart\System\Engine\Controller {
 	/**

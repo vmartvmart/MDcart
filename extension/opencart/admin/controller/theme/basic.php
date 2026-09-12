@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Theme;
+namespace MDcart\Admin\Controller\Extension\Opencart\Theme;
 /**
  * Class Basic
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Theme
+ * @package MDcart\Admin\Controller\Extension\Opencart\Theme
  */
 class Basic extends \MDcart\System\Engine\Controller {
 	/**

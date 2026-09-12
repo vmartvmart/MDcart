@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Catalog\Controller\Extension\MDcart\Module;
+namespace MDcart\Catalog\Controller\Extension\Opencart\Module;
 /**
  * Class Featured
  *
- * @package MDcart\Catalog\Controller\Extension\MDcart\Module
+ * @package MDcart\Catalog\Controller\Extension\Opencart\Module
  */
 class Featured extends \MDcart\System\Engine\Controller {
 	/**

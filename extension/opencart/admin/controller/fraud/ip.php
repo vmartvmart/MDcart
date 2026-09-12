@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Fraud;
+namespace MDcart\Admin\Controller\Extension\Opencart\Fraud;
 /**
  * Class IP
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Fraud
+ * @package MDcart\Admin\Controller\Extension\Opencart\Fraud
  */
 class Ip extends \MDcart\System\Engine\Controller {
 	/**

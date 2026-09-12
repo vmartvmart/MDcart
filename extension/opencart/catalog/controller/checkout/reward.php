@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Catalog\Controller\Extension\MDcart\Checkout;
+namespace MDcart\Catalog\Controller\Extension\Opencart\Checkout;
 /**
  * Class Reward
  *
- * @package MDcart\Catalog\Controller\Extension\MDcart\Checkout
+ * @package MDcart\Catalog\Controller\Extension\Opencart\Checkout
  */
 class Reward extends \MDcart\System\Engine\Controller {
 	/**

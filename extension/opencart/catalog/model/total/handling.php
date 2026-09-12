@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Catalog\Model\Extension\MDcart\Total;
+namespace MDcart\Catalog\Model\Extension\Opencart\Total;
 /**
  * Class Handling
  *
  * Can be called from $this->load->model('extension/opencart/total/handling');
  *
- * @package MDcart\Catalog\Model\Extension\MDcart\Total
+ * @package MDcart\Catalog\Model\Extension\Opencart\Total
  */
 class Handling extends \MDcart\System\Engine\Model {
 	/**

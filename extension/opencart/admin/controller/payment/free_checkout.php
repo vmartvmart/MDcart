@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Payment;
+namespace MDcart\Admin\Controller\Extension\Opencart\Payment;
 /**
  * Class Free Checkout
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Payment
+ * @package MDcart\Admin\Controller\Extension\Opencart\Payment
  */
 class FreeCheckout extends \MDcart\System\Engine\Controller {
 	/**

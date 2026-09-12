@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Catalog\Model\Extension\MDcart\Payment;
+namespace MDcart\Catalog\Model\Extension\Opencart\Payment;
 /**
  * Class Bank Transfer
  *
  * Can be called from $this->load->model('extension/opencart/payment/bank_transfer');
  *
- * @package MDcart\Catalog\Model\Extension\MDcart\Payment
+ * @package MDcart\Catalog\Model\Extension\Opencart\Payment
  */
 class BankTransfer extends \MDcart\System\Engine\Model {
 	/**

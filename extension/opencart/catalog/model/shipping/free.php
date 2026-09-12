@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Catalog\Model\Extension\MDcart\Shipping;
+namespace MDcart\Catalog\Model\Extension\Opencart\Shipping;
 /**
  * Class Free
  *
  * Can be called from $this->load->model('extension/opencart/shipping/free');
  *
- * @package MDcart\Catalog\Model\Extension\MDcart\Shipping
+ * @package MDcart\Catalog\Model\Extension\Opencart\Shipping
  */
 class Free extends \MDcart\System\Engine\Model {
 	/**

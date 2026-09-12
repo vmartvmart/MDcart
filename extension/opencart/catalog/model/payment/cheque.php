@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Catalog\Model\Extension\MDcart\Payment;
+namespace MDcart\Catalog\Model\Extension\Opencart\Payment;
 /**
  * Class Cheque
  *
  * Can be called from $this->load->model('extension/opencart/payment/cheque');
  *
- * @package MDcart\Catalog\Model\Extension\MDcart\Payment
+ * @package MDcart\Catalog\Model\Extension\Opencart\Payment
  */
 class Cheque extends \MDcart\System\Engine\Model {
 	/**

@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Catalog\Model\Extension\MDcart\Shipping;
+namespace MDcart\Catalog\Model\Extension\Opencart\Shipping;
 /**
  * Class Item
  *
  * Can be called from $this->load->model('extension/opencart/shipping/item');
  *
- * @package MDcart\Catalog\Model\Extension\MDcart\Shipping
+ * @package MDcart\Catalog\Model\Extension\Opencart\Shipping
  */
 class Item extends \MDcart\System\Engine\Model {
 	/**

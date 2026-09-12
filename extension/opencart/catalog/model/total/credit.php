@@ -1,11 +1,11 @@
 <?php
-namespace MDcart\Catalog\Model\Extension\MDcart\Total;
+namespace MDcart\Catalog\Model\Extension\Opencart\Total;
 /**
  * Class Credit
  *
  * Can be called from $this->load->model('extension/opencart/total/credit');
  *
- * @package MDcart\Catalog\Model\Extension\MDcart\Total
+ * @package MDcart\Catalog\Model\Extension\Opencart\Total
  */
 class Credit extends \MDcart\System\Engine\Model {
 	/**

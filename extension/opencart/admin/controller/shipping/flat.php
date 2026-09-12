@@ -1,9 +1,9 @@
 <?php
-namespace MDcart\Admin\Controller\Extension\MDcart\Shipping;
+namespace MDcart\Admin\Controller\Extension\Opencart\Shipping;
 /**
  * Class Flat
  *
- * @package MDcart\Admin\Controller\Extension\MDcart\Shipping
+ * @package MDcart\Admin\Controller\Extension\Opencart\Shipping
  */
 class Flat extends \MDcart\System\Engine\Controller {
 	/**
