@@ -3,7 +3,7 @@
 $_['site_url']          = HTTP_SERVER;
 
 // Language
-$_['language_code']     = 'en-gb';
+$_['language_code']     = 'us';
 
 // Template
 $_['template_engine']   = 'twig';

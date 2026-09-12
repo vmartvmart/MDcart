@@ -107,7 +107,8 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 	 * per language, both showing the English name). Nothing OpenCart ships
 	 * fills in real per-language country names beyond that. This is a
 	 * one-time, hand-curated fix for this project's two installed
-	 * languages (fa/en-gb) — see localizeCountries() below, which is what
+	 * languages (fa/us, formerly fa/en-gb before the English language code
+	 * was renamed) — see localizeCountries() below, which is what
 	 * actually applies it.
 	 *
 	 * @var array<string, string>
@@ -213,7 +214,10 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 				$fa_language_id = (int)$row['language_id'];
 			}
 
-			if ($row['code'] === 'en-gb') {
+			// Match both the current code ("us") and the old pre-rename
+			// code ("en-gb") so this still works on installs that haven't
+			// applied the English-language code rename yet.
+			if ($row['code'] === 'us' || $row['code'] === 'en-gb') {
 				$en_language_id = (int)$row['language_id'];
 			}
 		}

@@ -41,7 +41,7 @@ class Api {
 	 * @param int    $store_id
 	 * @param string $language
 	 */
-	public function __construct(string $domain, string $path, string $username, string $key, int $store_id, string $language = 'en-gb') {
+	public function __construct(string $domain, string $path, string $username, string $key, int $store_id, string $language = 'us') {
 		$this->domain = $domain;
 		$this->path = $path;
 		$this->username = $username;

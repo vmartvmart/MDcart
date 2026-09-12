@@ -13,5 +13,10 @@
     "version": "5.1.1",
     "fa": "رفع یک باگ بحرانی که کل فروشگاه (سبد خرید و پرداخت) را از کار انداخته بود: تغییر نام برند قبلی به‌اشتباه نام کد افزونه‌ی پایه («opencart»، که فقط یک شناسه‌ی داخلی است، نه برند) را هم عوض کرده بود، و همین باعث می‌شد هیچ‌کدام از افزونه‌های پیش‌فرض (جمع‌کل سفارش، پرداخت، ارسال، ماژول‌ها) بارگذاری نشوند.",
     "en": "Fixed a critical bug that broke the entire storefront (cart and checkout): the earlier rebrand had accidentally also renamed the built-in extension's code identifier (\"opencart\", an internal id, not the brand), which stopped every default extension (order totals, payment, shipping, modules) from loading at all."
+  },
+  {
+    "version": "5.2.0",
+    "fa": "کد داخلی زبان انگلیسی از en-gb به us تغییر یافت (پرچم و لوکِیل هم به همین ترتیب اصلاح شدند) — این تغییر هم در پوشه‌های اصلی زبان (catalog/language، panel/language) و هم در ۹۵ فایل زبانِ افزونه‌های پیش‌فرض (extension/opencart) و هم در نصب‌کننده‌ی نصب‌های تازه اعمال شد. توجه: روی نصب‌های موجود، این تغییر باید همراه با یک اسکریپت SQL کوچک (که جداگانه ارسال می‌شود) روی دیتابیس اعمال شود تا با کد جدید هماهنگ بماند.",
+    "en": "Renamed the English language's internal code from en-gb to us (with a matching flag and locale) — across the core language folders (catalog/language, panel/language), the 95 language files belonging to the built-in extensions (extension/opencart), and the fresh-install seed data. Note: on existing installs this must be paired with a small SQL migration (delivered separately) to keep the database in sync with the new code."
   }
 ]

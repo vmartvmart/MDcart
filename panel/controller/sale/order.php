@@ -1156,7 +1156,7 @@ class Order extends \MDcart\System\Engine\Controller {
 	 * $domain   = 'www.yourdomain.com';
 	 * $path     = '/';
 	 * $store_id = 0;
-	 * $language = 'en-gb';
+	 * $language = 'us';
 	 * $time     = time();
 	 *
 	 * // Build hash string
