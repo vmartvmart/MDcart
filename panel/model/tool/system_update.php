@@ -80,6 +80,178 @@ class SystemUpdate extends \Opencart\System\Engine\Model {
 	private const BACKUP_KEEP = 5;
 
 	/**
+	 * Persian names for every country in the reference seed data
+	 * (install_starter.sql), keyed by ISO 3166-1 alpha-2 code.
+	 *
+	 * Why this exists: OpenCart's own default install only ever seeds an
+	 * English name into `oc_country_description` — when a second admin
+	 * language (Persian, here) is added on top of that, every country row
+	 * for the new language just gets the same English text copied in
+	 * (visible in the country edit form as two identical name fields, one
+	 * per language, both showing the English name). Nothing OpenCart ships
+	 * fills in real per-language country names beyond that. This is a
+	 * one-time, hand-curated fix for this project's two installed
+	 * languages (fa/en-gb) — see localizeCountries() below, which is what
+	 * actually applies it.
+	 *
+	 * @var array<string, string>
+	 */
+	private const COUNTRY_NAME_FA = [
+		'AC' => 'جزیره آسنسیون', 'AD' => 'آندورا', 'AE' => 'امارات متحده عربی', 'AF' => 'افغانستان',
+		'AG' => 'آنتیگوا و باربودا', 'AI' => 'آنگویلا', 'AL' => 'آلبانی', 'AM' => 'ارمنستان',
+		'AN' => 'آنتیل هلند', 'AO' => 'آنگولا', 'AQ' => 'جنوبگان', 'AR' => 'آرژانتین',
+		'AS' => 'ساموآی آمریکا', 'AT' => 'اتریش', 'AU' => 'استرالیا', 'AW' => 'آروبا',
+		'AX' => 'جزایر الند', 'AZ' => 'آذربایجان', 'BA' => 'بوسنی و هرزگوین', 'BB' => 'باربادوس',
+		'BD' => 'بنگلادش', 'BE' => 'بلژیک', 'BF' => 'بورکینافاسو', 'BG' => 'بلغارستان',
+		'BH' => 'بحرین', 'BI' => 'بوروندی', 'BJ' => 'بنین', 'BL' => 'سن بارتلمی',
+		'BM' => 'برمودا', 'BN' => 'برونئی', 'BO' => 'بولیوی', 'BQ' => 'بونیر، سینت اوستاتیوس و سابا',
+		'BR' => 'برزیل', 'BS' => 'باهاما', 'BT' => 'بوتان', 'BV' => 'جزیره بووه',
+		'BW' => 'بوتسوانا', 'BY' => 'بلاروس', 'BZ' => 'بلیز', 'CA' => 'کانادا',
+		'CC' => 'جزایر کوکوس (کیلینگ)', 'CD' => 'جمهوری دموکراتیک کنگو', 'CF' => 'جمهوری آفریقای مرکزی', 'CG' => 'کنگو',
+		'CH' => 'سوئیس', 'CI' => 'ساحل عاج', 'CK' => 'جزایر کوک', 'CL' => 'شیلی',
+		'CM' => 'کامرون', 'CN' => 'چین', 'CO' => 'کلمبیا', 'CR' => 'کاستاریکا',
+		'CU' => 'کوبا', 'CV' => 'کیپ ورد', 'CW' => 'کوراسائو', 'CX' => 'جزیره کریسمس',
+		'CY' => 'قبرس', 'CZ' => 'جمهوری چک', 'DE' => 'آلمان', 'DJ' => 'جیبوتی',
+		'DK' => 'دانمارک', 'DM' => 'دومینیکا', 'DO' => 'جمهوری دومینیکن', 'DZ' => 'الجزایر',
+		'EC' => 'اکوادور', 'EE' => 'استونی', 'EG' => 'مصر', 'EH' => 'صحرای غربی',
+		'ER' => 'اریتره', 'ES' => 'اسپانیا', 'ET' => 'اتیوپی', 'FI' => 'فنلاند',
+		'FJ' => 'فیجی', 'FK' => 'جزایر فالکلند (مالویناس)', 'FM' => 'میکرونزی', 'FO' => 'جزایر فارو',
+		'FR' => 'فرانسه', 'GA' => 'گابن', 'GB' => 'بریتانیا', 'GD' => 'گرنادا',
+		'GE' => 'گرجستان', 'GF' => 'گویان فرانسه', 'GG' => 'گرنزی', 'GH' => 'غنا',
+		'GI' => 'جبل‌الطارق', 'GL' => 'گرینلند', 'GM' => 'گامبیا', 'GN' => 'گینه',
+		'GP' => 'گوادلوپ', 'GQ' => 'گینه استوایی', 'GR' => 'یونان', 'GS' => 'جزایر جورجیای جنوبی و ساندویچ جنوبی',
+		'GT' => 'گواتمالا', 'GU' => 'گوام', 'GW' => 'گینه بیسائو', 'GY' => 'گویان',
+		'HK' => 'هنگ‌کنگ', 'HM' => 'جزایر هرد و مک‌دونالد', 'HN' => 'هندوراس', 'HR' => 'کرواسی',
+		'HT' => 'هائیتی', 'HU' => 'مجارستان', 'IC' => 'جزایر قناری', 'ID' => 'اندونزی',
+		'IE' => 'ایرلند', 'IL' => 'اسرائیل', 'IM' => 'جزیره من', 'IN' => 'هند',
+		'IO' => 'قلمرو بریتانیا در اقیانوس هند', 'IQ' => 'عراق', 'IR' => 'ایران', 'IS' => 'ایسلند',
+		'IT' => 'ایتالیا', 'JE' => 'جرزی', 'JM' => 'جامائیکا', 'JO' => 'اردن',
+		'JP' => 'ژاپن', 'KE' => 'کنیا', 'KG' => 'قرقیزستان', 'KH' => 'کامبوج',
+		'KI' => 'کیریباتی', 'KM' => 'کومور', 'KN' => 'سنت کیتس و نویس', 'KP' => 'کره شمالی',
+		'KR' => 'کره جنوبی', 'KW' => 'کویت', 'KY' => 'جزایر کیمن', 'KZ' => 'قزاقستان',
+		'LA' => 'لائوس', 'LB' => 'لبنان', 'LC' => 'سنت لوسیا', 'LI' => 'لیختن‌اشتاین',
+		'LK' => 'سریلانکا', 'LR' => 'لیبریا', 'LS' => 'لسوتو', 'LT' => 'لیتوانی',
+		'LU' => 'لوکزامبورگ', 'LV' => 'لتونی', 'LY' => 'لیبی', 'MA' => 'مراکش',
+		'MC' => 'موناکو', 'MD' => 'مولداوی', 'ME' => 'مونته‌نگرو', 'MF' => 'سنت مارتین (بخش فرانسوی)',
+		'MG' => 'ماداگاسکار', 'MH' => 'جزایر مارشال', 'MK' => 'مقدونیه شمالی', 'ML' => 'مالی',
+		'MM' => 'میانمار', 'MN' => 'مغولستان', 'MO' => 'ماکائو', 'MP' => 'جزایر ماریانای شمالی',
+		'MQ' => 'مارتینیک', 'MR' => 'موریتانی', 'MS' => 'مونتسرات', 'MT' => 'مالت',
+		'MU' => 'موریس', 'MV' => 'مالدیو', 'MW' => 'مالاوی', 'MX' => 'مکزیک',
+		'MY' => 'مالزی', 'MZ' => 'موزامبیک', 'NA' => 'نامیبیا', 'NC' => 'کالدونیای جدید',
+		'NE' => 'نیجر', 'NF' => 'جزیره نورفولک', 'NG' => 'نیجریه', 'NI' => 'نیکاراگوئه',
+		'NL' => 'هلند', 'NO' => 'نروژ', 'NP' => 'نپال', 'NR' => 'نائورو',
+		'NU' => 'نیوئه', 'NZ' => 'نیوزیلند', 'OM' => 'عمان', 'PA' => 'پاناما',
+		'PE' => 'پرو', 'PF' => 'پلی‌نزی فرانسه', 'PG' => 'پاپوآ گینه نو', 'PH' => 'فیلیپین',
+		'PK' => 'پاکستان', 'PL' => 'لهستان', 'PM' => 'سن پیر و میکلون', 'PN' => 'پیتکرن',
+		'PR' => 'پورتوریکو', 'PS' => 'فلسطین', 'PT' => 'پرتغال', 'PW' => 'پالائو',
+		'PY' => 'پاراگوئه', 'QA' => 'قطر', 'RE' => 'رئونیون', 'RO' => 'رومانی',
+		'RS' => 'صربستان', 'RU' => 'روسیه', 'RW' => 'رواندا', 'SA' => 'عربستان سعودی',
+		'SB' => 'جزایر سلیمان', 'SC' => 'سیشل', 'SD' => 'سودان', 'SE' => 'سوئد',
+		'SG' => 'سنگاپور', 'SH' => 'سنت هلنا', 'SI' => 'اسلوونی', 'SJ' => 'سوالبارد و یان ماین',
+		'SK' => 'اسلواکی', 'SL' => 'سیرالئون', 'SM' => 'سان مارینو', 'SN' => 'سنگال',
+		'SO' => 'سومالی', 'SR' => 'سورینام', 'SS' => 'سودان جنوبی', 'ST' => 'سائوتومه و پرینسیپ',
+		'SV' => 'السالوادور', 'SY' => 'سوریه', 'SZ' => 'اسواتینی', 'TA' => 'تریستان دا کونا',
+		'TC' => 'جزایر تورکس و کایکوس', 'TD' => 'چاد', 'TF' => 'سرزمین‌های جنوبی فرانسه', 'TG' => 'توگو',
+		'TH' => 'تایلند', 'TJ' => 'تاجیکستان', 'TK' => 'توکلائو', 'TL' => 'تیمور شرقی',
+		'TM' => 'ترکمنستان', 'TN' => 'تونس', 'TO' => 'تونگا', 'TR' => 'ترکیه',
+		'TT' => 'ترینیداد و توباگو', 'TV' => 'تووالو', 'TW' => 'تایوان', 'TZ' => 'تانزانیا',
+		'UA' => 'اوکراین', 'UG' => 'اوگاندا', 'UM' => 'جزایر کوچک حاشیه‌ای ایالات متحده', 'US' => 'ایالات متحده آمریکا',
+		'UY' => 'اروگوئه', 'UZ' => 'ازبکستان', 'VA' => 'واتیکان', 'VC' => 'سنت وینسنت و گرنادین‌ها',
+		'VE' => 'ونزوئلا', 'VG' => 'جزایر ویرجین بریتانیا', 'VI' => 'جزایر ویرجین آمریکا', 'VN' => 'ویتنام',
+		'VU' => 'وانواتو', 'WF' => 'والیس و فوتونا', 'WS' => 'ساموآ', 'XK' => 'کوزوو',
+		'YE' => 'یمن', 'YT' => 'مایوت', 'ZA' => 'آفریقای جنوبی', 'ZM' => 'زامبیا',
+		'ZW' => 'زیمبابوه',
+	];
+
+	/**
+	 * Localize Countries
+	 *
+	 * Applies COUNTRY_NAME_FA to every country's Persian-language row in
+	 * `oc_country_description` (matched by ISO 3166-1 alpha-2 code, so it
+	 * doesn't depend on country_id numbering staying stable), and — as a
+	 * separate, narrower fix requested on its own — renames Iran's
+	 * English-language row from the stock OpenCart seed's official ISO
+	 * name ("Iran (Islamic Republic of)") to the plain "Iran" used
+	 * everywhere else English country names appear on this site. Every
+	 * dropdown across the storefront and admin (checkout, customer
+	 * addresses, tax zones, shipping/geo zones, product/store country
+	 * pickers, ...) reads from this same table, so a single update here
+	 * is what actually reaches "every dropdown on the site" — there is no
+	 * separate per-page copy of the country list to fix.
+	 *
+	 * Safe to run more than once (each row is just set to its target
+	 * value again); not exposed in any menu since it's a one-time data
+	 * fix, not an ongoing admin feature — see system_update.php's
+	 * localizeCountries() for how it's actually triggered.
+	 *
+	 * @return array<string, int>
+	 */
+	public function localizeCountries(): array {
+		$fa_language_id = 0;
+		$en_language_id = 0;
+
+		$query = $this->db->query("SELECT `language_id`, `code` FROM `" . DB_PREFIX . "language`");
+
+		foreach ($query->rows as $row) {
+			if ($row['code'] === 'fa') {
+				$fa_language_id = (int)$row['language_id'];
+			}
+
+			if ($row['code'] === 'en-gb') {
+				$en_language_id = (int)$row['language_id'];
+			}
+		}
+
+		$updated_fa = 0;
+		$updated_en = 0;
+
+		if ($fa_language_id) {
+			$countries = $this->db->query("SELECT `country_id`, `iso_code_2` FROM `" . DB_PREFIX . "country`");
+
+			foreach ($countries->rows as $country) {
+				$iso = $country['iso_code_2'];
+
+				if (!isset(self::COUNTRY_NAME_FA[$iso])) {
+					continue;
+				}
+
+				$name = self::COUNTRY_NAME_FA[$iso];
+
+				$this->db->query(
+					"UPDATE `" . DB_PREFIX . "country_description` SET `name` = '" . $this->db->escape($name) . "'"
+					. " WHERE `country_id` = '" . (int)$country['country_id'] . "' AND `language_id` = '" . $fa_language_id . "'"
+				);
+
+				$updated_fa += $this->db->countAffected();
+			}
+		}
+
+		if ($en_language_id) {
+			$this->db->query(
+				"UPDATE `" . DB_PREFIX . "country_description` `cd`"
+				. " INNER JOIN `" . DB_PREFIX . "country` `c` ON (`c`.`country_id` = `cd`.`country_id`)"
+				. " SET `cd`.`name` = 'Iran'"
+				. " WHERE `c`.`iso_code_2` = 'IR' AND `cd`.`language_id` = '" . $en_language_id . "'"
+			);
+
+			$updated_en = $this->db->countAffected();
+		}
+
+		// The storefront caches country lookups (catalog/model/localisation/
+		// country.php) — without this, a shopper's already-cached checkout
+		// country list would keep showing the old names until that cache
+		// entry happened to expire on its own.
+		$this->clearCache();
+
+		return [
+			'updated_fa' => $updated_fa,
+			'updated_en' => $updated_en,
+			'fa_language_id' => $fa_language_id,
+			'en_language_id' => $en_language_id,
+		];
+	}
+
+	/**
 	 * Get Settings
 	 *
 	 * @return array<string, string>

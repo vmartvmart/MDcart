@@ -251,6 +251,44 @@ class SystemUpdate extends \Opencart\System\Engine\Controller {
 	}
 
 	/**
+	 * Localize Countries
+	 *
+	 * One-time data fix (not exposed in any menu — hit directly by URL):
+	 * fills in real Persian names for every country (they were seeded
+	 * with the English name copied into the Persian row too, since
+	 * OpenCart's own install never had a second language to translate
+	 * for), and renames Iran's English name from the stock ISO official
+	 * form ("Iran (Islamic Republic of)") to plain "Iran". Gated behind
+	 * the same 'tool/system_update' permission as the rest of this
+	 * controller — see Model::localizeCountries() for exactly what it
+	 * changes and why touching this one table reaches every dropdown on
+	 * the site.
+	 *
+	 * @return void
+	 */
+	public function localizeCountries(): void {
+		ob_start();
+
+		$json = [];
+
+		if (!$this->user->hasPermission('modify', 'tool/system_update')) {
+			$json['error'] = $this->language->get('error_permission');
+		}
+
+		if (!$json) {
+			$this->load->model('tool/system_update');
+
+			$json = $this->model_tool_system_update->localizeCountries();
+			$json['success'] = true;
+		}
+
+		$this->discardStrayOutput();
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+	/**
 	 * Backups
 	 *
 	 * Returns the rendered backup list (same partial used on page load), so
