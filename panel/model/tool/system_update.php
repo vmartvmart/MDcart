@@ -272,6 +272,284 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 	}
 
 	/**
+	 * Get Migrations
+	 *
+	 * Every one-time database change a past code update has needed, keyed
+	 * by a short, permanent, never-reused identifier. runMigrations() (see
+	 * below) runs each of these exactly once per install, automatically,
+	 * as the last step of applyUpdate() — so a feature that needs a small
+	 * DB change (a new permission, a settings tweak, ...) just adds an
+	 * entry here instead of asking the admin to run SQL by hand through
+	 * phpMyAdmin. That matters because installs are free to choose their
+	 * own table prefix at setup (this one uses "mc_", not the "oc_" from
+	 * OpenCart's own examples) — a hand-run SQL script has to hardcode one
+	 * prefix and guess wrong on any install that picked another, whereas
+	 * everything here goes through $this->db with DB_PREFIX like the rest
+	 * of the codebase, so it's correct on every install automatically.
+	 *
+	 * Each closure must be safe to run more than once (defense in depth —
+	 * runMigrations() already skips a key it has recorded as applied, but
+	 * a closure shouldn't corrupt anything if that record is ever lost or
+	 * reset) and must not throw for an already-satisfied condition.
+	 *
+	 * @return array<string, callable>
+	 */
+	private function getMigrations(): array {
+		return [
+			// Design > Colors (design/color) was added after this project's
+			// install_starter.sql seed had already been written into
+			// existing sites, so every install that predates that feature
+			// needs its Administrator group's permission blob patched to
+			// include the new route — otherwise the menu item silently
+			// never appears (see column_left.php's hasPermission() gate)
+			// and saving the page 403s even if reached directly by URL.
+			'design_color_permission' => function (): void {
+				$this->grantAdministratorPermissions(['design/color']);
+			},
+
+			// Multi-warehouse (catalog/warehouse, catalog/warehouse_transfer),
+			// purchase invoices (catalog/purchase_invoice), the in-person POS
+			// screen (sale/pos), and the accounting module (accounting/*) were
+			// all built and wired into the menu (column_left.php) well before
+			// this specific install's user-group permissions were last synced
+			// from install_starter.sql, so every one of these pages has been
+			// sitting fully working but completely invisible — same root
+			// cause as design/color above, just for a whole batch of pages
+			// at once instead of one.
+			'warehouse_pos_accounting_permissions' => function (): void {
+				$this->grantAdministratorPermissions([
+					'catalog/warehouse',
+					'catalog/warehouse_transfer',
+					'catalog/purchase_invoice',
+					'sale/pos',
+					'accounting/account',
+					'accounting/bank_account',
+					'accounting/journal',
+					'accounting/report',
+					'accounting/exchange_rate',
+				]);
+			},
+
+			// The IPPanel SMS, Bale, Telegram, WhatsApp Cloud API, and
+			// "back in stock" notification extensions, plus the Torob feed
+			// and Iranian payment gateways (ZarinPal, PayPing, IDPay,
+			// SizPay, card-to-card), are all fully built — each with its
+			// own admin settings page for entering that install's own API
+			// key/bot token — but OpenCart only shows an extension's
+			// settings page (and only fires its notification event) once
+			// three seed rows exist: an `extension` row (what it provides),
+			// an `extension_install` row (the installed "package" entry
+			// shown in Extensions > Installer), and — for the four order
+			// notifiers plus restock alerts — an `event` row wiring it to
+			// actually fire. An install whose oc_extension/oc_extension_install/
+			// oc_event tables predate any of these ships the code but never
+			// gets any of the three rows, so the extension is unreachable
+			// even after this migration grants menu permissions elsewhere.
+			// Every check below is by the extension's own natural key
+			// (there's no unique index on these columns), so this is safe
+			// to run on an install that already has some or all of them.
+			'notification_and_payment_extensions' => function (): void {
+				$this->grantAdministratorPermissions([
+					'extension/iranian_gateways/payment/card_to_card',
+					'extension/iranian_gateways/payment/idpay',
+					'extension/iranian_gateways/payment/payping',
+					'extension/iranian_gateways/payment/sizpay',
+					'extension/iranian_gateways/payment/zarinpal',
+					'extension/torob/feed/torob',
+					'extension/ippanel/other/ippanel',
+					'extension/bale/other/bale',
+					'extension/stock_alert/other/stock_alert',
+					'extension/telegram/other/telegram',
+					'extension/whatsapp/other/whatsapp',
+				]);
+
+				$extensions = [
+					['iranian_gateways', 'payment', 'card_to_card'],
+					['iranian_gateways', 'payment', 'idpay'],
+					['iranian_gateways', 'payment', 'payping'],
+					['iranian_gateways', 'payment', 'sizpay'],
+					['iranian_gateways', 'payment', 'zarinpal'],
+					['torob', 'feed', 'torob'],
+					['ippanel', 'other', 'ippanel'],
+					['bale', 'other', 'bale'],
+					['stock_alert', 'other', 'stock_alert'],
+					['telegram', 'other', 'telegram'],
+					['whatsapp', 'other', 'whatsapp'],
+				];
+
+				foreach ($extensions as [$extension, $type, $code]) {
+					$query = $this->db->query(
+						"SELECT `extension_id` FROM `" . DB_PREFIX . "extension`"
+						. " WHERE `extension` = '" . $this->db->escape($extension) . "' AND `type` = '" . $this->db->escape($type) . "' AND `code` = '" . $this->db->escape($code) . "'"
+					);
+
+					if (!$query->num_rows) {
+						$this->db->query(
+							"INSERT INTO `" . DB_PREFIX . "extension` SET `extension` = '" . $this->db->escape($extension) . "', `type` = '" . $this->db->escape($type) . "', `code` = '" . $this->db->escape($code) . "'"
+						);
+					}
+				}
+
+				// (name, description, code, version, status)
+				$installs = [
+					['Torob Product Feed', 'Authenticated JSON product feed for Torob\'s crawler (torob.com), mirroring the contract used by Torob\'s official WooCommerce plugin.', 'torob', '1.0', 1],
+					['Iranian Payment Gateways', 'ZarinPal, PayPing, IDPay, SizPay and card-to-card payment methods for Iranian stores.', 'iranian_gateways', '1.0', 1],
+					['IPPanel SMS', 'Sends order/customer SMS notifications through the IPPanel (edge.ippanel.com) REST API.', 'ippanel', '1.0', 0],
+					['Bale Bot Notifications', 'Sends order/admin notifications through a Bale (ble.ir) messenger bot.', 'bale', '1.0', 0],
+					['Back in Stock Alerts', 'Lets customers ask to be notified (SMS/WhatsApp/Telegram/Bale) when an out-of-stock product becomes available again.', 'stock_alert', '1.0', 0],
+					['Telegram Bot Notifications', 'Sends order/admin notifications through a Telegram bot (api.telegram.org).', 'telegram', '1.0', 0],
+					['WhatsApp Cloud API Notifications', 'Sends order/admin notifications through Meta\'s official WhatsApp Cloud API using pre-approved message templates.', 'whatsapp', '1.0', 0],
+				];
+
+				foreach ($installs as [$name, $description, $code, $version, $status]) {
+					$query = $this->db->query("SELECT `extension_install_id` FROM `" . DB_PREFIX . "extension_install` WHERE `code` = '" . $this->db->escape($code) . "'");
+
+					if (!$query->num_rows) {
+						$this->db->query(
+							"INSERT INTO `" . DB_PREFIX . "extension_install` SET `extension_id` = '0', `extension_download_id` = '0',"
+							. " `name` = '" . $this->db->escape($name) . "', `description` = '" . $this->db->escape($description) . "',"
+							. " `code` = '" . $this->db->escape($code) . "', `version` = '" . $this->db->escape($version) . "',"
+							. " `author` = '', `link` = '', `status` = '" . (int)$status . "', `date_added` = NOW()"
+						);
+					}
+				}
+
+				// (code, description, trigger, action)
+				$events = [
+					['ippanel_order', 'Sends IPPanel SMS notifications on new orders and order status changes.', 'model/checkout/order.addHistory/before', 'extension/ippanel/event/order'],
+					['bale_order', 'Sends Bale notifications on new orders and order status changes.', 'model/checkout/order.addHistory/before', 'extension/bale/event/order'],
+					['stock_alert_restock', 'Notifies subscribed customers when a product is restocked.', 'admin/model/catalog/product.editProduct/after', 'extension/stock_alert/event/restock'],
+					['telegram_order', 'Sends Telegram notifications on new orders and order status changes.', 'model/checkout/order.addHistory/before', 'extension/telegram/event/order'],
+					['whatsapp_order', 'Sends WhatsApp notifications on new orders and order status changes.', 'model/checkout/order.addHistory/before', 'extension/whatsapp/event/order'],
+				];
+
+				foreach ($events as [$code, $description, $trigger, $action]) {
+					$query = $this->db->query("SELECT `event_id` FROM `" . DB_PREFIX . "event` WHERE `code` = '" . $this->db->escape($code) . "'");
+
+					if (!$query->num_rows) {
+						$this->db->query(
+							"INSERT INTO `" . DB_PREFIX . "event` SET `code` = '" . $this->db->escape($code) . "', `description` = '" . $this->db->escape($description) . "',"
+							. " `trigger` = '" . $this->db->escape($trigger) . "', `action` = '" . $this->db->escape($action) . "', `status` = '1', `sort_order` = '1'"
+						);
+					}
+				}
+			},
+
+			// Persian's display name in the language list changed from the
+			// English gloss "Persian" to its own native name "فارسی" (matching
+			// English's own name already being "English" rather than a
+			// translation) after install_starter.sql's seed had already been
+			// written into existing sites, so an install that seeded its
+			// oc_language table before that change still shows "Persian".
+			'persian_language_name' => function (): void {
+				$this->db->query("UPDATE `" . DB_PREFIX . "language` SET `name` = 'فارسی' WHERE `code` = 'fa' AND `name` = 'Persian'");
+			},
+		];
+	}
+
+	/**
+	 * Grant Administrator Permissions
+	 *
+	 * Adds each given route to the Administrator group's (user_group_id 1)
+	 * `access` and `modify` permission arrays, if not already present.
+	 * Shared by any migration whose fix is "this page/route already exists
+	 * and works, it's just invisible because this install's permission
+	 * blob predates it" — see design_color_permission and
+	 * warehouse_pos_accounting_permissions above for two examples of
+	 * exactly that situation.
+	 *
+	 * @param string[] $routes
+	 *
+	 * @return void
+	 */
+	private function grantAdministratorPermissions(array $routes): void {
+		$query = $this->db->query("SELECT `user_group_id`, `permission` FROM `" . DB_PREFIX . "user_group` WHERE `user_group_id` = '1'");
+
+		if (!$query->num_rows) {
+			return;
+		}
+
+		$permission = json_decode((string)$query->row['permission'], true);
+
+		if (!is_array($permission)) {
+			$permission = [];
+		}
+
+		if (!isset($permission['access']) || !is_array($permission['access'])) {
+			$permission['access'] = [];
+		}
+
+		if (!isset($permission['modify']) || !is_array($permission['modify'])) {
+			$permission['modify'] = [];
+		}
+
+		$changed = false;
+
+		foreach ($routes as $route) {
+			if (!in_array($route, $permission['access'], true)) {
+				$permission['access'][] = $route;
+
+				$changed = true;
+			}
+
+			if (!in_array($route, $permission['modify'], true)) {
+				$permission['modify'][] = $route;
+
+				$changed = true;
+			}
+		}
+
+		if ($changed) {
+			$this->db->query("UPDATE `" . DB_PREFIX . "user_group` SET `permission` = '" . $this->db->escape(json_encode($permission)) . "' WHERE `user_group_id` = '1'");
+		}
+	}
+
+	/**
+	 * Run Migrations
+	 *
+	 * Applies every migration from getMigrations() that hasn't already run
+	 * on this install, in declaration order, then records each one so it's
+	 * never re-applied. Provisions its own tracking table on first use
+	 * (CREATE TABLE IF NOT EXISTS), so there's no separate schema step —
+	 * a fresh install and a decade-old one both just work the first time
+	 * applyUpdate() runs after this method itself ships to them.
+	 *
+	 * One migration's failure doesn't block the others or the update
+	 * itself (an update that already copied new code should still finish
+	 * rather than get stuck retrying a data fix), but it's also not
+	 * recorded as applied, so it's retried on the very next update.
+	 *
+	 * @return void
+	 */
+	private function runMigrations(): void {
+		$this->db->query(
+			"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "migration` ("
+			. "`migration_id` int(11) NOT NULL AUTO_INCREMENT,"
+			. "`key` varchar(191) NOT NULL,"
+			. "`applied_at` datetime NOT NULL,"
+			. "PRIMARY KEY (`migration_id`),"
+			. "UNIQUE KEY `key` (`key`)"
+			. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+		);
+
+		foreach ($this->getMigrations() as $key => $callback) {
+			$query = $this->db->query("SELECT `migration_id` FROM `" . DB_PREFIX . "migration` WHERE `key` = '" . $this->db->escape($key) . "'");
+
+			if ($query->num_rows) {
+				continue;
+			}
+
+			try {
+				$callback();
+			} catch (\Throwable $e) {
+				continue;
+			}
+
+			$this->db->query("INSERT INTO `" . DB_PREFIX . "migration` SET `key` = '" . $this->db->escape($key) . "', `applied_at` = NOW()");
+		}
+	}
+
+	/**
 	 * Get Settings
 	 *
 	 * @return array<string, string>
@@ -856,6 +1134,12 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 		// New code is on disk — force the framework to recompile templates
 		// and drop any stale cached data instead of serving pre-update output.
 		$this->clearCache();
+
+		// Apply any one-time database changes past updates have needed
+		// (new permissions, data fixes, ...) — see getMigrations()'s own
+		// docblock for why this exists instead of shipping a manual SQL
+		// script alongside a feature that needs one.
+		$this->runMigrations();
 
 		$this->setBaseline($sha);
 

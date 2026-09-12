@@ -48,5 +48,20 @@
     "version": "5.4.0",
     "fa": "افزوده شدن صفحه جدید «طراحی > رنگ‌ها»: مدیر می‌تواند رنگ منوی بالا، رنگ اصلی/دکمه‌ها، فوتر و پس‌زمینه کارت محصول را برای فروشگاه، و رنگ هدر/دکمه‌ها/فوتر را برای خودِ پنل مدیریت، جداگانه انتخاب کند — بدون نیاز به تغییر قالب فعلی. هر رنگ اختیاری است؛ اگر خاموش بماند، همان ظاهر پیش‌فرض قالب دست‌نخورده باقی می‌ماند. نصب‌های موجود به یک migration کوچک SQL برای دسترسی نیاز دارند، جداگانه ارسال می‌شود.",
     "en": "Added a new \"Design > Colors\" page: the admin can independently pick the top-menu color, primary/button color, footer, and product-card background for the storefront, and the header/button/footer colors for the admin panel itself — without touching whichever theme is active. Every color is optional; left off, the theme's own default look is untouched. Existing installs need a small SQL migration to grant access to the new page, delivered separately."
+  },
+  {
+    "version": "5.4.1",
+    "fa": "دکمه «اعمال بروزرسانی» حالا به‌طور خودکار هر تغییر کوچک دیتابیس/دسترسی لازم برای بروزرسانی‌های اخیر را هم اعمال می‌کند (مثلاً دادن دسترسی صفحه «رنگ‌ها» یا تغییر نام فارسی به «فارسی»)، بدون نیاز به اجرای دستی SQL از phpMyAdmin — چون این نصب می‌تواند هر پیشوند جدولی داشته باشد، یک اسکریپت SQL دستی با پیشوند ثابت همیشه برای همه نصب‌ها درست کار نمی‌کرد. این کار امن است و تکرارش مشکلی ایجاد نمی‌کند.",
+    "en": "The \"Apply Update\" button now automatically applies any small database/permission change a recent update needs (e.g. granting access to the Colors page, or renaming Persian's display name to \"فارسی\") — no more manual SQL through phpMyAdmin, which never worked reliably across installs anyway since this project lets each install pick its own table prefix. Safe to run repeatedly."
+  },
+  {
+    "version": "5.4.2",
+    "fa": "چند صفحه که مدت‌ها پیش کامل ساخته و به منو وصل شده بودند ولی به‌خاطر همان مشکل دسترسیِ نسخه قبلی همیشه مخفی مانده بودند، الان با همان مکانیزم خودکار بالا در دسترس قرار می‌گیرند: چند-انباری (Catalog > Warehouses و Warehouse Transfer)، صندوق فروش حضوری (Sale > POS)، ثبت فاکتور خرید (Catalog > Purchase Invoice)، و کل ماژول حسابداری (Accounting > Accounts, Bank Accounts, Journal, Reports, Exchange Rate).",
+    "en": "Several pages that were fully built and already wired into the menu a while back, but stayed hidden due to the same permission gap fixed in the last update, are now reachable through that same automatic mechanism: multi-warehouse management (Catalog > Warehouses and Warehouse Transfer), the in-person POS screen (Sale > POS), purchase invoices (Catalog > Purchase Invoice), and the full accounting module (Accounting > Accounts, Bank Accounts, Journal, Reports, Exchange Rate)."
+  },
+  {
+    "version": "5.4.3",
+    "fa": "درگاه‌های پرداخت ایرانی (زرین‌پال، پی‌پینگ، آی‌دی‌پی، سیزپی، کارت‌به‌کارت)، فید ترب، و افزونه‌های اطلاع‌رسانی (پیامک IPPanel، بله، تلگرام، WhatsApp Cloud API) و اطلاع‌رسانی موجودی مجدد، که همه از قبل کامل ساخته شده بودند، به همان دلیل قبلی (عدم هماهنگی نصب با آخرین تغییرات) در قسمت افزونه‌ها دیده نمی‌شدند. اپلای آپدیت حالا این‌ها را هم خودکار می‌سازد و در دسترس می‌گذارد — کافیه به هرکدام سر بزنید و کلید/توکن API خودتون رو وارد کنید.",
+    "en": "The Iranian payment gateways (ZarinPal, PayPing, IDPay, SizPay, card-to-card), the Torob feed, and the notification extensions (IPPanel SMS, Bale, Telegram, WhatsApp Cloud API) and back-in-stock alerts were all fully built already, but for the same reason as the last two updates weren't showing up under Extensions on this install. Apply Update now provisions them too — just open each one and enter your own API key/bot token."
   }
 ]
