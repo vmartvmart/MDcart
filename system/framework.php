@@ -1,4 +1,19 @@
 <?php
+// Buffer everything from here on. On some PHP setups a stray PHP
+// notice/warning/deprecation gets echoed straight into the response body
+// (see the error handler below, and this file's final lines) — often
+// during the pre-action/event pipeline further down, i.e. before any
+// controller (admin or storefront) has even run. When that happens to a
+// JSON/AJAX action (an admin settings-save button, a storefront cart
+// call, ...) it silently corrupts the response: the HTTP status is a
+// normal 200, but the body is no longer valid JSON, so the calling page's
+// AJAX handler fails with no visible symptom at all — it just looks like
+// the button did nothing. Buffering here and sorting it out just before
+// $response->output() at the bottom of this file fixes that without
+// losing the on-page error display for normal (non-JSON) pages — see
+// below.
+ob_start();
+
 // Autoloader
 $autoloader = new \Opencart\System\Engine\Autoloader();
 $autoloader->register('Opencart\\' . APPLICATION, DIR_APPLICATION);
@@ -293,6 +308,35 @@ while ($action) {
 
 // Trigger the post events
 $event->trigger('controller/' . $trigger . '/after', [&$route, &$args, &$output]);
+
+// Sort out anything stray that got echoed directly during the request
+// (see the ob_start() at the top of this file) instead of letting it
+// leak in front of the real response and corrupt it.
+$stray_output = ob_get_clean();
+
+if ($stray_output !== false && trim($stray_output) !== '') {
+	if ($config->get('error_log')) {
+		$log->write('Stray output before response (route: ' . $trigger . '): ' . trim($stray_output));
+	}
+
+	// Only re-show it for a normal HTML page when on-page error display is
+	// enabled, matching the previous behaviour there — never for a
+	// JSON/AJAX response, where this content would corrupt it exactly as
+	// described above.
+	$is_json_response = false;
+
+	foreach ($response->getHeaders() as $header) {
+		if (stripos($header, 'Content-Type:') === 0 && stripos($header, 'json') !== false) {
+			$is_json_response = true;
+
+			break;
+		}
+	}
+
+	if (!$is_json_response && $config->get('error_display')) {
+		echo $stray_output;
+	}
+}
 
 // Output
 $response->output();

@@ -1,0 +1,28 @@
+{% if backup_list %}
+<div class="table-responsive">
+  <table class="table table-bordered table-hover" id="table-backup-list">
+    <thead>
+      <tr>
+        <td class="text-start">{{ column_backup_date }}</td>
+        <td class="text-start">{{ column_backup_reason }}</td>
+        <td class="text-start">{{ column_backup_size }}</td>
+        <td class="text-end">{{ column_backup_action }}</td>
+      </tr>
+    </thead>
+    <tbody>
+      {% for backup in backup_list %}
+      <tr>
+        <td class="text-start">{{ backup.created_at }}</td>
+        <td class="text-start">{{ backup.reason }} ({{ backup.commit_before }} &rarr; {{ backup.commit_after }})</td>
+        <td class="text-start">{{ backup.size }}</td>
+        <td class="text-end">
+          <button type="button" class="btn btn-outline-danger btn-sm button-restore" data-backup-id="{{ backup.id }}"><i class="fa-solid fa-clock-rotate-left"></i> {{ button_restore }}</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="text-muted">{{ text_no_backups }}</div>
+{% endif %}

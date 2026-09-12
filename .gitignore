@@ -12,6 +12,7 @@
 /system/storage/backup/*
 /system/storage/marketplace/*
 /system/storage/modification/*
+/system/storage/update_tmp/*
 !/system/storage/*/index.html
 !/system/storage/*/.htaccess
 

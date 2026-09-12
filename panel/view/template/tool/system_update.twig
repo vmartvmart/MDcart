@@ -1,0 +1,337 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div id="alert"></div>
+
+    <div class="card">
+      <div class="card-header"><i class="fa-solid fa-rotate"></i> {{ text_status }}</div>
+      <div class="card-body">
+        <div class="row row-cols-2 mb-3">
+          <div class="col">
+            <button type="button" id="button-check" class="btn btn-primary w-100"><i class="fa-solid fa-magnifying-glass"></i> {{ button_check }}</button>
+          </div>
+          <div class="col">
+            <button type="button" id="button-apply" class="btn btn-danger w-100" disabled><i class="fa-solid fa-download"></i> {{ button_apply }}</button>
+          </div>
+        </div>
+
+        <table class="table table-bordered">
+          <tr>
+            <td class="text-start">{{ text_current_commit }}</td>
+            <td class="text-start" id="text-current-version">{{ current_version ? current_version : (current_commit ? current_commit : text_never) }}</td>
+          </tr>
+          <tr>
+            <td class="text-start">{{ text_applied_date }}</td>
+            <td class="text-start" id="text-applied-date">{{ applied_at ? applied_at : text_never }}</td>
+          </tr>
+          <tr>
+            <td class="text-start">{{ text_latest_commit }}</td>
+            <td class="text-start" id="text-latest-version">-</td>
+          </tr>
+          <tr>
+            <td class="text-start">{{ text_commit_date }}</td>
+            <td class="text-start" id="text-commit-date">-</td>
+          </tr>
+        </table>
+
+        <div id="div-changelog" style="display: none;" class="mb-3">
+          <strong><i class="fa-solid fa-list"></i> {{ text_changelog }}</strong>
+          <ul id="list-changelog" class="list-group mt-2"></ul>
+        </div>
+
+        <div id="div-baseline" class="alert alert-info" style="display: none;">
+          {{ text_no_baseline }}
+          <br><br>
+          <button type="button" id="button-baseline" class="btn btn-secondary"><i class="fa-solid fa-flag"></i> {{ button_baseline }}</button>
+        </div>
+
+        <div class="alert alert-secondary mb-0"><i class="fa-solid fa-circle-info"></i> {{ text_help_scope }}</div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><i class="fa-solid fa-clock-rotate-left"></i> {{ text_backups }}</div>
+      <div class="card-body">
+        <div class="alert alert-secondary"><i class="fa-solid fa-circle-info"></i> {{ text_help_backups }}</div>
+        <div id="div-backup-list">{{ backup_list_html }}</div>
+      </div>
+    </div>
+
+    {#
+      Deliberately no "Advanced Settings" section here. This page ships to
+      every customer's own admin panel, and that section used to expose
+      the private distribution repo name and a live GitHub Personal
+      Access Token in a plain text field — fine for the developer, not
+      something any customer (or their staff) should ever be able to see
+      or screenshot. Those settings (repo/branch/token/admin_dir) are the
+      same for every install and are set directly in the database instead
+      — see admin/model/tool/system_update.php's saveSettings(), which is
+      still there and still works, it's just no longer wired to a form on
+      this page. Change them by asking Claude, or by editing the
+      "system_update" row in oc_setting directly.
+    #}
+  </div>
+</div>
+<script type="text/javascript"><!--
+function scUpdateAlert(type, message) {
+    $('.alert-dismissible').remove();
+
+    var cls = (type === 'success') ? 'alert-success' : (type === 'warning' ? 'alert-warning' : 'alert-danger');
+    var icon = (type === 'success') ? 'fa-check-circle' : 'fa-circle-exclamation';
+
+    $('#alert').prepend('<div class="alert ' + cls + ' alert-dismissible"><i class="fa-solid ' + icon + '"></i> ' + message + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+}
+
+// Formats a GitHub API date (ISO 8601, e.g. "2026-09-11T11:59:59Z") to
+// match the admin's own interface language — Jalali (Shamsi) calendar for
+// Persian, ordinary Gregorian otherwise — date only, no time (the exact
+// minute a commit landed isn't useful here). Uses the browser's built-in
+// Intl support (every current browser ships the Persian calendar with it,
+// no extra library needed) and falls back to a plain date, or the raw
+// string, if that's ever unavailable.
+var scAdminLangCode = '{{ language_code }}';
+
+function scFormatDate(iso) {
+    if (!iso) {
+        return '';
+    }
+
+    var d = new Date(iso);
+
+    if (isNaN(d.getTime())) {
+        return iso;
+    }
+
+    var isPersian = scAdminLangCode.indexOf('fa') === 0;
+
+    try {
+        var locale = isPersian ? 'fa-IR-u-ca-persian' : 'en-US';
+
+        return new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long', day: 'numeric' }).format(d);
+    } catch (e) {
+        return d.toLocaleDateString();
+    }
+}
+
+// A failed AJAX call (network error, PHP fatal, wrong URL, etc.) used to
+// only be logged to the browser console — meaning the page visibly did
+// nothing at all when this happened, which looked exactly like a stuck or
+// broken button. Every ajax error: handler below now also calls this, so
+// something always shows on screen.
+function scAjaxError(xhr, thrownError) {
+    console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+    scUpdateAlert('danger', 'خطای غیرمنتظره (کد ' + xhr.status + '). لطفاً دوباره امتحان کنید؛ اگر تکرار شد، کنسول مرورگر (F12) را بررسی کنید.');
+}
+
+function scRefreshBackups() {
+    $.ajax({
+        url: '{{ backups }}',
+        type: 'get',
+        success: function(html) {
+            $('#div-backup-list').html(html);
+        }
+    });
+}
+
+$('#button-check').on('click', function() {
+    var element = this;
+
+    $.ajax({
+        url: '{{ check }}',
+        type: 'get',
+        dataType: 'json',
+        beforeSend: function() {
+            $(element).prop('disabled', true);
+            scUpdateAlert('warning', '{{ text_checking }}');
+        },
+        complete: function() {
+            $(element).prop('disabled', false);
+        },
+        success: function(json) {
+            if (json['error']) {
+                scUpdateAlert('danger', json['error']);
+
+                return;
+            }
+
+            $('#text-current-version').text(json['current_version'] || (json['current_commit'] ? json['current_commit'].substring(0, 10) : '{{ text_never }}'));
+            $('#text-latest-version').text(json['latest_version'] || (json['latest_commit'] ? json['latest_commit'].substring(0, 10) : '-'));
+            // Prefer the date the VERSION file itself was last changed (when
+            // the version above was actually released) over the branch
+            // tip's raw commit date, which can belong to a later, unrelated
+            // commit; fall back to that raw date only for a repo that
+            // doesn't have a VERSION file published yet.
+            $('#text-commit-date').text(scFormatDate(json['latest_version_date'] || json['date']) || '-');
+
+            var $list = $('#list-changelog');
+            $list.empty();
+
+            if (json['changelog'] && json['changelog'].length) {
+                json['changelog'].forEach(function(commit) {
+                    var firstLine = (commit.message || '').split('\n')[0];
+                    $list.append('<li class="list-group-item">' + firstLine + '</li>');
+                });
+                $('#div-changelog').show();
+            } else if (json['message']) {
+                $list.append('<li class="list-group-item">' + json['message'].split('\n')[0] + '</li>');
+                $('#div-changelog').show();
+            } else {
+                $('#div-changelog').hide();
+            }
+
+            if (!json['has_baseline']) {
+                $('#div-baseline').show();
+                $('#button-apply').prop('disabled', true);
+                scUpdateAlert('warning', '{{ text_no_baseline }}');
+            } else if (json['up_to_date']) {
+                $('#div-baseline').hide();
+                $('#button-apply').prop('disabled', true);
+                scUpdateAlert('success', '{{ text_up_to_date }}');
+            } else {
+                $('#div-baseline').hide();
+                $('#button-apply').prop('disabled', false);
+                scUpdateAlert('warning', '{{ text_update_available }}');
+            }
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            scAjaxError(xhr, thrownError);
+        }
+    });
+});
+
+$('#button-baseline').on('click', function() {
+    var element = this;
+
+    $.ajax({
+        url: '{{ baseline }}',
+        type: 'post',
+        dataType: 'json',
+        beforeSend: function() {
+            $(element).prop('disabled', true);
+        },
+        complete: function() {
+            $(element).prop('disabled', false);
+        },
+        success: function(json) {
+            if (json['error']) {
+                scUpdateAlert('danger', json['error']);
+
+                return;
+            }
+
+            $('#text-current-version').text(json['current_version'] || json['current_commit'].substring(0, 10));
+            $('#div-baseline').hide();
+            scUpdateAlert('success', json['success']);
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            scAjaxError(xhr, thrownError);
+        }
+    });
+});
+
+$('#button-apply').on('click', function() {
+    if (!confirm('{{ text_confirm_apply }}')) {
+        return;
+    }
+
+    var element = this;
+
+    $.ajax({
+        url: '{{ apply }}',
+        type: 'post',
+        dataType: 'json',
+        beforeSend: function() {
+            $(element).prop('disabled', true);
+            $('#button-check').prop('disabled', true);
+            scUpdateAlert('warning', '{{ text_applying }}');
+        },
+        complete: function() {
+            $('#button-check').prop('disabled', false);
+        },
+        success: function(json) {
+            if (json['error']) {
+                scUpdateAlert('danger', json['error']);
+                $(element).prop('disabled', false);
+
+                if (json['backup_id']) {
+                    scRefreshBackups();
+                }
+
+                return;
+            }
+
+            if (json['applied_commit']) {
+                var appliedLabel = json['applied_version'] || json['applied_commit'].substring(0, 10);
+                $('#text-current-version').text(appliedLabel);
+                $('#text-latest-version').text(appliedLabel);
+            }
+
+            $('#div-changelog').hide();
+
+            var message = json['warning'] ? (json['success'] + ' — ' + json['warning']) : json['success'];
+
+            if (json['backup_id']) {
+                message += ' — {{ text_backup_created_prefix }} ' + json['backup_id'];
+            }
+
+            scUpdateAlert(json['warning'] ? 'warning' : 'success', message);
+
+            scRefreshBackups();
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            scAjaxError(xhr, thrownError);
+            $(element).prop('disabled', false);
+        }
+    });
+});
+
+$(document).on('click', '.button-restore', function() {
+    if (!confirm('{{ text_confirm_restore }}')) {
+        return;
+    }
+
+    var element = this;
+    var backupId = $(element).attr('data-backup-id');
+
+    $.ajax({
+        url: '{{ restore }}',
+        type: 'post',
+        dataType: 'json',
+        data: { backup_id: backupId },
+        beforeSend: function() {
+            $(element).prop('disabled', true);
+            $('#button-apply, #button-check').prop('disabled', true);
+            scUpdateAlert('warning', '{{ text_restoring }}');
+        },
+        success: function(json) {
+            if (json['error']) {
+                scUpdateAlert('danger', json['error']);
+                $(element).prop('disabled', false);
+                $('#button-apply, #button-check').prop('disabled', false);
+
+                return;
+            }
+
+            scUpdateAlert('success', json['success']);
+            $('#button-check').prop('disabled', false);
+            $('#button-check').trigger('click');
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            scAjaxError(xhr, thrownError);
+            $(element).prop('disabled', false);
+            $('#button-apply, #button-check').prop('disabled', false);
+        }
+    });
+});
+//--></script>
+{{ footer }}
