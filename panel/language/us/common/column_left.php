@@ -92,6 +92,7 @@ $_['text_import_product_url']  = 'Import Product from URL';
 $_['text_warehouse']           = 'Warehouses';
 $_['text_warehouse_transfer']  = 'Warehouse Transfers';
 $_['text_purchase_invoice']    = 'Purchase Invoices';
+$_['text_supplier']            = 'Suppliers';
 $_['text_pos']                 = 'POS';
 $_['text_preorder']            = 'Pre-Orders';
 $_['text_accounting']          = 'Accounting';

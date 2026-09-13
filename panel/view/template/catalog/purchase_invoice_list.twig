@@ -7,6 +7,7 @@
         <th>{{ column_warehouse }}</th>
         <th class="text-center">{{ column_invoice_date }}</th>
         <th>{{ column_date_added }}</th>
+        <th class="text-end">{{ column_outstanding }}</th>
         <th class="text-end col-1">{{ column_action }}</th>
       </tr>
     </thead>
@@ -19,12 +20,13 @@
             <td>{{ purchase_invoice.warehouse_name }}</td>
             <td class="text-center">{{ purchase_invoice.invoice_date ?: '-' }}</td>
             <td>{{ purchase_invoice.date_added }}</td>
+            <td class="text-end">{% if purchase_invoice.outstanding %}<span class="badge bg-warning text-dark">{{ purchase_invoice.outstanding }}</span>{% else %}-{% endif %}</td>
             <td class="text-end"><a href="{{ purchase_invoice.view }}" data-bs-toggle="tooltip" title="{{ button_view }}" class="btn btn-primary"><i class="fa-solid fa-eye"></i></a></td>
           </tr>
         {% endfor %}
       {% else %}
         <tr>
-          <td class="text-center" colspan="6">{{ text_no_results }}</td>
+          <td class="text-center" colspan="7">{{ text_no_results }}</td>
         </tr>
       {% endif %}
     </tbody>

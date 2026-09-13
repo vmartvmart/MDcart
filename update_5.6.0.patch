@@ -1,0 +1,1842 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index e91790d..b118f6c 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -68,5 +68,10 @@
+     "version": "5.5.0",
+     "fa": "افزونه‌ی جدید «ترجمه خودکار فارسی/انگلیسی» (Extensions > Other): وقتی نام، توضیحات، کلمات کلیدی یا سئوی یک محصول/دسته‌بندی فقط به یکی از دو زبان وارد می‌شود، فیلد خالیِ زبان دیگر همان لحظه‌ی ذخیره، با استفاده از Claude API خودتان (نه گوگل ترنسلیت)، به‌طور خودکار پر می‌شود؛ فیلدی که قبلاً پر بوده هرگز بازنویسی نمی‌شود. کلید API فقط سمت سرور استفاده می‌شود، هیچ مسیر عمومی به آن دسترسی ندارد، و در صفحه تنظیمات هم هرگز به‌صورت کامل نمایش داده نمی‌شود — راهنمای همان صفحه توصیه می‌کند برای کلید خودتان یک سقف هزینه ماهانه هم در پنل Anthropic تنظیم کنید. همچنین یک باگ قدیمی‌تر پیدا و رفع شد: رویداد اطلاع‌رسانیِ «موجود شدن مجدد کالا» به‌خاطر یک رشته trigger اشتباه هرگز واقعاً اجرا نمی‌شد؛ حالا هم روی نصب‌های موجود به‌طور خودکار اصلاح می‌شود و هم در نصب‌های تازه از ابتدا درست است.",
+     "en": "New \"Auto Translate (fa/en)\" extension (Extensions > Other): when a product/category's name, description, tags or SEO fields are entered in only one of the two languages, the empty field in the other language is automatically filled in at the moment of saving, using your own Claude API key (not Google Translate) — a field that already has content is never overwritten. The API key is only ever used server-side, no public route can reach it, and the settings page never displays it in full — its own help text recommends setting a monthly spending cap on that key in your Anthropic console as extra protection. Also found and fixed a pre-existing bug: the back-in-stock notification event never actually fired due to a wrong trigger string — this is now corrected automatically on existing installs and is correct from the start on new ones."
++  },
++  {
++    "version": "5.6.0",
++    "fa": "فاکتور خرید حالا بار مالی واقعی دارد: انتخاب «تأمین‌کننده» از یک لیست کامل (به‌جای تایپ آزاد، با موجودی/بدهی هر تامین‌کننده قابل مشاهده)، مشخص‌کردن نوع پرداخت (نقد/صندوق، کارت/واریز بانکی، نسیه، یا ترکیبی از نقد و نسیه)، و در صورت نصب بودن ماژول حسابداری، ثبت خودکار سند حسابداری هنگام ذخیره فاکتور (بدهکار موجودی انبار، بستانکار حساب بانکی/صندوق برای بخش پرداخت‌شده و بستانکار حساب‌های پرداختنی برای بخش نسیه). بدهی ارزی یک فاکتور نسیه به همان ارز اصلی (درهم، دلار و...) ثابت می‌ماند و با تغییر نرخ ارز دوباره ارزش‌گذاری نمی‌شود؛ فقط هنگام تسویه‌ی واقعی، اختلاف نرخ روز فاکتور با نرخ روز تسویه در یک حساب جدید «سود/زیان تسعیر ارز» ثبت می‌شود تا دفاتر متوازن بمانند. یک دکمه‌ی «ثبت پرداخت» هم به صفحه‌ی مشاهده‌ی هر فاکتور نسیه/ترکیبی اضافه شد تا بتوان بدهی را بعداً به‌صورت کامل یا جزئی تسویه کرد. منوی «فاکتور خرید» هم از زیرمجموعه‌ی کاتالوگ به زیرمجموعه‌ی حسابداری منتقل شد (انبارها و انتقال بین انبارها همچنان زیر کاتالوگ باقی می‌مانند، چون مدیریت موجودی/مکان هستند نه یک رویداد مالی).",
++    "en": "Purchase Invoice now carries its real financial weight: pick the Supplier from a full list (instead of free text, with each supplier's outstanding balance visible), choose a payment type (cash/cashbox, card/bank transfer, credit/open account, or a combination of cash and credit), and — when the accounting module is installed — a balanced journal entry is posted automatically on save (debiting Inventory, crediting the chosen Bank/Cash account for the paid portion and Accounts Payable for the credit portion). A credit invoice's foreign-currency debt (AED, USD, ...) stays fixed in its original amount and is never re-valued just because the exchange rate moves; only when it is actually settled does the difference between the invoice-date rate and the settlement-date rate get recorded in a new \"Foreign Exchange Gain/Loss\" account, so the books stay balanced. A \"Record Payment\" action was also added to each credit/combined invoice's view screen, to settle its balance later in full or in part. The Purchase Invoice menu entry also moved from Catalog to Accounting (Warehouses and Warehouse Transfer stay under Catalog, since they are inventory/location management, not a financial event)."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index d50359d..1bc788d 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.5.0
++5.6.0
+diff --git a/install_starter.sql b/install_starter.sql
+index 4d1042f..604c7b6 100644
+--- a/install_starter.sql
++++ b/install_starter.sql
+@@ -38,6 +38,7 @@ INSERT INTO `oc_account` (`account_id`, `parent_id`, `code`, `name`, `type`, `is
+ INSERT INTO `oc_account` (`account_id`, `parent_id`, `code`, `name`, `type`, `is_system`, `is_bank_cash`, `status`, `date_added`) VALUES ('18', '0', '5000', 'Expenses', 'expense', '1', '0', '1', '2026-09-09 13:50:05');
+ INSERT INTO `oc_account` (`account_id`, `parent_id`, `code`, `name`, `type`, `is_system`, `is_bank_cash`, `status`, `date_added`) VALUES ('19', '18', '5100', 'Cost of Goods Sold', 'expense', '1', '0', '1', '2026-09-09 13:50:05');
+ INSERT INTO `oc_account` (`account_id`, `parent_id`, `code`, `name`, `type`, `is_system`, `is_bank_cash`, `status`, `date_added`) VALUES ('20', '18', '5200', 'General Expenses', 'expense', '1', '0', '1', '2026-09-09 13:50:05');
++INSERT INTO `oc_account` (`account_id`, `parent_id`, `code`, `name`, `type`, `is_system`, `is_bank_cash`, `status`, `date_added`) VALUES ('21', '18', '5900', 'Foreign Exchange Gain/Loss', 'expense', '1', '0', '1', '2026-09-09 13:50:05');
+ 
+ DROP TABLE IF EXISTS `oc_address`;
+ CREATE TABLE `oc_address` (
+@@ -107139,14 +107140,22 @@ DROP TABLE IF EXISTS `oc_purchase_invoice`;
+ CREATE TABLE `oc_purchase_invoice` (
+   `purchase_invoice_id` int(11) NOT NULL AUTO_INCREMENT,
+   `warehouse_id` int(11) NOT NULL,
++  `supplier_id` int(11) NOT NULL DEFAULT 0,
+   `supplier_name` varchar(128) NOT NULL DEFAULT '',
++  `currency_code` varchar(3) NOT NULL DEFAULT '',
++  `exchange_rate` decimal(15,6) NOT NULL DEFAULT 1.000000,
++  `total_amount` decimal(15,4) NOT NULL DEFAULT 0.0000,
++  `payment_type` varchar(20) NOT NULL DEFAULT 'credit',
++  `bank_account_id` int(11) NOT NULL DEFAULT 0,
++  `paid_amount` decimal(15,4) NOT NULL DEFAULT 0.0000,
+   `invoice_number` varchar(64) NOT NULL DEFAULT '',
+   `invoice_date` date DEFAULT NULL,
+   `comment` text DEFAULT NULL,
+   `user_id` int(11) NOT NULL DEFAULT 0,
+   `date_added` datetime NOT NULL,
+   PRIMARY KEY (`purchase_invoice_id`),
+-  KEY `warehouse_id` (`warehouse_id`)
++  KEY `warehouse_id` (`warehouse_id`),
++  KEY `supplier_id` (`supplier_id`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ 
+ DROP TABLE IF EXISTS `oc_purchase_invoice_product`;
+@@ -107162,6 +107171,20 @@ CREATE TABLE `oc_purchase_invoice_product` (
+   KEY `product_id` (`product_id`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ 
++DROP TABLE IF EXISTS `oc_purchase_invoice_payment`;
++CREATE TABLE `oc_purchase_invoice_payment` (
++  `purchase_invoice_payment_id` int(11) NOT NULL AUTO_INCREMENT,
++  `purchase_invoice_id` int(11) NOT NULL,
++  `bank_account_id` int(11) NOT NULL DEFAULT 0,
++  `amount` decimal(15,4) NOT NULL DEFAULT 0.0000,
++  `exchange_rate` decimal(15,6) NOT NULL DEFAULT 1.000000,
++  `journal_id` int(11) NOT NULL DEFAULT 0,
++  `user_id` int(11) NOT NULL DEFAULT 0,
++  `date_added` datetime NOT NULL,
++  PRIMARY KEY (`purchase_invoice_payment_id`),
++  KEY `purchase_invoice_id` (`purchase_invoice_id`)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
++
+ DROP TABLE IF EXISTS `oc_return`;
+ CREATE TABLE `oc_return` (
+   `return_id` int(11) NOT NULL AUTO_INCREMENT,
+@@ -107871,7 +107894,7 @@ CREATE TABLE `oc_user_group` (
+   `permission` text DEFAULT NULL,
+   PRIMARY KEY (`user_group_id`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+-INSERT INTO `oc_user_group` (`user_group_id`, `name`, `permission`) VALUES ('1', 'Administrator', '{\"access\":[\"catalog\\/attribute\",\"catalog\\/attribute_group\",\"catalog\\/category\",\"catalog\\/download\",\"catalog\\/filter\",\"catalog\\/filter_group\",\"catalog\\/identifier\",\"catalog\\/information\",\"catalog\\/manufacturer\",\"catalog\\/option\",\"catalog\\/product\",\"catalog\\/review\",\"catalog\\/subscription_plan\",\"cms\\/antispam\",\"cms\\/article\",\"cms\\/comment\",\"cms\\/topic\",\"common\\/developer\",\"common\\/filemanager\",\"common\\/security\",\"customer\\/address\",\"customer\\/custom_field\",\"customer\\/customer\",\"customer\\/customer_approval\",\"customer\\/customer_group\",\"customer\\/gdpr\",\"design\\/banner\",\"design\\/layout\",\"design\\/seo_url\",\"design\\/theme\",\"design\\/translation\",\"design\\/color\",\"error\\/exception\",\"event\\/modification\",\"extension\\/analytics\",\"extension\\/captcha\",\"extension\\/currency\",\"extension\\/dashboard\",\"extension\\/feed\",\"extension\\/fraud\",\"extension\\/language\",\"extension\\/marketplace\",\"extension\\/module\",\"extension\\/other\",\"extension\\/payment\",\"extension\\/report\",\"extension\\/shipping\",\"extension\\/theme\",\"extension\\/total\",\"localisation\\/address_format\",\"localisation\\/country\",\"localisation\\/currency\",\"localisation\\/geo_zone\",\"localisation\\/language\",\"localisation\\/length_class\",\"localisation\\/location\",\"localisation\\/order_status\",\"localisation\\/return_action\",\"localisation\\/return_reason\",\"localisation\\/return_status\",\"localisation\\/stock_status\",\"localisation\\/subscription_status\",\"localisation\\/tax_class\",\"localisation\\/tax_rate\",\"localisation\\/weight_class\",\"localisation\\/zone\",\"mail\\/affiliate\",\"mail\\/authorize\",\"mail\\/customer\",\"mail\\/forgotten\",\"mail\\/gdpr\",\"mail\\/returns\",\"mail\\/reward\",\"mail\\/subscription\",\"mail\\/transaction\",\"marketing\\/affiliate\",\"marketing\\/contact\",\"marketing\\/coupon\",\"marketing\\/marketing\",\"marketplace\\/api\",\"marketplace\\/cron\",\"marketplace\\/event\",\"marketplace\\/extension\",\"marketplace\\/installer\",\"marketplace\\/marketplace\",\"marketplace\\/modification\",\"marketplace\\/promotion\",\"marketplace\\/startup\",\"report\\/online\",\"report\\/report\",\"report\\/statistics\",\"sale\\/order\",\"sale\\/returns\",\"sale\\/subscription\",\"setting\\/setting\",\"setting\\/store\",\"tool\\/backup\",\"tool\\/log\",\"tool\\/notification\",\"tool\\/upgrade\",\"tool\\/upload\",\"user\\/api\",\"user\\/profile\",\"user\\/user\",\"user\\/user_permission\",\"extension\\/opencart\\/api\\/coupon\",\"extension\\/opencart\\/api\\/reward\",\"extension\\/opencart\\/captcha\\/basic\",\"extension\\/opencart\\/currency\\/ecb\",\"extension\\/opencart\\/currency\\/fixer\",\"extension\\/opencart\\/dashboard\\/activity\",\"extension\\/opencart\\/dashboard\\/chart\",\"extension\\/opencart\\/dashboard\\/customer\",\"extension\\/opencart\\/dashboard\\/map\",\"extension\\/opencart\\/dashboard\\/online\",\"extension\\/opencart\\/dashboard\\/order\",\"extension\\/opencart\\/dashboard\\/recent\",\"extension\\/opencart\\/dashboard\\/sale\",\"extension\\/opencart\\/fraud\\/ddos\",\"extension\\/opencart\\/fraud\\/ip\",\"extension\\/opencart\\/module\\/account\",\"extension\\/opencart\\/module\\/banner\",\"extension\\/opencart\\/module\\/bestseller\",\"extension\\/opencart\\/module\\/blog\",\"extension\\/opencart\\/module\\/category\",\"extension\\/opencart\\/module\\/featured\",\"extension\\/opencart\\/module\\/filter\",\"extension\\/opencart\\/module\\/html\",\"extension\\/opencart\\/module\\/information\",\"extension\\/opencart\\/module\\/latest\",\"extension\\/opencart\\/module\\/special\",\"extension\\/opencart\\/module\\/store\",\"extension\\/opencart\\/module\\/topic\",\"extension\\/opencart\\/payment\\/bank_transfer\",\"extension\\/opencart\\/payment\\/cheque\",\"extension\\/opencart\\/payment\\/cod\",\"extension\\/opencart\\/payment\\/free_checkout\",\"extension\\/opencart\\/report\\/customer\",\"extension\\/opencart\\/report\\/customer_activity\",\"extension\\/opencart\\/report\\/customer_order\",\"extension\\/opencart\\/report\\/customer_reward\",\"extension\\/opencart\\/report\\/customer_search\",\"extension\\/opencart\\/report\\/customer_transaction\",\"extension\\/opencart\\/report\\/marketing\",\"extension\\/opencart\\/report\\/product_purchased\",\"extension\\/opencart\\/report\\/product_viewed\",\"extension\\/opencart\\/report\\/sale_coupon\",\"extension\\/opencart\\/report\\/sale_order\",\"extension\\/opencart\\/report\\/sale_return\",\"extension\\/opencart\\/report\\/sale_shipping\",\"extension\\/opencart\\/report\\/sale_tax\",\"extension\\/opencart\\/report\\/subscription\",\"extension\\/opencart\\/shipping\\/flat\",\"extension\\/opencart\\/shipping\\/free\",\"extension\\/opencart\\/shipping\\/item\",\"extension\\/opencart\\/shipping\\/pickup\",\"extension\\/opencart\\/shipping\\/weight\",\"extension\\/opencart\\/theme\\/basic\",\"extension\\/opencart\\/total\\/coupon\",\"extension\\/opencart\\/total\\/credit\",\"extension\\/opencart\\/total\\/handling\",\"extension\\/opencart\\/total\\/low_order_fee\",\"extension\\/opencart\\/total\\/reward\",\"extension\\/opencart\\/total\\/shipping\",\"extension\\/opencart\\/total\\/sub_total\",\"extension\\/opencart\\/total\\/tax\",\"extension\\/opencart\\/total\\/total\",\"extension\\/iranian_gateways\\/payment\\/card_to_card\",\"extension\\/iranian_gateways\\/payment\\/idpay\",\"extension\\/iranian_gateways\\/payment\\/payping\",\"extension\\/iranian_gateways\\/payment\\/sizpay\",\"extension\\/iranian_gateways\\/payment\\/zarinpal\",\"extension\\/torob\\/feed\\/torob\",\"extension\\/ippanel\\/other\\/ippanel\",\"extension\\/bale\\/other\\/bale\",\"extension\\/stock_alert\\/other\\/stock_alert\",\"extension\\/telegram\\/other\\/telegram\",\"extension\\/whatsapp\\/other\\/whatsapp\",\"extension\\/auto_translate\\/other\\/auto_translate\",\"catalog\\/product_import_url\",\"design\\/theme_switcher\",\"design\\/theme_manager\",\"extension\\/opencart\\/currency\\/fixer\",\"catalog\\/warehouse\",\"catalog\\/warehouse_transfer\",\"sale\\/pos\",\"catalog\\/purchase_invoice\",\"report\\/profit_loss\",\"accounting\\/account\",\"accounting\\/bank_account\",\"accounting\\/journal\",\"accounting\\/report\",\"accounting\\/exchange_rate\",\"sale\\/preorder\",\"tool\\/system_update\"],\"modify\":[\"catalog\\/attribute\",\"catalog\\/attribute_group\",\"catalog\\/category\",\"catalog\\/download\",\"catalog\\/filter\",\"catalog\\/filter_group\",\"catalog\\/identifier\",\"catalog\\/information\",\"catalog\\/manufacturer\",\"catalog\\/option\",\"catalog\\/product\",\"catalog\\/review\",\"catalog\\/subscription_plan\",\"cms\\/antispam\",\"cms\\/article\",\"cms\\/comment\",\"cms\\/topic\",\"common\\/developer\",\"common\\/filemanager\",\"common\\/security\",\"customer\\/address\",\"customer\\/custom_field\",\"customer\\/customer\",\"customer\\/customer_approval\",\"customer\\/customer_group\",\"customer\\/gdpr\",\"design\\/banner\",\"design\\/layout\",\"design\\/seo_url\",\"design\\/theme\",\"design\\/translation\",\"design\\/color\",\"error\\/exception\",\"event\\/modification\",\"extension\\/analytics\",\"extension\\/captcha\",\"extension\\/currency\",\"extension\\/dashboard\",\"extension\\/feed\",\"extension\\/fraud\",\"extension\\/language\",\"extension\\/marketplace\",\"extension\\/module\",\"extension\\/other\",\"extension\\/payment\",\"extension\\/report\",\"extension\\/shipping\",\"extension\\/theme\",\"extension\\/total\",\"localisation\\/address_format\",\"localisation\\/country\",\"localisation\\/currency\",\"localisation\\/geo_zone\",\"localisation\\/language\",\"localisation\\/length_class\",\"localisation\\/location\",\"localisation\\/order_status\",\"localisation\\/return_action\",\"localisation\\/return_reason\",\"localisation\\/return_status\",\"localisation\\/stock_status\",\"localisation\\/subscription_status\",\"localisation\\/tax_class\",\"localisation\\/tax_rate\",\"localisation\\/weight_class\",\"localisation\\/zone\",\"mail\\/affiliate\",\"mail\\/authorize\",\"mail\\/customer\",\"mail\\/forgotten\",\"mail\\/gdpr\",\"mail\\/returns\",\"mail\\/reward\",\"mail\\/subscription\",\"mail\\/transaction\",\"marketing\\/affiliate\",\"marketing\\/contact\",\"marketing\\/coupon\",\"marketing\\/marketing\",\"marketplace\\/api\",\"marketplace\\/cron\",\"marketplace\\/event\",\"marketplace\\/extension\",\"marketplace\\/installer\",\"marketplace\\/marketplace\",\"marketplace\\/modification\",\"marketplace\\/promotion\",\"marketplace\\/startup\",\"report\\/online\",\"report\\/report\",\"report\\/statistics\",\"sale\\/order\",\"sale\\/returns\",\"sale\\/subscription\",\"setting\\/setting\",\"setting\\/store\",\"tool\\/backup\",\"tool\\/log\",\"tool\\/notification\",\"tool\\/upgrade\",\"tool\\/upload\",\"user\\/api\",\"user\\/profile\",\"user\\/user\",\"user\\/user_permission\",\"extension\\/opencart\\/api\\/coupon\",\"extension\\/opencart\\/api\\/reward\",\"extension\\/opencart\\/captcha\\/basic\",\"extension\\/opencart\\/currency\\/ecb\",\"extension\\/opencart\\/currency\\/fixer\",\"extension\\/opencart\\/dashboard\\/activity\",\"extension\\/opencart\\/dashboard\\/chart\",\"extension\\/opencart\\/dashboard\\/customer\",\"extension\\/opencart\\/dashboard\\/map\",\"extension\\/opencart\\/dashboard\\/online\",\"extension\\/opencart\\/dashboard\\/order\",\"extension\\/opencart\\/dashboard\\/recent\",\"extension\\/opencart\\/dashboard\\/sale\",\"extension\\/opencart\\/fraud\\/ddos\",\"extension\\/opencart\\/fraud\\/ip\",\"extension\\/opencart\\/module\\/account\",\"extension\\/opencart\\/module\\/banner\",\"extension\\/opencart\\/module\\/bestseller\",\"extension\\/opencart\\/module\\/blog\",\"extension\\/opencart\\/module\\/category\",\"extension\\/opencart\\/module\\/featured\",\"extension\\/opencart\\/module\\/filter\",\"extension\\/opencart\\/module\\/html\",\"extension\\/opencart\\/module\\/information\",\"extension\\/opencart\\/module\\/latest\",\"extension\\/opencart\\/module\\/special\",\"extension\\/opencart\\/module\\/store\",\"extension\\/opencart\\/module\\/topic\",\"extension\\/opencart\\/payment\\/bank_transfer\",\"extension\\/opencart\\/payment\\/cheque\",\"extension\\/opencart\\/payment\\/cod\",\"extension\\/opencart\\/payment\\/free_checkout\",\"extension\\/opencart\\/report\\/customer\",\"extension\\/opencart\\/report\\/customer_activity\",\"extension\\/opencart\\/report\\/customer_order\",\"extension\\/opencart\\/report\\/customer_reward\",\"extension\\/opencart\\/report\\/customer_search\",\"extension\\/opencart\\/report\\/customer_transaction\",\"extension\\/opencart\\/report\\/marketing\",\"extension\\/opencart\\/report\\/product_purchased\",\"extension\\/opencart\\/report\\/product_viewed\",\"extension\\/opencart\\/report\\/sale_coupon\",\"extension\\/opencart\\/report\\/sale_order\",\"extension\\/opencart\\/report\\/sale_return\",\"extension\\/opencart\\/report\\/sale_shipping\",\"extension\\/opencart\\/report\\/sale_tax\",\"extension\\/opencart\\/report\\/subscription\",\"extension\\/opencart\\/shipping\\/flat\",\"extension\\/opencart\\/shipping\\/free\",\"extension\\/opencart\\/shipping\\/item\",\"extension\\/opencart\\/shipping\\/pickup\",\"extension\\/opencart\\/shipping\\/weight\",\"extension\\/opencart\\/theme\\/basic\",\"extension\\/opencart\\/total\\/coupon\",\"extension\\/opencart\\/total\\/credit\",\"extension\\/opencart\\/total\\/handling\",\"extension\\/opencart\\/total\\/low_order_fee\",\"extension\\/opencart\\/total\\/reward\",\"extension\\/opencart\\/total\\/shipping\",\"extension\\/opencart\\/total\\/sub_total\",\"extension\\/opencart\\/total\\/tax\",\"extension\\/opencart\\/total\\/total\",\"extension\\/iranian_gateways\\/payment\\/card_to_card\",\"extension\\/iranian_gateways\\/payment\\/idpay\",\"extension\\/iranian_gateways\\/payment\\/payping\",\"extension\\/iranian_gateways\\/payment\\/sizpay\",\"extension\\/iranian_gateways\\/payment\\/zarinpal\",\"extension\\/torob\\/feed\\/torob\",\"extension\\/ippanel\\/other\\/ippanel\",\"extension\\/bale\\/other\\/bale\",\"extension\\/stock_alert\\/other\\/stock_alert\",\"extension\\/telegram\\/other\\/telegram\",\"extension\\/whatsapp\\/other\\/whatsapp\",\"extension\\/auto_translate\\/other\\/auto_translate\",\"catalog\\/product_import_url\",\"design\\/theme_switcher\",\"design\\/theme_manager\",\"extension\\/opencart\\/currency\\/fixer\",\"catalog\\/warehouse\",\"catalog\\/warehouse_transfer\",\"sale\\/pos\",\"catalog\\/purchase_invoice\",\"report\\/profit_loss\",\"accounting\\/account\",\"accounting\\/bank_account\",\"accounting\\/journal\",\"accounting\\/report\",\"accounting\\/exchange_rate\",\"sale\\/preorder\",\"tool\\/system_update\"]}');
++INSERT INTO `oc_user_group` (`user_group_id`, `name`, `permission`) VALUES ('1', 'Administrator', '{\"access\":[\"catalog\\/attribute\",\"catalog\\/attribute_group\",\"catalog\\/category\",\"catalog\\/download\",\"catalog\\/filter\",\"catalog\\/filter_group\",\"catalog\\/identifier\",\"catalog\\/information\",\"catalog\\/manufacturer\",\"catalog\\/option\",\"catalog\\/product\",\"catalog\\/review\",\"catalog\\/subscription_plan\",\"cms\\/antispam\",\"cms\\/article\",\"cms\\/comment\",\"cms\\/topic\",\"common\\/developer\",\"common\\/filemanager\",\"common\\/security\",\"customer\\/address\",\"customer\\/custom_field\",\"customer\\/customer\",\"customer\\/customer_approval\",\"customer\\/customer_group\",\"customer\\/gdpr\",\"design\\/banner\",\"design\\/layout\",\"design\\/seo_url\",\"design\\/theme\",\"design\\/translation\",\"design\\/color\",\"error\\/exception\",\"event\\/modification\",\"extension\\/analytics\",\"extension\\/captcha\",\"extension\\/currency\",\"extension\\/dashboard\",\"extension\\/feed\",\"extension\\/fraud\",\"extension\\/language\",\"extension\\/marketplace\",\"extension\\/module\",\"extension\\/other\",\"extension\\/payment\",\"extension\\/report\",\"extension\\/shipping\",\"extension\\/theme\",\"extension\\/total\",\"localisation\\/address_format\",\"localisation\\/country\",\"localisation\\/currency\",\"localisation\\/geo_zone\",\"localisation\\/language\",\"localisation\\/length_class\",\"localisation\\/location\",\"localisation\\/order_status\",\"localisation\\/return_action\",\"localisation\\/return_reason\",\"localisation\\/return_status\",\"localisation\\/stock_status\",\"localisation\\/subscription_status\",\"localisation\\/tax_class\",\"localisation\\/tax_rate\",\"localisation\\/weight_class\",\"localisation\\/zone\",\"mail\\/affiliate\",\"mail\\/authorize\",\"mail\\/customer\",\"mail\\/forgotten\",\"mail\\/gdpr\",\"mail\\/returns\",\"mail\\/reward\",\"mail\\/subscription\",\"mail\\/transaction\",\"marketing\\/affiliate\",\"marketing\\/contact\",\"marketing\\/coupon\",\"marketing\\/marketing\",\"marketplace\\/api\",\"marketplace\\/cron\",\"marketplace\\/event\",\"marketplace\\/extension\",\"marketplace\\/installer\",\"marketplace\\/marketplace\",\"marketplace\\/modification\",\"marketplace\\/promotion\",\"marketplace\\/startup\",\"report\\/online\",\"report\\/report\",\"report\\/statistics\",\"sale\\/order\",\"sale\\/returns\",\"sale\\/subscription\",\"setting\\/setting\",\"setting\\/store\",\"tool\\/backup\",\"tool\\/log\",\"tool\\/notification\",\"tool\\/upgrade\",\"tool\\/upload\",\"user\\/api\",\"user\\/profile\",\"user\\/user\",\"user\\/user_permission\",\"extension\\/opencart\\/api\\/coupon\",\"extension\\/opencart\\/api\\/reward\",\"extension\\/opencart\\/captcha\\/basic\",\"extension\\/opencart\\/currency\\/ecb\",\"extension\\/opencart\\/currency\\/fixer\",\"extension\\/opencart\\/dashboard\\/activity\",\"extension\\/opencart\\/dashboard\\/chart\",\"extension\\/opencart\\/dashboard\\/customer\",\"extension\\/opencart\\/dashboard\\/map\",\"extension\\/opencart\\/dashboard\\/online\",\"extension\\/opencart\\/dashboard\\/order\",\"extension\\/opencart\\/dashboard\\/recent\",\"extension\\/opencart\\/dashboard\\/sale\",\"extension\\/opencart\\/fraud\\/ddos\",\"extension\\/opencart\\/fraud\\/ip\",\"extension\\/opencart\\/module\\/account\",\"extension\\/opencart\\/module\\/banner\",\"extension\\/opencart\\/module\\/bestseller\",\"extension\\/opencart\\/module\\/blog\",\"extension\\/opencart\\/module\\/category\",\"extension\\/opencart\\/module\\/featured\",\"extension\\/opencart\\/module\\/filter\",\"extension\\/opencart\\/module\\/html\",\"extension\\/opencart\\/module\\/information\",\"extension\\/opencart\\/module\\/latest\",\"extension\\/opencart\\/module\\/special\",\"extension\\/opencart\\/module\\/store\",\"extension\\/opencart\\/module\\/topic\",\"extension\\/opencart\\/payment\\/bank_transfer\",\"extension\\/opencart\\/payment\\/cheque\",\"extension\\/opencart\\/payment\\/cod\",\"extension\\/opencart\\/payment\\/free_checkout\",\"extension\\/opencart\\/report\\/customer\",\"extension\\/opencart\\/report\\/customer_activity\",\"extension\\/opencart\\/report\\/customer_order\",\"extension\\/opencart\\/report\\/customer_reward\",\"extension\\/opencart\\/report\\/customer_search\",\"extension\\/opencart\\/report\\/customer_transaction\",\"extension\\/opencart\\/report\\/marketing\",\"extension\\/opencart\\/report\\/product_purchased\",\"extension\\/opencart\\/report\\/product_viewed\",\"extension\\/opencart\\/report\\/sale_coupon\",\"extension\\/opencart\\/report\\/sale_order\",\"extension\\/opencart\\/report\\/sale_return\",\"extension\\/opencart\\/report\\/sale_shipping\",\"extension\\/opencart\\/report\\/sale_tax\",\"extension\\/opencart\\/report\\/subscription\",\"extension\\/opencart\\/shipping\\/flat\",\"extension\\/opencart\\/shipping\\/free\",\"extension\\/opencart\\/shipping\\/item\",\"extension\\/opencart\\/shipping\\/pickup\",\"extension\\/opencart\\/shipping\\/weight\",\"extension\\/opencart\\/theme\\/basic\",\"extension\\/opencart\\/total\\/coupon\",\"extension\\/opencart\\/total\\/credit\",\"extension\\/opencart\\/total\\/handling\",\"extension\\/opencart\\/total\\/low_order_fee\",\"extension\\/opencart\\/total\\/reward\",\"extension\\/opencart\\/total\\/shipping\",\"extension\\/opencart\\/total\\/sub_total\",\"extension\\/opencart\\/total\\/tax\",\"extension\\/opencart\\/total\\/total\",\"extension\\/iranian_gateways\\/payment\\/card_to_card\",\"extension\\/iranian_gateways\\/payment\\/idpay\",\"extension\\/iranian_gateways\\/payment\\/payping\",\"extension\\/iranian_gateways\\/payment\\/sizpay\",\"extension\\/iranian_gateways\\/payment\\/zarinpal\",\"extension\\/torob\\/feed\\/torob\",\"extension\\/ippanel\\/other\\/ippanel\",\"extension\\/bale\\/other\\/bale\",\"extension\\/stock_alert\\/other\\/stock_alert\",\"extension\\/telegram\\/other\\/telegram\",\"extension\\/whatsapp\\/other\\/whatsapp\",\"extension\\/auto_translate\\/other\\/auto_translate\",\"accounting\\/supplier\",\"catalog\\/product_import_url\",\"design\\/theme_switcher\",\"design\\/theme_manager\",\"extension\\/opencart\\/currency\\/fixer\",\"catalog\\/warehouse\",\"catalog\\/warehouse_transfer\",\"sale\\/pos\",\"catalog\\/purchase_invoice\",\"report\\/profit_loss\",\"accounting\\/account\",\"accounting\\/bank_account\",\"accounting\\/journal\",\"accounting\\/report\",\"accounting\\/exchange_rate\",\"sale\\/preorder\",\"tool\\/system_update\"],\"modify\":[\"catalog\\/attribute\",\"catalog\\/attribute_group\",\"catalog\\/category\",\"catalog\\/download\",\"catalog\\/filter\",\"catalog\\/filter_group\",\"catalog\\/identifier\",\"catalog\\/information\",\"catalog\\/manufacturer\",\"catalog\\/option\",\"catalog\\/product\",\"catalog\\/review\",\"catalog\\/subscription_plan\",\"cms\\/antispam\",\"cms\\/article\",\"cms\\/comment\",\"cms\\/topic\",\"common\\/developer\",\"common\\/filemanager\",\"common\\/security\",\"customer\\/address\",\"customer\\/custom_field\",\"customer\\/customer\",\"customer\\/customer_approval\",\"customer\\/customer_group\",\"customer\\/gdpr\",\"design\\/banner\",\"design\\/layout\",\"design\\/seo_url\",\"design\\/theme\",\"design\\/translation\",\"design\\/color\",\"error\\/exception\",\"event\\/modification\",\"extension\\/analytics\",\"extension\\/captcha\",\"extension\\/currency\",\"extension\\/dashboard\",\"extension\\/feed\",\"extension\\/fraud\",\"extension\\/language\",\"extension\\/marketplace\",\"extension\\/module\",\"extension\\/other\",\"extension\\/payment\",\"extension\\/report\",\"extension\\/shipping\",\"extension\\/theme\",\"extension\\/total\",\"localisation\\/address_format\",\"localisation\\/country\",\"localisation\\/currency\",\"localisation\\/geo_zone\",\"localisation\\/language\",\"localisation\\/length_class\",\"localisation\\/location\",\"localisation\\/order_status\",\"localisation\\/return_action\",\"localisation\\/return_reason\",\"localisation\\/return_status\",\"localisation\\/stock_status\",\"localisation\\/subscription_status\",\"localisation\\/tax_class\",\"localisation\\/tax_rate\",\"localisation\\/weight_class\",\"localisation\\/zone\",\"mail\\/affiliate\",\"mail\\/authorize\",\"mail\\/customer\",\"mail\\/forgotten\",\"mail\\/gdpr\",\"mail\\/returns\",\"mail\\/reward\",\"mail\\/subscription\",\"mail\\/transaction\",\"marketing\\/affiliate\",\"marketing\\/contact\",\"marketing\\/coupon\",\"marketing\\/marketing\",\"marketplace\\/api\",\"marketplace\\/cron\",\"marketplace\\/event\",\"marketplace\\/extension\",\"marketplace\\/installer\",\"marketplace\\/marketplace\",\"marketplace\\/modification\",\"marketplace\\/promotion\",\"marketplace\\/startup\",\"report\\/online\",\"report\\/report\",\"report\\/statistics\",\"sale\\/order\",\"sale\\/returns\",\"sale\\/subscription\",\"setting\\/setting\",\"setting\\/store\",\"tool\\/backup\",\"tool\\/log\",\"tool\\/notification\",\"tool\\/upgrade\",\"tool\\/upload\",\"user\\/api\",\"user\\/profile\",\"user\\/user\",\"user\\/user_permission\",\"extension\\/opencart\\/api\\/coupon\",\"extension\\/opencart\\/api\\/reward\",\"extension\\/opencart\\/captcha\\/basic\",\"extension\\/opencart\\/currency\\/ecb\",\"extension\\/opencart\\/currency\\/fixer\",\"extension\\/opencart\\/dashboard\\/activity\",\"extension\\/opencart\\/dashboard\\/chart\",\"extension\\/opencart\\/dashboard\\/customer\",\"extension\\/opencart\\/dashboard\\/map\",\"extension\\/opencart\\/dashboard\\/online\",\"extension\\/opencart\\/dashboard\\/order\",\"extension\\/opencart\\/dashboard\\/recent\",\"extension\\/opencart\\/dashboard\\/sale\",\"extension\\/opencart\\/fraud\\/ddos\",\"extension\\/opencart\\/fraud\\/ip\",\"extension\\/opencart\\/module\\/account\",\"extension\\/opencart\\/module\\/banner\",\"extension\\/opencart\\/module\\/bestseller\",\"extension\\/opencart\\/module\\/blog\",\"extension\\/opencart\\/module\\/category\",\"extension\\/opencart\\/module\\/featured\",\"extension\\/opencart\\/module\\/filter\",\"extension\\/opencart\\/module\\/html\",\"extension\\/opencart\\/module\\/information\",\"extension\\/opencart\\/module\\/latest\",\"extension\\/opencart\\/module\\/special\",\"extension\\/opencart\\/module\\/store\",\"extension\\/opencart\\/module\\/topic\",\"extension\\/opencart\\/payment\\/bank_transfer\",\"extension\\/opencart\\/payment\\/cheque\",\"extension\\/opencart\\/payment\\/cod\",\"extension\\/opencart\\/payment\\/free_checkout\",\"extension\\/opencart\\/report\\/customer\",\"extension\\/opencart\\/report\\/customer_activity\",\"extension\\/opencart\\/report\\/customer_order\",\"extension\\/opencart\\/report\\/customer_reward\",\"extension\\/opencart\\/report\\/customer_search\",\"extension\\/opencart\\/report\\/customer_transaction\",\"extension\\/opencart\\/report\\/marketing\",\"extension\\/opencart\\/report\\/product_purchased\",\"extension\\/opencart\\/report\\/product_viewed\",\"extension\\/opencart\\/report\\/sale_coupon\",\"extension\\/opencart\\/report\\/sale_order\",\"extension\\/opencart\\/report\\/sale_return\",\"extension\\/opencart\\/report\\/sale_shipping\",\"extension\\/opencart\\/report\\/sale_tax\",\"extension\\/opencart\\/report\\/subscription\",\"extension\\/opencart\\/shipping\\/flat\",\"extension\\/opencart\\/shipping\\/free\",\"extension\\/opencart\\/shipping\\/item\",\"extension\\/opencart\\/shipping\\/pickup\",\"extension\\/opencart\\/shipping\\/weight\",\"extension\\/opencart\\/theme\\/basic\",\"extension\\/opencart\\/total\\/coupon\",\"extension\\/opencart\\/total\\/credit\",\"extension\\/opencart\\/total\\/handling\",\"extension\\/opencart\\/total\\/low_order_fee\",\"extension\\/opencart\\/total\\/reward\",\"extension\\/opencart\\/total\\/shipping\",\"extension\\/opencart\\/total\\/sub_total\",\"extension\\/opencart\\/total\\/tax\",\"extension\\/opencart\\/total\\/total\",\"extension\\/iranian_gateways\\/payment\\/card_to_card\",\"extension\\/iranian_gateways\\/payment\\/idpay\",\"extension\\/iranian_gateways\\/payment\\/payping\",\"extension\\/iranian_gateways\\/payment\\/sizpay\",\"extension\\/iranian_gateways\\/payment\\/zarinpal\",\"extension\\/torob\\/feed\\/torob\",\"extension\\/ippanel\\/other\\/ippanel\",\"extension\\/bale\\/other\\/bale\",\"extension\\/stock_alert\\/other\\/stock_alert\",\"extension\\/telegram\\/other\\/telegram\",\"extension\\/whatsapp\\/other\\/whatsapp\",\"extension\\/auto_translate\\/other\\/auto_translate\",\"accounting\\/supplier\",\"catalog\\/product_import_url\",\"design\\/theme_switcher\",\"design\\/theme_manager\",\"extension\\/opencart\\/currency\\/fixer\",\"catalog\\/warehouse\",\"catalog\\/warehouse_transfer\",\"sale\\/pos\",\"catalog\\/purchase_invoice\",\"report\\/profit_loss\",\"accounting\\/account\",\"accounting\\/bank_account\",\"accounting\\/journal\",\"accounting\\/report\",\"accounting\\/exchange_rate\",\"sale\\/preorder\",\"tool\\/system_update\"]}');
+ INSERT INTO `oc_user_group` (`user_group_id`, `name`, `permission`) VALUES ('2', 'Demonstration', '{\"access\":[\"catalog\\/product_import_url\",\"design\\/theme_switcher\",\"catalog\\/warehouse\",\"catalog\\/warehouse_transfer\",\"sale\\/pos\",\"catalog\\/purchase_invoice\"],\"modify\":[\"catalog\\/product_import_url\",\"design\\/theme_switcher\",\"catalog\\/warehouse\",\"catalog\\/warehouse_transfer\",\"sale\\/pos\",\"catalog\\/purchase_invoice\"]}');
+ INSERT INTO `oc_user_group` (`user_group_id`, `name`, `permission`) VALUES ('3', 'Marketing', '{\"access\":[\"catalog\\/product_import_url\",\"design\\/theme_switcher\",\"catalog\\/warehouse\",\"catalog\\/warehouse_transfer\",\"sale\\/pos\",\"catalog\\/purchase_invoice\"],\"modify\":[\"catalog\\/product_import_url\",\"design\\/theme_switcher\",\"catalog\\/warehouse\",\"catalog\\/warehouse_transfer\",\"sale\\/pos\",\"catalog\\/purchase_invoice\"]}');
+ INSERT INTO `oc_user_group` (`user_group_id`, `name`, `permission`) VALUES ('4', 'Product Data Entry', '{\"access\":[\"catalog\\/product_import_url\",\"design\\/theme_switcher\",\"catalog\\/warehouse\",\"catalog\\/warehouse_transfer\",\"sale\\/pos\",\"catalog\\/purchase_invoice\"],\"modify\":[\"catalog\\/product_import_url\",\"design\\/theme_switcher\",\"catalog\\/warehouse\",\"catalog\\/warehouse_transfer\",\"sale\\/pos\",\"catalog\\/purchase_invoice\"]}');
+@@ -107915,6 +107938,22 @@ CREATE TABLE `oc_warehouse` (
+   PRIMARY KEY (`warehouse_id`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ 
++DROP TABLE IF EXISTS `oc_supplier`;
++CREATE TABLE `oc_supplier` (
++  `supplier_id` int(11) NOT NULL AUTO_INCREMENT,
++  `name` varchar(128) NOT NULL,
++  `telephone` varchar(32) NOT NULL DEFAULT '',
++  `email` varchar(96) NOT NULL DEFAULT '',
++  `address` varchar(255) NOT NULL DEFAULT '',
++  `tax_id` varchar(64) NOT NULL DEFAULT '',
++  `currency_code` varchar(3) NOT NULL DEFAULT '',
++  `status` tinyint(1) NOT NULL DEFAULT 1,
++  `sort_order` int(11) NOT NULL DEFAULT 0,
++  `date_added` datetime NOT NULL,
++  `date_modified` datetime NOT NULL,
++  PRIMARY KEY (`supplier_id`)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
++
+ DROP TABLE IF EXISTS `oc_warehouse_transfer`;
+ CREATE TABLE `oc_warehouse_transfer` (
+   `transfer_id` int(11) NOT NULL AUTO_INCREMENT,
+diff --git a/panel/controller/accounting/supplier.php b/panel/controller/accounting/supplier.php
+new file mode 100644
+index 0000000..74c7611
+--- /dev/null
++++ b/panel/controller/accounting/supplier.php
+@@ -0,0 +1,242 @@
++<?php
++namespace MDcart\Admin\Controller\Accounting;
++/**
++ * Class Supplier
++ *
++ * Admin CRUD for suppliers ("طرف حساب" on a Purchase Invoice). Each row also
++ * shows the supplier's current outstanding balance (see
++ * Supplier::getSupplierBalance()) so it's immediately clear how much is
++ * owed to them, without suppliers needing their own row in the chart of
++ * accounts - see the model's docblock for why.
++ *
++ * Can be loaded using $this->load->controller('accounting/supplier');
++ *
++ * @package MDcart\Admin\Controller\Accounting
++ */
++class Supplier extends \MDcart\System\Engine\Controller {
++	/**
++	 * Index
++	 *
++	 * @return void
++	 */
++	public function index(): void {
++		$this->load->language('accounting/supplier');
++
++		$this->document->setTitle($this->language->get('heading_title'));
++
++		$data['breadcrumbs'] = [];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_home'),
++			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('heading_title'),
++			'href' => $this->url->link('accounting/supplier', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['add'] = $this->url->link('accounting/supplier.form', 'user_token=' . $this->session->data['user_token']);
++		$data['delete'] = $this->url->link('accounting/supplier.delete', 'user_token=' . $this->session->data['user_token']);
++
++		$data['list'] = $this->getList();
++
++		$data['user_token'] = $this->session->data['user_token'];
++
++		$data['header'] = $this->load->controller('common/header');
++		$data['column_left'] = $this->load->controller('common/column_left');
++		$data['footer'] = $this->load->controller('common/footer');
++
++		$this->response->setOutput($this->load->view('accounting/supplier', $data));
++	}
++
++	/**
++	 * List
++	 *
++	 * @return void
++	 */
++	public function list(): void {
++		$this->load->language('accounting/supplier');
++
++		$this->response->setOutput($this->getList());
++	}
++
++	/**
++	 * Get List
++	 *
++	 * @return string
++	 */
++	private function getList(): string {
++		$data['action'] = $this->url->link('accounting/supplier.list', 'user_token=' . $this->session->data['user_token']);
++
++		$this->load->model('accounting/supplier');
++
++		$results = $this->model_accounting_supplier->getSuppliers();
++
++		$data['suppliers'] = [];
++
++		foreach ($results as $result) {
++			$data['suppliers'][] = [
++				'supplier_id'   => $result['supplier_id'],
++				'name'          => $result['name'],
++				'telephone'     => $result['telephone'],
++				'currency_code' => $result['currency_code'],
++				'balance'       => number_format($this->model_accounting_supplier->getSupplierBalance((int)$result['supplier_id']), 2),
++				'status'        => $result['status'],
++				'edit'          => $this->url->link('accounting/supplier.form', 'user_token=' . $this->session->data['user_token'] . '&supplier_id=' . $result['supplier_id'])
++			];
++		}
++
++		$data['user_token'] = $this->session->data['user_token'];
++
++		return $this->load->view('accounting/supplier_list', $data);
++	}
++
++	/**
++	 * Form
++	 *
++	 * @return void
++	 */
++	public function form(): void {
++		$this->load->language('accounting/supplier');
++
++		$this->document->setTitle($this->language->get('heading_title'));
++
++		$data['text_form'] = !isset($this->request->get['supplier_id']) ? $this->language->get('text_add') : $this->language->get('text_edit');
++
++		$data['breadcrumbs'] = [];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_home'),
++			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('heading_title'),
++			'href' => $this->url->link('accounting/supplier', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['save'] = $this->url->link('accounting/supplier.save', 'user_token=' . $this->session->data['user_token']);
++		$data['back'] = $this->url->link('accounting/supplier', 'user_token=' . $this->session->data['user_token']);
++
++		$this->load->model('accounting/supplier');
++
++		$supplier_info = [];
++
++		if (isset($this->request->get['supplier_id'])) {
++			$supplier_info = $this->model_accounting_supplier->getSupplier((int)$this->request->get['supplier_id']);
++		}
++
++		$data['supplier_id'] = !empty($supplier_info) ? $supplier_info['supplier_id'] : 0;
++		$data['name'] = !empty($supplier_info) ? $supplier_info['name'] : '';
++		$data['telephone'] = !empty($supplier_info) ? $supplier_info['telephone'] : '';
++		$data['email'] = !empty($supplier_info) ? $supplier_info['email'] : '';
++		$data['address'] = !empty($supplier_info) ? $supplier_info['address'] : '';
++		$data['tax_id'] = !empty($supplier_info) ? $supplier_info['tax_id'] : '';
++		$data['currency_code'] = !empty($supplier_info) ? $supplier_info['currency_code'] : $this->config->get('config_currency');
++		$data['status'] = !empty($supplier_info) ? (bool)$supplier_info['status'] : true;
++		$data['sort_order'] = !empty($supplier_info) ? $supplier_info['sort_order'] : 0;
++
++		$this->load->model('localisation/currency');
++
++		$data['currencies'] = $this->model_localisation_currency->getCurrencies();
++
++		$data['user_token'] = $this->session->data['user_token'];
++
++		$data['header'] = $this->load->controller('common/header');
++		$data['column_left'] = $this->load->controller('common/column_left');
++		$data['footer'] = $this->load->controller('common/footer');
++
++		$this->response->setOutput($this->load->view('accounting/supplier_form', $data));
++	}
++
++	/**
++	 * Save
++	 *
++	 * @return void
++	 */
++	public function save(): void {
++		$this->load->language('accounting/supplier');
++
++		$json = [];
++
++		if (!$this->user->hasPermission('modify', 'accounting/supplier')) {
++			$json['error']['warning'] = $this->language->get('error_permission');
++		}
++
++		$required = [
++			'supplier_id'   => 0,
++			'name'          => '',
++			'currency_code' => ''
++		];
++
++		$post_info = $this->request->post + $required;
++
++		if (!oc_validate_length($post_info['name'], 1, 128)) {
++			$json['error']['name'] = $this->language->get('error_name');
++		}
++
++		if (!$post_info['currency_code']) {
++			$json['error']['currency_code'] = $this->language->get('error_currency');
++		}
++
++		if (!$json) {
++			$this->load->model('accounting/supplier');
++
++			if (!$post_info['supplier_id']) {
++				$json['supplier_id'] = $this->model_accounting_supplier->addSupplier($post_info);
++			} else {
++				$this->model_accounting_supplier->editSupplier((int)$post_info['supplier_id'], $post_info);
++			}
++
++			$json['success'] = $this->language->get('text_success');
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++
++	/**
++	 * Delete
++	 *
++	 * @return void
++	 */
++	public function delete(): void {
++		$this->load->language('accounting/supplier');
++
++		$json = [];
++
++		if (isset($this->request->post['selected'])) {
++			$selected = (array)$this->request->post['selected'];
++		} else {
++			$selected = [];
++		}
++
++		if (!$this->user->hasPermission('modify', 'accounting/supplier')) {
++			$json['error'] = $this->language->get('error_permission');
++		}
++
++		$this->load->model('accounting/supplier');
++
++		if (!$json) {
++			foreach ($selected as $supplier_id) {
++				if ($this->model_accounting_supplier->hasPurchaseInvoices((int)$supplier_id)) {
++					$json['error'] = $this->language->get('error_has_purchase_invoices');
++
++					break;
++				}
++			}
++		}
++
++		if (!$json) {
++			foreach ($selected as $supplier_id) {
++				$this->model_accounting_supplier->deleteSupplier((int)$supplier_id);
++			}
++
++			$json['success'] = $this->language->get('text_success');
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++}
+diff --git a/panel/controller/catalog/purchase_invoice.php b/panel/controller/catalog/purchase_invoice.php
+index 1e8c63c..4cf6075 100644
+--- a/panel/controller/catalog/purchase_invoice.php
++++ b/panel/controller/catalog/purchase_invoice.php
+@@ -5,8 +5,12 @@ namespace MDcart\Admin\Controller\Catalog;
+  *
+  * Admin screens for purchase invoices ("فاکتور خرید"): list, add (the only
+  * way in - invoices are append-only), and a read-only view of a saved one.
+- * Saving immediately increases the chosen warehouse's stock - see
+- * admin/model/catalog/purchase_invoice.php.
++ * Saving immediately increases the chosen warehouse's stock and, when the
++ * accounting module is installed, posts a balanced journal entry - see
++ * admin/model/catalog/purchase_invoice.php. A credit/combined invoice can
++ * later be settled (partially or fully) from its view screen via the
++ * pay() action, which posts a second journal entry and records the
++ * payment in oc_purchase_invoice_payment.
+  *
+  * Can be loaded using $this->load->controller('catalog/purchase_invoice');
+  *
+@@ -72,12 +76,16 @@ class PurchaseInvoice extends \MDcart\System\Engine\Controller {
+ 		$data['purchase_invoices'] = [];
+ 
+ 		foreach ($results as $result) {
++			$outstanding = (float)$result['total_amount'] - (float)$result['paid_amount'];
++
+ 			$data['purchase_invoices'][] = [
+ 				'purchase_invoice_id' => $result['purchase_invoice_id'],
+ 				'supplier_name'       => $result['supplier_name'],
+ 				'invoice_number'      => $result['invoice_number'],
+ 				'warehouse_name'      => $result['warehouse_name'],
+ 				'invoice_date'        => $result['invoice_date'],
++				'payment_type'        => $result['payment_type'],
++				'outstanding'         => $outstanding > 0.0001 ? $this->currency->format($outstanding, $result['currency_code'] ?: $this->config->get('config_currency')) : '',
+ 				'date_added'          => date($this->language->get('date_format_short'), strtotime($result['date_added'])),
+ 				'view'                => $this->url->link('catalog/purchase_invoice.form', 'user_token=' . $this->session->data['user_token'] . '&purchase_invoice_id=' . $result['purchase_invoice_id'])
+ 			];
+@@ -88,7 +96,8 @@ class PurchaseInvoice extends \MDcart\System\Engine\Controller {
+ 
+ 	/**
+ 	 * Form - doubles as the read-only view once a purchase_invoice_id is set,
+-	 * since invoices are append-only.
++	 * since invoices are append-only (only settling a payment is still
++	 * possible from this screen, via the pay() action below).
+ 	 *
+ 	 * @return void
+ 	 */
+@@ -110,10 +119,13 @@ class PurchaseInvoice extends \MDcart\System\Engine\Controller {
+ 		];
+ 
+ 		$data['save'] = $this->url->link('catalog/purchase_invoice.save', 'user_token=' . $this->session->data['user_token']);
++		$data['pay'] = $this->url->link('catalog/purchase_invoice.pay', 'user_token=' . $this->session->data['user_token']);
+ 		$data['back'] = $this->url->link('catalog/purchase_invoice', 'user_token=' . $this->session->data['user_token']);
+ 		$data['autocomplete'] = $this->url->link('catalog/product.autocomplete', 'user_token=' . $this->session->data['user_token'], true);
+ 
+ 		$this->load->model('catalog/warehouse');
++		$this->load->model('accounting/supplier');
++		$this->load->model('accounting/bank_account');
+ 
+ 		$invoice_info = [];
+ 
+@@ -127,12 +139,50 @@ class PurchaseInvoice extends \MDcart\System\Engine\Controller {
+ 		$data['readonly'] = !empty($invoice_info);
+ 		$data['purchase_invoice_id'] = !empty($invoice_info) ? $invoice_info['purchase_invoice_id'] : 0;
+ 		$data['warehouse_id'] = !empty($invoice_info) ? $invoice_info['warehouse_id'] : '';
++		$data['supplier_id'] = !empty($invoice_info) ? $invoice_info['supplier_id'] : '';
+ 		$data['supplier_name'] = !empty($invoice_info) ? $invoice_info['supplier_name'] : '';
+ 		$data['invoice_number'] = !empty($invoice_info) ? $invoice_info['invoice_number'] : '';
+ 		$data['invoice_date'] = !empty($invoice_info) ? $invoice_info['invoice_date'] : date('Y-m-d');
+ 		$data['comment'] = !empty($invoice_info) ? $invoice_info['comment'] : '';
++		$data['payment_type'] = !empty($invoice_info) ? $invoice_info['payment_type'] : 'credit';
++		$data['bank_account_id'] = !empty($invoice_info) ? $invoice_info['bank_account_id'] : '';
++		$data['currency_code'] = !empty($invoice_info) ? $invoice_info['currency_code'] : '';
++
++		$total_amount = !empty($invoice_info) ? (float)$invoice_info['total_amount'] : 0.0;
++		$paid_amount = !empty($invoice_info) ? (float)$invoice_info['paid_amount'] : 0.0;
++		$outstanding = round($total_amount - $paid_amount, 4);
++
++		$data['total_amount'] = $total_amount;
++		$data['paid_amount'] = $paid_amount;
++		$data['outstanding'] = $outstanding;
++		$data['outstanding_formatted'] = !empty($invoice_info) ? $this->currency->format($outstanding, $invoice_info['currency_code'] ?: $this->config->get('config_currency')) : '';
+ 
+ 		$data['warehouses'] = $this->model_catalog_warehouse->getWarehouses();
++		$data['suppliers'] = $this->model_accounting_supplier->getSuppliers();
++
++		$data['bank_accounts'] = [];
++
++		foreach ($this->model_accounting_bank_account->getBankAccounts() as $bank_account) {
++			if ($bank_account['status']) {
++				$data['bank_accounts'][] = $bank_account;
++			}
++		}
++
++		$data['can_pay'] = !empty($invoice_info) && $outstanding > 0.0001 && $this->user->hasPermission('modify', 'catalog/purchase_invoice');
++
++		$data['payments'] = [];
++
++		if (!empty($invoice_info)) {
++			$this->load->model('catalog/purchase_invoice');
++
++			foreach ($this->model_catalog_purchase_invoice->getPurchaseInvoicePayments($invoice_info['purchase_invoice_id']) as $payment) {
++				$data['payments'][] = [
++					'amount'            => $this->currency->format((float)$payment['amount'], $invoice_info['currency_code'] ?: $this->config->get('config_currency')),
++					'bank_account_name' => $payment['bank_account_name'],
++					'date_added'        => date($this->language->get('date_format_short'), strtotime($payment['date_added']))
++				];
++			}
++		}
+ 
+ 		$data['products'] = [];
+ 
+@@ -172,8 +222,11 @@ class PurchaseInvoice extends \MDcart\System\Engine\Controller {
+ 		}
+ 
+ 		$required = [
+-			'warehouse_id' => 0,
+-			'products'     => []
++			'warehouse_id'  => 0,
++			'products'      => [],
++			'payment_type'  => 'credit',
++			'bank_account_id' => 0,
++			'paid_amount'   => 0
+ 		];
+ 
+ 		$post_info = $this->request->post + $required;
+@@ -186,6 +239,14 @@ class PurchaseInvoice extends \MDcart\System\Engine\Controller {
+ 			$json['error']['warning'] = $this->language->get('error_products');
+ 		}
+ 
++		if (!in_array($post_info['payment_type'], ['cash', 'bank', 'credit', 'combined'], true)) {
++			$json['error']['warning'] = $this->language->get('error_payment_type');
++		}
++
++		if (in_array($post_info['payment_type'], ['cash', 'bank', 'combined'], true) && !$post_info['bank_account_id']) {
++			$json['error']['warning'] = $this->language->get('error_bank_account');
++		}
++
+ 		if (!$json) {
+ 			$this->load->model('catalog/purchase_invoice');
+ 
+@@ -199,4 +260,57 @@ class PurchaseInvoice extends \MDcart\System\Engine\Controller {
+ 		$this->response->addHeader('Content-Type: application/json');
+ 		$this->response->setOutput(json_encode($json));
+ 	}
++
++	/**
++	 * Pay - settles part or all of a credit/combined invoice's outstanding
++	 * balance from its view screen.
++	 *
++	 * @return void
++	 */
++	public function pay(): void {
++		$this->load->language('catalog/purchase_invoice');
++
++		$json = [];
++
++		if (!$this->user->hasPermission('modify', 'catalog/purchase_invoice')) {
++			$json['error']['warning'] = $this->language->get('error_permission');
++		}
++
++		$required = [
++			'purchase_invoice_id' => 0,
++			'bank_account_id'     => 0,
++			'amount'              => 0
++		];
++
++		$post_info = $this->request->post + $required;
++
++		if (!$post_info['purchase_invoice_id']) {
++			$json['error']['warning'] = $this->language->get('error_permission');
++		}
++
++		if (!$post_info['bank_account_id']) {
++			$json['error']['warning'] = $this->language->get('error_bank_account');
++		}
++
++		if ((float)$post_info['amount'] <= 0) {
++			$json['error']['warning'] = $this->language->get('error_amount');
++		}
++
++		if (!$json) {
++			$this->load->model('catalog/purchase_invoice');
++
++			$post_info['user_id'] = $this->user->getId();
++
++			$purchase_invoice_payment_id = $this->model_catalog_purchase_invoice->addPurchaseInvoicePayment($post_info);
++
++			if ($purchase_invoice_payment_id) {
++				$json['success'] = $this->language->get('text_payment_success');
++			} else {
++				$json['error']['warning'] = $this->language->get('error_amount');
++			}
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
+ }
+diff --git a/panel/controller/common/column_left.php b/panel/controller/common/column_left.php
+index df6cbf2..bb59538 100644
+--- a/panel/controller/common/column_left.php
++++ b/panel/controller/common/column_left.php
+@@ -72,14 +72,6 @@ class ColumnLeft extends \MDcart\System\Engine\Controller {
+ 				];
+ 			}
+ 
+-			if ($this->user->hasPermission('access', 'catalog/purchase_invoice')) {
+-				$catalog[] = [
+-					'name'     => $this->language->get('text_purchase_invoice'),
+-					'href'     => $this->url->link('catalog/purchase_invoice', 'user_token=' . $this->session->data['user_token']),
+-					'children' => []
+-				];
+-			}
+-
+ 			if ($this->user->hasPermission('access', 'catalog/subscription_plan')) {
+ 				$catalog[] = [
+ 					'name'     => $this->language->get('text_subscription_plan'),
+@@ -466,6 +458,28 @@ class ColumnLeft extends \MDcart\System\Engine\Controller {
+ 				];
+ 			}
+ 
++			if ($this->user->hasPermission('access', 'accounting/supplier')) {
++				$accounting[] = [
++					'name'     => $this->language->get('text_supplier'),
++					'href'     => $this->url->link('accounting/supplier', 'user_token=' . $this->session->data['user_token']),
++					'children' => []
++				];
++			}
++
++			// Purchase Invoice lives here (not under Catalog) because, as of this
++			// update, saving one posts a real journal entry (Debit Inventory,
++			// Credit Bank/Cash and/or Accounts Payable) - it's an accounting
++			// document with a counterparty and a payment method, not just a
++			// stock-count screen. Its route/permission string is unchanged
++			// (catalog/purchase_invoice) - only where it appears in this menu moved.
++			if ($this->user->hasPermission('access', 'catalog/purchase_invoice')) {
++				$accounting[] = [
++					'name'     => $this->language->get('text_purchase_invoice'),
++					'href'     => $this->url->link('catalog/purchase_invoice', 'user_token=' . $this->session->data['user_token']),
++					'children' => []
++				];
++			}
++
+ 			if ($this->user->hasPermission('access', 'accounting/journal')) {
+ 				$accounting[] = [
+ 					'name'     => $this->language->get('text_journal_entries'),
+diff --git a/panel/language/fa/accounting/supplier.php b/panel/language/fa/accounting/supplier.php
+new file mode 100644
+index 0000000..2dd5376
+--- /dev/null
++++ b/panel/language/fa/accounting/supplier.php
+@@ -0,0 +1,50 @@
++<?php
++// Heading
++$_['heading_title'] = 'تامین‌کنندگان';
++
++// Text
++$_['text_home'] = 'خانه';
++$_['text_list'] = 'لیست تامین‌کنندگان';
++$_['text_add'] = 'افزودن تامین‌کننده';
++$_['text_edit'] = 'ویرایش تامین‌کننده';
++$_['text_form'] = 'فرم تامین‌کننده';
++$_['text_success'] = 'موفق: تامین‌کنندگان تغییر یافت!';
++$_['text_no_results'] = 'نتیجه‌ای یافت نشد!';
++$_['text_confirm'] = 'آیا مطمئن هستید؟';
++$_['text_enabled'] = 'فعال';
++$_['text_disabled'] = 'غیرفعال';
++
++// Column
++$_['column_name'] = 'نام';
++$_['column_telephone'] = 'تلفن';
++$_['column_currency'] = 'ارز';
++$_['column_balance'] = 'مانده بدهی ما';
++$_['column_status'] = 'وضعیت';
++$_['column_action'] = 'عملیات';
++
++// Entry
++$_['entry_name'] = 'نام تامین‌کننده';
++$_['entry_telephone'] = 'تلفن';
++$_['entry_email'] = 'ایمیل';
++$_['entry_address'] = 'آدرس';
++$_['entry_tax_id'] = 'شناسه/کد اقتصادی';
++$_['entry_currency'] = 'ارز پیش‌فرض معامله';
++$_['entry_status'] = 'وضعیت';
++$_['entry_sort_order'] = 'ترتیب نمایش';
++
++// Help
++$_['help_tax_id'] = 'اختیاری - برای درج در فاکتورها و گزارش‌های مالیاتی.';
++$_['help_currency'] = 'ارزی که معمولاً با این تامین‌کننده معامله می‌کنید (مثلاً درهم، دلار، ریال). فاکتورهای خرید از این تامین‌کننده به همین ارز ثبت می‌شوند و بدهی هم به همین ارز نگه‌داری می‌شود.';
++
++// Button
++$_['button_add'] = 'افزودن جدید';
++$_['button_edit'] = 'ویرایش';
++$_['button_delete'] = 'حذف';
++$_['button_save'] = 'ذخیره';
++$_['button_back'] = 'بازگشت';
++
++// Error
++$_['error_permission'] = 'هشدار: شما اجازه‌ی ویرایش تامین‌کنندگان را ندارید!';
++$_['error_name'] = 'نام تامین‌کننده باید بین ۱ تا ۱۲۸ کاراکتر باشد!';
++$_['error_currency'] = 'لطفاً یک ارز انتخاب کنید!';
++$_['error_has_purchase_invoices'] = 'هشدار: نمی‌توانید تامین‌کننده‌ای که فاکتور خرید ثبت‌شده دارد را حذف کنید!';
+diff --git a/panel/language/fa/catalog/purchase_invoice.php b/panel/language/fa/catalog/purchase_invoice.php
+index c1b75ba..d109659 100644
+--- a/panel/language/fa/catalog/purchase_invoice.php
++++ b/panel/language/fa/catalog/purchase_invoice.php
+@@ -13,6 +13,17 @@ $_['text_success'] = 'موفق: موجودی از این فاکتور خرید 
+ $_['text_no_results'] = 'نتیجه‌ای یافت نشد!';
+ $_['text_readonly_help'] = 'فاکتورهای خرید پس از ذخیره قابل ویرایش نیستند - موجودی از قبل اضافه شده است. برای اصلاح اشتباه، یک فاکتور جدید با ذکر توضیح اصلاحی در قسمت توضیحات اضافه کنید، یا مستقیماً تعداد را از تب انبارهای محصول تنظیم کنید.';
+ $_['text_barcode_not_found'] = 'محصولی برای این بارکد یافت نشد';
++$_['text_supplier_none'] = '-- بدون تامین‌کننده --';
++$_['text_payment_cash'] = 'نقد / صندوق';
++$_['text_payment_bank'] = 'کارت / واریز بانکی';
++$_['text_payment_credit'] = 'نسیه (حساب باز)';
++$_['text_payment_combined'] = 'پرداخت ترکیبی (بخشی نقد + بخشی نسیه)';
++$_['text_total_amount'] = 'مبلغ کل فاکتور';
++$_['text_paid_amount'] = 'مبلغ پرداخت‌شده';
++$_['text_outstanding'] = 'مانده بدهی';
++$_['text_payment_history'] = 'تاریخچه پرداخت‌ها';
++$_['text_record_payment'] = 'ثبت پرداخت';
++$_['text_payment_success'] = 'موفق: پرداخت با موفقیت ثبت شد!';
+ 
+ // Column
+ $_['column_supplier'] = 'تأمین‌کننده';
+@@ -24,6 +35,8 @@ $_['column_action'] = 'عملیات';
+ $_['column_product'] = 'محصول';
+ $_['column_quantity'] = 'تعداد';
+ $_['column_unit_cost'] = 'بهای واحد';
++$_['column_outstanding'] = 'مانده بدهی';
++$_['column_amount'] = 'مبلغ';
+ 
+ // Entry
+ $_['entry_warehouse'] = 'انبار';
+@@ -33,6 +46,10 @@ $_['entry_invoice_date'] = 'تاریخ فاکتور';
+ $_['entry_comment'] = 'توضیحات';
+ $_['entry_product'] = 'محصول';
+ $_['entry_barcode'] = 'اسکن بارکد / QR';
++$_['entry_payment_type'] = 'نوع پرداخت';
++$_['entry_bank_account'] = 'حساب بانکی / صندوق';
++$_['entry_paid_amount'] = 'مبلغ پرداخت‌شده';
++$_['entry_amount'] = 'مبلغ';
+ 
+ // Help
+ $_['help_barcode'] = 'اینجا کلیک کنید و با دستگاه بارکدخوان USB/بلوتوث اسکن کنید، یا کد را تایپ کرده و Enter بزنید.';
+@@ -43,8 +60,12 @@ $_['button_view'] = 'مشاهده';
+ $_['button_save'] = 'ذخیره';
+ $_['button_back'] = 'بازگشت';
+ $_['button_add_product'] = 'افزودن';
++$_['button_record_payment'] = 'ثبت پرداخت';
+ 
+ // Error
+ $_['error_permission'] = 'هشدار: شما اجازه‌ی ویرایش فاکتورهای خرید را ندارید!';
+ $_['error_warehouse'] = 'لطفاً یک انبار انتخاب کنید!';
+ $_['error_products'] = 'لطفاً حداقل یک محصول اضافه کنید!';
++$_['error_payment_type'] = 'لطفاً نوع پرداخت را انتخاب کنید!';
++$_['error_bank_account'] = 'لطفاً یک حساب بانکی / صندوق انتخاب کنید!';
++$_['error_amount'] = 'مبلغ واردشده نامعتبر است!';
+diff --git a/panel/language/fa/common/column_left.php b/panel/language/fa/common/column_left.php
+index 9449c79..b6d2188 100644
+--- a/panel/language/fa/common/column_left.php
++++ b/panel/language/fa/common/column_left.php
+@@ -92,6 +92,7 @@ $_['text_import_product_url']  = 'وارد کردن محصول از آدرس ا
+ $_['text_warehouse']           = 'انبارها';
+ $_['text_warehouse_transfer']  = 'انتقال بین انبارها';
+ $_['text_purchase_invoice']    = 'فاکتورهای خرید';
++$_['text_supplier']            = 'تامین‌کنندگان';
+ $_['text_pos']                 = 'صندوق فروش (POS)';
+ $_['text_preorder']            = 'پیش‌سفارش‌ها';
+ $_['text_accounting']          = 'حسابداری';
+diff --git a/panel/language/us/accounting/supplier.php b/panel/language/us/accounting/supplier.php
+new file mode 100644
+index 0000000..f30b158
+--- /dev/null
++++ b/panel/language/us/accounting/supplier.php
+@@ -0,0 +1,50 @@
++<?php
++// Heading
++$_['heading_title'] = 'Suppliers';
++
++// Text
++$_['text_home'] = 'Dashboard';
++$_['text_list'] = 'Supplier List';
++$_['text_add'] = 'Add Supplier';
++$_['text_edit'] = 'Edit Supplier';
++$_['text_form'] = 'Supplier Form';
++$_['text_success'] = 'Success: You have modified suppliers!';
++$_['text_no_results'] = 'No results!';
++$_['text_confirm'] = 'Are you sure?';
++$_['text_enabled'] = 'Enabled';
++$_['text_disabled'] = 'Disabled';
++
++// Column
++$_['column_name'] = 'Name';
++$_['column_telephone'] = 'Telephone';
++$_['column_currency'] = 'Currency';
++$_['column_balance'] = 'We Owe';
++$_['column_status'] = 'Status';
++$_['column_action'] = 'Action';
++
++// Entry
++$_['entry_name'] = 'Supplier Name';
++$_['entry_telephone'] = 'Telephone';
++$_['entry_email'] = 'E-Mail';
++$_['entry_address'] = 'Address';
++$_['entry_tax_id'] = 'Tax / Business ID';
++$_['entry_currency'] = 'Default Trading Currency';
++$_['entry_status'] = 'Status';
++$_['entry_sort_order'] = 'Sort Order';
++
++// Help
++$_['help_tax_id'] = 'Optional - shown on invoices and tax reports.';
++$_['help_currency'] = 'The currency you usually trade with this supplier in (e.g. AED, USD, IRR). Purchase invoices from this supplier are recorded in this currency, and their balance is kept in it too.';
++
++// Button
++$_['button_add'] = 'Add New';
++$_['button_edit'] = 'Edit';
++$_['button_delete'] = 'Delete';
++$_['button_save'] = 'Save';
++$_['button_back'] = 'Back';
++
++// Error
++$_['error_permission'] = 'Warning: You do not have permission to modify suppliers!';
++$_['error_name'] = 'Supplier Name must be between 1 and 128 characters!';
++$_['error_currency'] = 'Please select a currency!';
++$_['error_has_purchase_invoices'] = 'Warning: You cannot delete a supplier that has purchase invoices recorded against it!';
+diff --git a/panel/language/us/catalog/purchase_invoice.php b/panel/language/us/catalog/purchase_invoice.php
+index a2cbbdd..8854541 100644
+--- a/panel/language/us/catalog/purchase_invoice.php
++++ b/panel/language/us/catalog/purchase_invoice.php
+@@ -13,6 +13,17 @@ $_['text_success'] = 'Success: Stock has been updated from this purchase invoice
+ $_['text_no_results'] = 'No results!';
+ $_['text_readonly_help'] = 'Purchase invoices cannot be edited once saved - stock has already been added. To correct a mistake, add a new invoice with negative context noted in the comment, or adjust the quantity directly on the product\'s Warehouses tab.';
+ $_['text_barcode_not_found'] = 'No product found for this barcode';
++$_['text_supplier_none'] = '-- No Supplier --';
++$_['text_payment_cash'] = 'Cash / Cashbox';
++$_['text_payment_bank'] = 'Card / Bank Transfer';
++$_['text_payment_credit'] = 'Credit (Open Account)';
++$_['text_payment_combined'] = 'Combined (Part Cash + Part Credit)';
++$_['text_total_amount'] = 'Total Amount';
++$_['text_paid_amount'] = 'Paid Amount';
++$_['text_outstanding'] = 'Outstanding Balance';
++$_['text_payment_history'] = 'Payment History';
++$_['text_record_payment'] = 'Record Payment';
++$_['text_payment_success'] = 'Success: Payment recorded!';
+ 
+ // Column
+ $_['column_supplier'] = 'Supplier';
+@@ -24,6 +35,8 @@ $_['column_action'] = 'Action';
+ $_['column_product'] = 'Product';
+ $_['column_quantity'] = 'Quantity';
+ $_['column_unit_cost'] = 'Unit Cost';
++$_['column_outstanding'] = 'Outstanding';
++$_['column_amount'] = 'Amount';
+ 
+ // Entry
+ $_['entry_warehouse'] = 'Warehouse';
+@@ -33,6 +46,10 @@ $_['entry_invoice_date'] = 'Invoice Date';
+ $_['entry_comment'] = 'Comment';
+ $_['entry_product'] = 'Product';
+ $_['entry_barcode'] = 'Scan Barcode / QR';
++$_['entry_payment_type'] = 'Payment Type';
++$_['entry_bank_account'] = 'Bank / Cash Account';
++$_['entry_paid_amount'] = 'Paid Amount';
++$_['entry_amount'] = 'Amount';
+ 
+ // Help
+ $_['help_barcode'] = 'Focus here and scan with a USB/Bluetooth barcode scanner, or type a code and press Enter.';
+@@ -43,8 +60,12 @@ $_['button_view'] = 'View';
+ $_['button_save'] = 'Save';
+ $_['button_back'] = 'Back';
+ $_['button_add_product'] = 'Add';
++$_['button_record_payment'] = 'Record Payment';
+ 
+ // Error
+ $_['error_permission'] = 'Warning: You do not have permission to modify purchase invoices!';
+ $_['error_warehouse'] = 'Please select a warehouse!';
+ $_['error_products'] = 'Please add at least one product!';
++$_['error_payment_type'] = 'Please select a payment type!';
++$_['error_bank_account'] = 'Please select a bank/cash account!';
++$_['error_amount'] = 'The amount entered is invalid!';
+diff --git a/panel/language/us/common/column_left.php b/panel/language/us/common/column_left.php
+index 6572d77..ccd19ab 100644
+--- a/panel/language/us/common/column_left.php
++++ b/panel/language/us/common/column_left.php
+@@ -92,6 +92,7 @@ $_['text_import_product_url']  = 'Import Product from URL';
+ $_['text_warehouse']           = 'Warehouses';
+ $_['text_warehouse_transfer']  = 'Warehouse Transfers';
+ $_['text_purchase_invoice']    = 'Purchase Invoices';
++$_['text_supplier']            = 'Suppliers';
+ $_['text_pos']                 = 'POS';
+ $_['text_preorder']            = 'Pre-Orders';
+ $_['text_accounting']          = 'Accounting';
+diff --git a/panel/model/accounting/supplier.php b/panel/model/accounting/supplier.php
+new file mode 100644
+index 0000000..4f9a94c
+--- /dev/null
++++ b/panel/model/accounting/supplier.php
+@@ -0,0 +1,140 @@
++<?php
++namespace MDcart\Admin\Model\Accounting;
++/**
++ * Class Supplier
++ *
++ * Supplier ("طرف حساب") master data for Purchase Invoices. Each supplier is
++ * NOT given its own row in the chart of accounts - every supplier's unpaid
++ * balance is tracked as a sub-ledger of the single "Accounts Payable"
++ * control account (getSupplierBalance() sums it from unpaid purchase
++ * invoices), exactly like a normal accounting system's AP sub-ledger. This
++ * keeps the chart of accounts clean regardless of how many suppliers exist.
++ *
++ * Can be loaded using $this->load->model('accounting/supplier');
++ *
++ * @package MDcart\Admin\Model\Accounting
++ */
++class Supplier extends \MDcart\System\Engine\Model {
++	/**
++	 * Add Supplier
++	 *
++	 * @param array<string, mixed> $data
++	 *
++	 * @return int
++	 */
++	public function addSupplier(array $data): int {
++		$this->db->query("INSERT INTO `" . DB_PREFIX . "supplier` SET `name` = '" . $this->db->escape((string)$data['name']) . "', `telephone` = '" . $this->db->escape((string)($data['telephone'] ?? '')) . "', `email` = '" . $this->db->escape((string)($data['email'] ?? '')) . "', `address` = '" . $this->db->escape((string)($data['address'] ?? '')) . "', `tax_id` = '" . $this->db->escape((string)($data['tax_id'] ?? '')) . "', `currency_code` = '" . $this->db->escape((string)$data['currency_code']) . "', `status` = '" . (int)!empty($data['status']) . "', `sort_order` = '" . (int)($data['sort_order'] ?? 0) . "', `date_added` = NOW(), `date_modified` = NOW()");
++
++		return (int)$this->db->getLastId();
++	}
++
++	/**
++	 * Edit Supplier
++	 *
++	 * @param int                  $supplier_id
++	 * @param array<string, mixed> $data
++	 *
++	 * @return void
++	 */
++	public function editSupplier(int $supplier_id, array $data): void {
++		$this->db->query("UPDATE `" . DB_PREFIX . "supplier` SET `name` = '" . $this->db->escape((string)$data['name']) . "', `telephone` = '" . $this->db->escape((string)($data['telephone'] ?? '')) . "', `email` = '" . $this->db->escape((string)($data['email'] ?? '')) . "', `address` = '" . $this->db->escape((string)($data['address'] ?? '')) . "', `tax_id` = '" . $this->db->escape((string)($data['tax_id'] ?? '')) . "', `currency_code` = '" . $this->db->escape((string)$data['currency_code']) . "', `status` = '" . (int)!empty($data['status']) . "', `sort_order` = '" . (int)($data['sort_order'] ?? 0) . "', `date_modified` = NOW() WHERE `supplier_id` = '" . (int)$supplier_id . "'");
++	}
++
++	/**
++	 * Delete Supplier
++	 *
++	 * @param int $supplier_id
++	 *
++	 * @return void
++	 */
++	public function deleteSupplier(int $supplier_id): void {
++		$this->db->query("DELETE FROM `" . DB_PREFIX . "supplier` WHERE `supplier_id` = '" . (int)$supplier_id . "'");
++	}
++
++	/**
++	 * @param int $supplier_id
++	 *
++	 * @return array<string, mixed>
++	 */
++	public function getSupplier(int $supplier_id): array {
++		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "supplier` WHERE `supplier_id` = '" . (int)$supplier_id . "'");
++
++		return $query->row;
++	}
++
++	/**
++	 * @return bool whether this supplier has any purchase invoices posted against it (blocks delete)
++	 */
++	public function hasPurchaseInvoices(int $supplier_id): bool {
++		$query = $this->db->query("SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "purchase_invoice` WHERE `supplier_id` = '" . (int)$supplier_id . "'");
++
++		return (bool)(int)$query->row['total'];
++	}
++
++	/**
++	 * @param array<string, mixed> $data
++	 *
++	 * @return array<int, array<string, mixed>>
++	 */
++	public function getSuppliers(array $data = []): array {
++		$sql = "SELECT * FROM `" . DB_PREFIX . "supplier`";
++
++		if (!empty($data['filter_name'])) {
++			$sql .= " WHERE `name` LIKE '" . $this->db->escape((string)$data['filter_name']) . "%'";
++		}
++
++		$sql .= " ORDER BY `sort_order` ASC, `name` ASC";
++
++		if (isset($data['start']) || isset($data['limit'])) {
++			$start = isset($data['start']) ? (int)$data['start'] : 0;
++			$limit = isset($data['limit']) ? (int)$data['limit'] : 10;
++
++			if ($start < 0) {
++				$start = 0;
++			}
++
++			if ($limit < 1) {
++				$limit = 10;
++			}
++
++			$sql .= " LIMIT " . $start . "," . $limit;
++		}
++
++		$query = $this->db->query($sql);
++
++		return $query->rows;
++	}
++
++	/**
++	 * @param array<string, mixed> $data
++	 *
++	 * @return int
++	 */
++	public function getTotalSuppliers(array $data = []): int {
++		$sql = "SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "supplier`";
++
++		if (!empty($data['filter_name'])) {
++			$sql .= " WHERE `name` LIKE '" . $this->db->escape((string)$data['filter_name']) . "%'";
++		}
++
++		$query = $this->db->query($sql);
++
++		return (int)$query->row['total'];
++	}
++
++	/**
++	 * How much this store currently owes the supplier, in the SUPPLIER'S OWN currency
++	 * (not converted to Rial - see the Purchase Invoice docblock for why a foreign-currency
++	 * payable is kept at its original currency amount rather than being re-valued here).
++	 * Sum of (total_amount - paid_amount) over every not-fully-paid invoice for this supplier.
++	 *
++	 * @param int $supplier_id
++	 *
++	 * @return float
++	 */
++	public function getSupplierBalance(int $supplier_id): float {
++		$query = $this->db->query("SELECT SUM(`total_amount` - `paid_amount`) AS `balance` FROM `" . DB_PREFIX . "purchase_invoice` WHERE `supplier_id` = '" . (int)$supplier_id . "' AND `total_amount` > `paid_amount`");
++
++		return (float)($query->row['balance'] ?? 0);
++	}
++}
+diff --git a/panel/model/catalog/purchase_invoice.php b/panel/model/catalog/purchase_invoice.php
+index 71c16db..f3e1258 100644
+--- a/panel/model/catalog/purchase_invoice.php
++++ b/panel/model/catalog/purchase_invoice.php
+@@ -11,13 +11,42 @@ namespace MDcart\Admin\Model\Catalog;
+  * currency. If the warehouse happens to be the selling warehouse,
+  * oc_product.quantity is kept in sync automatically.
+  *
++ * Since MDcart 5.6, an invoice also carries the real financial side of the
++ * purchase: which Supplier it is owed to, what currency/payment type was
++ * used, and (when the accounting module - oc_account/oc_journal - is
++ * installed) a balanced journal entry posted automatically on save:
++ *
++ *   Debit  Inventory (1300)         for the invoice total, converted to the
++ *                                   store's base/functional currency
++ *                                   (config_currency) at today's rate
++ *   Credit the chosen Bank/Cash account   for the paid portion
++ *   Credit Accounts Payable (2100)        for the unpaid/credit portion
++ *
++ * A supplier's own currency (AED, USD, ...) is tracked in its ORIGINAL
++ * amount - the debt is never re-valued just because the exchange rate moves
++ * later. Only when the credit portion is actually settled (addPurchaseInvoicePayment())
++ * does a Foreign Exchange Gain/Loss (5900) line absorb the difference
++ * between the rate captured here and the rate on the day it is paid.
++ *
++ * Assumption (same simplifying choice already made for warehouses): an
++ * invoice's currency_code always follows the WAREHOUSE it stocks, since the
++ * line items' unit_cost values are entered directly in that warehouse's
++ * currency and folded straight into oc_product_warehouse.cost_price. A
++ * supplier's own `currency_code` (set on the Supplier record) is only a
++ * default/informational hint - it is not enforced against the warehouse's
++ * currency, since in principle a supplier could invoice in a currency that
++ * differs from the warehouse's, however uncommon that is expected to be in
++ * practice.
++ *
+  * Can be loaded using $this->load->model('catalog/purchase_invoice');
+  *
+  * @package MDcart\Admin\Model\Catalog
+  */
+ class PurchaseInvoice extends \MDcart\System\Engine\Model {
+ 	/**
+-	 * Add Purchase Invoice - applies the stock/cost increase immediately.
++	 * Add Purchase Invoice - applies the stock/cost increase immediately and,
++	 * when the accounting module is installed, posts the matching journal
++	 * entry.
+ 	 *
+ 	 * @param array<string, mixed> $data
+ 	 *
+@@ -26,12 +55,80 @@ class PurchaseInvoice extends \MDcart\System\Engine\Model {
+ 	public function addPurchaseInvoice(array $data): int {
+ 		$warehouse_id = (int)$data['warehouse_id'];
+ 
+-		$this->db->query("INSERT INTO `" . DB_PREFIX . "purchase_invoice` SET `warehouse_id` = '" . $warehouse_id . "', `supplier_name` = '" . $this->db->escape((string)($data['supplier_name'] ?? '')) . "', `invoice_number` = '" . $this->db->escape((string)($data['invoice_number'] ?? '')) . "', `invoice_date` = " . (!empty($data['invoice_date']) ? "'" . $this->db->escape((string)$data['invoice_date']) . "'" : "NULL") . ", `comment` = '" . $this->db->escape((string)($data['comment'] ?? '')) . "', `user_id` = '" . (int)($data['user_id'] ?? 0) . "', `date_added` = NOW()");
++		$warehouse_query = $this->db->query("SELECT `is_selling_warehouse`, `currency_code` FROM `" . DB_PREFIX . "warehouse` WHERE `warehouse_id` = '" . $warehouse_id . "'");
++		$is_selling_warehouse = $warehouse_query->num_rows && $warehouse_query->row['is_selling_warehouse'];
++		$currency_code = $warehouse_query->num_rows ? (string)$warehouse_query->row['currency_code'] : '';
+ 
+-		$purchase_invoice_id = $this->db->getLastId();
++		// The invoice's own total, in the warehouse's currency - computed up
++		// front from the line items so it can be stored on the header row
++		// and used for the payment split below.
++		$total_amount = 0.0;
+ 
+-		$warehouse_query = $this->db->query("SELECT `is_selling_warehouse` FROM `" . DB_PREFIX . "warehouse` WHERE `warehouse_id` = '" . $warehouse_id . "'");
+-		$is_selling_warehouse = $warehouse_query->num_rows && $warehouse_query->row['is_selling_warehouse'];
++		foreach ((array)($data['products'] ?? []) as $product) {
++			$total_amount += (float)($product['quantity'] ?? 0) * (float)($product['unit_cost'] ?? 0);
++		}
++
++		$supplier_id = (int)($data['supplier_id'] ?? 0);
++		$supplier_name = (string)($data['supplier_name'] ?? '');
++
++		// Snapshot the supplier's name onto the invoice at save time, so the
++		// invoice list/view still reads correctly even if the supplier is
++		// later renamed - the free-text supplier_name field predates
++		// Suppliers and is kept only as this snapshot / a legacy fallback
++		// for invoices that have no supplier_id.
++		if ($supplier_id) {
++			$this->load->model('accounting/supplier');
++
++			$supplier_info = $this->model_accounting_supplier->getSupplier($supplier_id);
++
++			if ($supplier_info) {
++				$supplier_name = $supplier_info['name'];
++			}
++		}
++
++		$payment_type = (string)($data['payment_type'] ?? 'credit');
++
++		if (!in_array($payment_type, ['cash', 'bank', 'credit', 'combined'], true)) {
++			$payment_type = 'credit';
++		}
++
++		$bank_account_id = (int)($data['bank_account_id'] ?? 0);
++
++		if ($payment_type === 'cash' || $payment_type === 'bank') {
++			$paid_amount = $total_amount;
++		} elseif ($payment_type === 'combined') {
++			$paid_amount = (float)($data['paid_amount'] ?? 0);
++
++			if ($paid_amount < 0) {
++				$paid_amount = 0.0;
++			}
++
++			if ($paid_amount > $total_amount) {
++				$paid_amount = $total_amount;
++			}
++		} else {
++			// credit
++			$paid_amount = 0.0;
++			$bank_account_id = 0;
++		}
++
++		// Capture today's conversion rate from the invoice's own currency
++		// into the store's base/functional currency (config_currency) -
++		// stored on the row so later reports and the eventual settlement's
++		// FX gain/loss calculation both use the rate that was actually in
++		// effect on the invoice date, not whatever the rate happens to be
++		// when someone looks the invoice up later.
++		$store_currency = (string)$this->config->get('config_currency');
++
++		if ($currency_code && $currency_code !== $store_currency && $this->currency->has($currency_code) && $this->currency->has($store_currency)) {
++			$exchange_rate = $this->currency->convert(1.0, $currency_code, $store_currency);
++		} else {
++			$exchange_rate = 1.0;
++		}
++
++		$this->db->query("INSERT INTO `" . DB_PREFIX . "purchase_invoice` SET `warehouse_id` = '" . $warehouse_id . "', `supplier_id` = '" . $supplier_id . "', `supplier_name` = '" . $this->db->escape($supplier_name) . "', `currency_code` = '" . $this->db->escape($currency_code) . "', `exchange_rate` = '" . (float)$exchange_rate . "', `total_amount` = '" . (float)$total_amount . "', `payment_type` = '" . $this->db->escape($payment_type) . "', `bank_account_id` = '" . $bank_account_id . "', `paid_amount` = '" . (float)$paid_amount . "', `invoice_number` = '" . $this->db->escape((string)($data['invoice_number'] ?? '')) . "', `invoice_date` = " . (!empty($data['invoice_date']) ? "'" . $this->db->escape((string)$data['invoice_date']) . "'" : "NULL") . ", `comment` = '" . $this->db->escape((string)($data['comment'] ?? '')) . "', `user_id` = '" . (int)($data['user_id'] ?? 0) . "', `date_added` = NOW()");
++
++		$purchase_invoice_id = $this->db->getLastId();
+ 
+ 		foreach ((array)($data['products'] ?? []) as $product) {
+ 			$product_id = (int)($product['product_id'] ?? 0);
+@@ -62,9 +159,184 @@ class PurchaseInvoice extends \MDcart\System\Engine\Model {
+ 			}
+ 		}
+ 
++		$this->postInvoiceJournal((int)$purchase_invoice_id, $total_amount, $paid_amount, (float)$exchange_rate, $bank_account_id, (int)($data['user_id'] ?? 0));
++
+ 		return $purchase_invoice_id;
+ 	}
+ 
++	/**
++	 * Posts the invoice-date journal entry (Debit Inventory, Credit Bank/Cash
++	 * for the paid portion, Credit Accounts Payable for the credit portion),
++	 * if the accounting module is installed and there is anything to post.
++	 *
++	 * @param int    $purchase_invoice_id
++	 * @param float  $total_amount     invoice's own currency
++	 * @param float  $paid_amount      invoice's own currency
++	 * @param float  $exchange_rate    invoice currency -> store base currency
++	 * @param int    $bank_account_id
++	 * @param int    $user_id
++	 *
++	 * @return void
++	 */
++	private function postInvoiceJournal(int $purchase_invoice_id, float $total_amount, float $paid_amount, float $exchange_rate, int $bank_account_id, int $user_id): void {
++		if (!$total_amount || !$this->db->query("SHOW TABLES LIKE '" . DB_PREFIX . "journal'")->num_rows) {
++			return;
++		}
++
++		$this->load->model('accounting/account');
++
++		$inventory_account = $this->model_accounting_account->getAccountByCode('1300');
++		$ap_account = $this->model_accounting_account->getAccountByCode('2100');
++
++		if (!$inventory_account) {
++			return;
++		}
++
++		$total_base = round($total_amount * $exchange_rate, 4);
++		$paid_base = round($paid_amount * $exchange_rate, 4);
++		$credit_base = round($total_base - $paid_base, 4);
++
++		$lines = [
++			['account_id' => (int)$inventory_account['account_id'], 'debit' => $total_base, 'credit' => 0, 'description' => 'Purchase invoice #' . $purchase_invoice_id]
++		];
++
++		if ($paid_base > 0 && $bank_account_id) {
++			$this->load->model('accounting/bank_account');
++
++			$bank_account_info = $this->model_accounting_bank_account->getBankAccount($bank_account_id);
++
++			if ($bank_account_info) {
++				$lines[] = ['account_id' => (int)$bank_account_info['account_id'], 'debit' => 0, 'credit' => $paid_base, 'description' => 'Purchase invoice #' . $purchase_invoice_id . ' - paid'];
++			}
++		}
++
++		if ($credit_base > 0 && $ap_account) {
++			$lines[] = ['account_id' => (int)$ap_account['account_id'], 'debit' => 0, 'credit' => $credit_base, 'description' => 'Purchase invoice #' . $purchase_invoice_id . ' - on credit'];
++		}
++
++		if (count($lines) < 2) {
++			// Nothing to balance against (e.g. paid in full but no bank
++			// account resolved, or fully on credit but the Accounts Payable
++			// system account is missing) - skip rather than post a lopsided
++			// entry.
++			return;
++		}
++
++		$this->load->model('accounting/journal');
++
++		$this->model_accounting_journal->addJournal([
++			'reference_type' => 'purchase_invoice',
++			'reference_id'   => $purchase_invoice_id,
++			'description'    => 'Purchase invoice #' . $purchase_invoice_id,
++			'user_id'        => $user_id,
++			'lines'          => $lines
++		]);
++	}
++
++	/**
++	 * Record Payment - settles part (or the rest) of a credit/combined
++	 * invoice's outstanding balance, in the invoice's own original currency.
++	 * Posts Debit Accounts Payable (at the rate the invoice was originally
++	 * booked at) / Credit the chosen Bank/Cash account (at today's rate),
++	 * with any difference absorbed by the Foreign Exchange Gain/Loss account
++	 * - see the class docblock.
++	 *
++	 * @param array<string, mixed> $data {purchase_invoice_id, bank_account_id, amount, user_id}
++	 *
++	 * @return int 0 if the invoice/amount/bank account was invalid
++	 */
++	public function addPurchaseInvoicePayment(array $data): int {
++		$purchase_invoice_id = (int)($data['purchase_invoice_id'] ?? 0);
++		$bank_account_id = (int)($data['bank_account_id'] ?? 0);
++		$amount = round((float)($data['amount'] ?? 0), 4);
++
++		if (!$purchase_invoice_id || !$bank_account_id || $amount <= 0) {
++			return 0;
++		}
++
++		$invoice_info = $this->getPurchaseInvoice($purchase_invoice_id);
++
++		if (!$invoice_info) {
++			return 0;
++		}
++
++		$outstanding = round((float)$invoice_info['total_amount'] - (float)$invoice_info['paid_amount'], 4);
++
++		if ($outstanding <= 0) {
++			return 0;
++		}
++
++		// Tolerate tiny float rounding but never let a payment overshoot
++		// what is actually still owed.
++		if ($amount > $outstanding + 0.0001) {
++			$amount = $outstanding;
++		}
++
++		$currency_code = (string)$invoice_info['currency_code'];
++		$store_currency = (string)$this->config->get('config_currency');
++		$invoice_rate = (float)$invoice_info['exchange_rate'];
++
++		if ($currency_code && $currency_code !== $store_currency && $this->currency->has($currency_code) && $this->currency->has($store_currency)) {
++			$settlement_rate = $this->currency->convert(1.0, $currency_code, $store_currency);
++		} else {
++			$settlement_rate = 1.0;
++		}
++
++		$journal_id = 0;
++
++		if ($this->db->query("SHOW TABLES LIKE '" . DB_PREFIX . "journal'")->num_rows) {
++			$this->load->model('accounting/account');
++			$this->load->model('accounting/bank_account');
++			$this->load->model('accounting/journal');
++
++			$ap_account = $this->model_accounting_account->getAccountByCode('2100');
++			$fx_account = $this->model_accounting_account->getAccountByCode('5900');
++			$bank_account_info = $this->model_accounting_bank_account->getBankAccount($bank_account_id);
++
++			if ($ap_account && $bank_account_info) {
++				$amount_at_invoice_rate = round($amount * $invoice_rate, 4);
++				$amount_at_settlement_rate = round($amount * $settlement_rate, 4);
++				$fx_diff = round($amount_at_settlement_rate - $amount_at_invoice_rate, 4);
++
++				$lines = [
++					['account_id' => (int)$ap_account['account_id'], 'debit' => $amount_at_invoice_rate, 'credit' => 0, 'description' => 'Settle purchase invoice #' . $purchase_invoice_id]
++				];
++
++				if ($fx_diff > 0 && $fx_account) {
++					// Rate moved against us since the invoice was booked -
++					// paying more base currency than the debt was recorded
++					// at, so the extra is a Foreign Exchange LOSS.
++					$lines[] = ['account_id' => (int)$fx_account['account_id'], 'debit' => $fx_diff, 'credit' => 0, 'description' => 'FX loss on purchase invoice #' . $purchase_invoice_id . ' settlement'];
++				}
++
++				$lines[] = ['account_id' => (int)$bank_account_info['account_id'], 'debit' => 0, 'credit' => $amount_at_settlement_rate, 'description' => 'Settle purchase invoice #' . $purchase_invoice_id];
++
++				if ($fx_diff < 0 && $fx_account) {
++					// Rate moved in our favour - paying less base currency
++					// than the debt was recorded at, so the difference is a
++					// Foreign Exchange GAIN.
++					$lines[] = ['account_id' => (int)$fx_account['account_id'], 'debit' => 0, 'credit' => abs($fx_diff), 'description' => 'FX gain on purchase invoice #' . $purchase_invoice_id . ' settlement'];
++				}
++
++				$journal_id = $this->model_accounting_journal->addJournal([
++					'reference_type' => 'purchase_invoice_payment',
++					'reference_id'   => $purchase_invoice_id,
++					'description'    => 'Payment - Purchase invoice #' . $purchase_invoice_id,
++					'user_id'        => (int)($data['user_id'] ?? 0),
++					'lines'          => $lines
++				]);
++			}
++		}
++
++		$this->db->query("INSERT INTO `" . DB_PREFIX . "purchase_invoice_payment` SET `purchase_invoice_id` = '" . $purchase_invoice_id . "', `bank_account_id` = '" . $bank_account_id . "', `amount` = '" . $amount . "', `exchange_rate` = '" . (float)$settlement_rate . "', `journal_id` = '" . (int)$journal_id . "', `user_id` = '" . (int)($data['user_id'] ?? 0) . "', `date_added` = NOW()");
++
++		$purchase_invoice_payment_id = (int)$this->db->getLastId();
++
++		$this->db->query("UPDATE `" . DB_PREFIX . "purchase_invoice` SET `paid_amount` = `paid_amount` + '" . $amount . "' WHERE `purchase_invoice_id` = '" . $purchase_invoice_id . "'");
++
++		return $purchase_invoice_payment_id;
++	}
++
+ 	/**
+ 	 * Get Purchase Invoice
+ 	 *
+@@ -73,7 +345,7 @@ class PurchaseInvoice extends \MDcart\System\Engine\Model {
+ 	 * @return array<string, mixed>
+ 	 */
+ 	public function getPurchaseInvoice(int $purchase_invoice_id): array {
+-		$query = $this->db->query("SELECT `pi`.*, `w`.`name` AS `warehouse_name`, `w`.`currency_code` FROM `" . DB_PREFIX . "purchase_invoice` `pi` LEFT JOIN `" . DB_PREFIX . "warehouse` `w` ON (`w`.`warehouse_id` = `pi`.`warehouse_id`) WHERE `pi`.`purchase_invoice_id` = '" . (int)$purchase_invoice_id . "'");
++		$query = $this->db->query("SELECT `pi`.*, `w`.`name` AS `warehouse_name`, `w`.`currency_code` AS `warehouse_currency_code`, `s`.`name` AS `supplier_display_name` FROM `" . DB_PREFIX . "purchase_invoice` `pi` LEFT JOIN `" . DB_PREFIX . "warehouse` `w` ON (`w`.`warehouse_id` = `pi`.`warehouse_id`) LEFT JOIN `" . DB_PREFIX . "supplier` `s` ON (`s`.`supplier_id` = `pi`.`supplier_id`) WHERE `pi`.`purchase_invoice_id` = '" . (int)$purchase_invoice_id . "'");
+ 
+ 		return $query->row;
+ 	}
+@@ -131,4 +403,18 @@ class PurchaseInvoice extends \MDcart\System\Engine\Model {
+ 
+ 		return $query->rows;
+ 	}
++
++	/**
++	 * Get Purchase Invoice Payments - the settlement history of a
++	 * credit/combined invoice, newest first.
++	 *
++	 * @param int $purchase_invoice_id
++	 *
++	 * @return array<int, array<string, mixed>>
++	 */
++	public function getPurchaseInvoicePayments(int $purchase_invoice_id): array {
++		$query = $this->db->query("SELECT `pip`.*, `ba`.`name` AS `bank_account_name` FROM `" . DB_PREFIX . "purchase_invoice_payment` `pip` LEFT JOIN `" . DB_PREFIX . "bank_account` `ba` ON (`ba`.`bank_account_id` = `pip`.`bank_account_id`) WHERE `pip`.`purchase_invoice_id` = '" . (int)$purchase_invoice_id . "' ORDER BY `pip`.`date_added` DESC");
++
++		return $query->rows;
++	}
+ }
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index 0a099e9..c2b3ef6 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -466,6 +466,32 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 			// notification_and_payment_extensions above, for the same reason (this is a
+ 			// brand new feature, so every already-deployed install predates its seed data
+ 			// by definition).
++			// New Suppliers screen (accounting/supplier) - needs its own table (new
++			// feature, so no install has it yet) plus the Administrator permission,
++			// same CREATE TABLE IF NOT EXISTS approach runMigrations() itself uses
++			// for its own tracking table, so this is safe whether or not
++			// install_starter.sql's copy of this table already ran on this install.
++			'supplier_table_and_permission' => function (): void {
++				$this->db->query(
++					"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "supplier` ("
++					. "`supplier_id` int(11) NOT NULL AUTO_INCREMENT,"
++					. "`name` varchar(128) NOT NULL,"
++					. "`telephone` varchar(32) NOT NULL DEFAULT '',"
++					. "`email` varchar(96) NOT NULL DEFAULT '',"
++					. "`address` varchar(255) NOT NULL DEFAULT '',"
++					. "`tax_id` varchar(64) NOT NULL DEFAULT '',"
++					. "`currency_code` varchar(3) NOT NULL DEFAULT '',"
++					. "`status` tinyint(1) NOT NULL DEFAULT 1,"
++					. "`sort_order` int(11) NOT NULL DEFAULT 0,"
++					. "`date_added` datetime NOT NULL,"
++					. "`date_modified` datetime NOT NULL,"
++					. "PRIMARY KEY (`supplier_id`)"
++					. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
++				);
++
++				$this->grantAdministratorPermissions(['accounting/supplier']);
++			},
++
+ 			'auto_translate_extension' => function (): void {
+ 				$this->grantAdministratorPermissions(['extension/auto_translate/other/auto_translate']);
+ 
+@@ -507,6 +533,72 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 					}
+ 				}
+ 			},
++
++			// Purchase Invoice gains the real financial side the user asked
++			// for: a Supplier (supplier_id, already covered by
++			// supplier_table_and_permission above), a currency/exchange
++			// rate, a payment type, and a paid_amount - plus a new
++			// oc_purchase_invoice_payment table for settling a
++			// credit/combined invoice later, and a new "Foreign Exchange
++			// Gain/Loss" (5900) system account to absorb the rate
++			// difference between the invoice date and the settlement date.
++			// ADD COLUMN IF NOT EXISTS / CREATE TABLE IF NOT EXISTS so this
++			// is safe whether or not install_starter.sql's own copy of
++			// these already ran on this install.
++			'purchase_invoice_accounting_extension' => function (): void {
++				$columns = [
++					'`supplier_id` int(11) NOT NULL DEFAULT 0 AFTER `warehouse_id`',
++					'`currency_code` varchar(3) NOT NULL DEFAULT \'\' AFTER `supplier_name`',
++					'`exchange_rate` decimal(15,6) NOT NULL DEFAULT 1.000000 AFTER `currency_code`',
++					'`total_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `exchange_rate`',
++					'`payment_type` varchar(20) NOT NULL DEFAULT \'credit\' AFTER `total_amount`',
++					'`bank_account_id` int(11) NOT NULL DEFAULT 0 AFTER `payment_type`',
++					'`paid_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `bank_account_id`'
++				];
++
++				foreach ($columns as $column) {
++					$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD COLUMN IF NOT EXISTS " . $column);
++				}
++
++				$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD KEY IF NOT EXISTS `supplier_id` (`supplier_id`)");
++
++				// Any invoice saved before this migration has no total_amount
++				// on its header row - backfill it once from its line items so
++				// existing invoices show a correct outstanding balance instead
++				// of appearing fully paid (0 total - 0 paid = 0 owed).
++				$this->db->query(
++					"UPDATE `" . DB_PREFIX . "purchase_invoice` `pi`"
++					. " LEFT JOIN (SELECT `purchase_invoice_id`, SUM(`quantity` * `unit_cost`) AS `sum_total` FROM `" . DB_PREFIX . "purchase_invoice_product` GROUP BY `purchase_invoice_id`) `t` ON (`t`.`purchase_invoice_id` = `pi`.`purchase_invoice_id`)"
++					. " SET `pi`.`total_amount` = COALESCE(`t`.`sum_total`, 0), `pi`.`paid_amount` = COALESCE(`t`.`sum_total`, 0)"
++					. " WHERE `pi`.`total_amount` = 0 AND `pi`.`payment_type` = 'credit'"
++				);
++
++				$this->db->query(
++					"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "purchase_invoice_payment` ("
++					. "`purchase_invoice_payment_id` int(11) NOT NULL AUTO_INCREMENT,"
++					. "`purchase_invoice_id` int(11) NOT NULL,"
++					. "`bank_account_id` int(11) NOT NULL DEFAULT 0,"
++					. "`amount` decimal(15,4) NOT NULL DEFAULT 0.0000,"
++					. "`exchange_rate` decimal(15,6) NOT NULL DEFAULT 1.000000,"
++					. "`journal_id` int(11) NOT NULL DEFAULT 0,"
++					. "`user_id` int(11) NOT NULL DEFAULT 0,"
++					. "`date_added` datetime NOT NULL,"
++					. "PRIMARY KEY (`purchase_invoice_payment_id`),"
++					. "KEY `purchase_invoice_id` (`purchase_invoice_id`)"
++					. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
++				);
++
++				if ($this->db->query("SHOW TABLES LIKE '" . DB_PREFIX . "account'")->num_rows) {
++					$query = $this->db->query("SELECT `account_id` FROM `" . DB_PREFIX . "account` WHERE `code` = '5900'");
++
++					if (!$query->num_rows) {
++						$parent_query = $this->db->query("SELECT `account_id` FROM `" . DB_PREFIX . "account` WHERE `code` = '5000'");
++						$parent_id = $parent_query->num_rows ? (int)$parent_query->row['account_id'] : 0;
++
++						$this->db->query("INSERT INTO `" . DB_PREFIX . "account` SET `parent_id` = '" . $parent_id . "', `code` = '5900', `name` = 'Foreign Exchange Gain/Loss', `type` = 'expense', `is_system` = '1', `is_bank_cash` = '0', `status` = '1', `date_added` = NOW()");
++					}
++				}
++			},
+ 		];
+ 	}
+ 
+diff --git a/panel/view/template/accounting/supplier.twig b/panel/view/template/accounting/supplier.twig
+new file mode 100644
+index 0000000..bd60cba
+--- /dev/null
++++ b/panel/view/template/accounting/supplier.twig
+@@ -0,0 +1,30 @@
++{{ header }}{{ column_left }}
++<div id="content">
++	<div class="page-header">
++		<div class="container-fluid">
++			<div class="float-end"><a href="{{ add }}" data-bs-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i></a>
++				<button type="submit" form="form-supplier" formaction="{{ delete }}" data-bs-toggle="tooltip" title="{{ button_delete }}" onclick="return confirm('{{ text_confirm }}');" class="btn btn-danger"><i class="fa-regular fa-trash-can"></i></button>
++			</div>
++			<h1>{{ heading_title }}</h1>
++			<ol class="breadcrumb">
++				{% for breadcrumb in breadcrumbs %}
++					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
++				{% endfor %}
++			</ol>
++		</div>
++	</div>
++	<div class="container-fluid">
++		<div class="card">
++			<div class="card-header"><i class="fa-solid fa-truck-field"></i> {{ text_list }}</div>
++			<div id="supplier" class="card-body">{{ list }}</div>
++		</div>
++	</div>
++</div>
++<script type="text/javascript"><!--
++$('#supplier').on('click', 'thead a, .pagination a', function(e) {
++    e.preventDefault();
++
++    $('#supplier').load(this.href);
++});
++//--></script>
++{{ footer }}
+diff --git a/panel/view/template/accounting/supplier_form.twig b/panel/view/template/accounting/supplier_form.twig
+new file mode 100644
+index 0000000..064d3e4
+--- /dev/null
++++ b/panel/view/template/accounting/supplier_form.twig
+@@ -0,0 +1,88 @@
++{{ header }}{{ column_left }}
++<div id="content">
++	<div class="page-header">
++		<div class="container-fluid">
++			<div class="float-end">
++				<button type="submit" form="form-supplier" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i></button>
++				<a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a>
++			</div>
++			<h1>{{ heading_title }}</h1>
++			<ol class="breadcrumb">
++				{% for breadcrumb in breadcrumbs %}
++					<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
++				{% endfor %}
++			</ol>
++		</div>
++	</div>
++	<div class="container-fluid">
++		<div class="card">
++			<div class="card-header"><i class="fa-solid fa-truck-field"></i> {{ text_form }}</div>
++			<div class="card-body">
++				<div id="alert-placeholder"></div>
++				<form id="form-supplier" action="{{ save }}" method="post" data-oc-toggle="ajax">
++					<div class="row mb-3 required">
++						<label for="input-name" class="col-sm-2 col-form-label">{{ entry_name }}</label>
++						<div class="col-sm-10">
++							<input type="text" name="name" value="{{ name }}" placeholder="{{ entry_name }}" id="input-name" class="form-control"/>
++							<div id="error-name" class="invalid-feedback"></div>
++						</div>
++					</div>
++					<div class="row mb-3">
++						<label for="input-telephone" class="col-sm-2 col-form-label">{{ entry_telephone }}</label>
++						<div class="col-sm-10">
++							<input type="text" name="telephone" value="{{ telephone }}" placeholder="{{ entry_telephone }}" id="input-telephone" class="form-control" dir="ltr"/>
++						</div>
++					</div>
++					<div class="row mb-3">
++						<label for="input-email" class="col-sm-2 col-form-label">{{ entry_email }}</label>
++						<div class="col-sm-10">
++							<input type="text" name="email" value="{{ email }}" placeholder="{{ entry_email }}" id="input-email" class="form-control" dir="ltr"/>
++						</div>
++					</div>
++					<div class="row mb-3">
++						<label for="input-address" class="col-sm-2 col-form-label">{{ entry_address }}</label>
++						<div class="col-sm-10">
++							<input type="text" name="address" value="{{ address }}" placeholder="{{ entry_address }}" id="input-address" class="form-control"/>
++						</div>
++					</div>
++					<div class="row mb-3">
++						<label for="input-tax-id" class="col-sm-2 col-form-label">{{ entry_tax_id }}</label>
++						<div class="col-sm-10">
++							<input type="text" name="tax_id" value="{{ tax_id }}" placeholder="{{ entry_tax_id }}" id="input-tax-id" class="form-control" dir="ltr"/>
++							<small class="form-text text-muted">{{ help_tax_id }}</small>
++						</div>
++					</div>
++					<div class="row mb-3 required">
++						<label for="input-currency" class="col-sm-2 col-form-label">{{ entry_currency }}</label>
++						<div class="col-sm-10">
++							<select name="currency_code" id="input-currency" class="form-select">
++								{% for currency in currencies %}
++									<option value="{{ currency.code }}"{% if currency.code == currency_code %} selected{% endif %}>{{ currency.title }} ({{ currency.code }})</option>
++								{% endfor %}
++							</select>
++							<div id="error-currency_code" class="invalid-feedback"></div>
++							<small class="form-text text-muted">{{ help_currency }}</small>
++						</div>
++					</div>
++					<div class="row mb-3">
++						<label for="input-status" class="col-sm-2 col-form-label">{{ entry_status }}</label>
++						<div class="col-sm-10">
++							<div class="form-check form-switch">
++								<input type="hidden" name="status" value="0"/>
++								<input type="checkbox" name="status" value="1" id="input-status" class="form-check-input"{% if status %} checked{% endif %}/>
++							</div>
++						</div>
++					</div>
++					<div class="row mb-3">
++						<label for="input-sort-order" class="col-sm-2 col-form-label">{{ entry_sort_order }}</label>
++						<div class="col-sm-10">
++							<input type="number" name="sort_order" value="{{ sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control"/>
++						</div>
++					</div>
++					<input type="hidden" name="supplier_id" value="{{ supplier_id }}" id="input-supplier-id"/>
++				</form>
++			</div>
++		</div>
++	</div>
++</div>
++{{ footer }}
+diff --git a/panel/view/template/accounting/supplier_list.twig b/panel/view/template/accounting/supplier_list.twig
+new file mode 100644
+index 0000000..3e08fe4
+--- /dev/null
++++ b/panel/view/template/accounting/supplier_list.twig
+@@ -0,0 +1,36 @@
++<form id="form-supplier" method="post" data-oc-toggle="ajax" data-oc-load="{{ action }}" data-oc-target="#supplier">
++  <div class="table-responsive">
++    <table class="table table-bordered table-hover">
++      <thead>
++        <tr>
++          <th class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></th>
++          <th>{{ column_name }}</th>
++          <th class="text-center">{{ column_telephone }}</th>
++          <th class="text-center">{{ column_currency }}</th>
++          <th class="text-end">{{ column_balance }}</th>
++          <th class="text-center">{{ column_status }}</th>
++          <th class="text-end col-1">{{ column_action }}</th>
++        </tr>
++      </thead>
++      <tbody>
++        {% if suppliers %}
++          {% for supplier in suppliers %}
++            <tr>
++              <td class="text-center"><input type="checkbox" name="selected[]" value="{{ supplier.supplier_id }}" class="form-check-input"/></td>
++              <td>{{ supplier.name }}</td>
++              <td class="text-center" dir="ltr">{{ supplier.telephone }}</td>
++              <td class="text-center">{{ supplier.currency_code }}</td>
++              <td class="text-end" dir="ltr">{{ supplier.balance }} {{ supplier.currency_code }}</td>
++              <td class="text-center">{% if supplier.status %}<span class="badge text-bg-success">{{ text_enabled }}</span>{% else %}<span class="badge text-bg-danger">{{ text_disabled }}</span>{% endif %}</td>
++              <td class="text-end"><a href="{{ supplier.edit }}" data-bs-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></a></td>
++            </tr>
++          {% endfor %}
++        {% else %}
++          <tr>
++            <td class="text-center" colspan="7">{{ text_no_results }}</td>
++          </tr>
++        {% endif %}
++      </tbody>
++    </table>
++  </div>
++</form>
+diff --git a/panel/view/template/catalog/purchase_invoice_form.twig b/panel/view/template/catalog/purchase_invoice_form.twig
+index ebfa89c..0c1b507 100644
+--- a/panel/view/template/catalog/purchase_invoice_form.twig
++++ b/panel/view/template/catalog/purchase_invoice_form.twig
+@@ -41,13 +41,49 @@
+ 					<div class="row mb-3">
+ 						<label for="input-supplier" class="col-sm-2 col-form-label">{{ entry_supplier }}</label>
+ 						<div class="col-sm-4">
+-							<input type="text" name="supplier_name" value="{{ supplier_name }}" id="input-supplier" class="form-control"{% if readonly %} readonly{% endif %}/>
++							<select name="supplier_id" id="input-supplier" class="form-select"{% if readonly %} disabled{% endif %}>
++								<option value="">{{ text_supplier_none }}</option>
++								{% for supplier in suppliers %}
++									<option value="{{ supplier.supplier_id }}" data-name="{{ supplier.name }}"{% if supplier.supplier_id == supplier_id %} selected{% endif %}>{{ supplier.name }} ({{ supplier.currency_code }})</option>
++								{% endfor %}
++							</select>
++							{% if readonly and not supplier_id and supplier_name %}<div class="form-text">{{ supplier_name }}</div>{% endif %}
++							<input type="text" name="supplier_name" id="input-supplier-name" value="{{ supplier_name }}" class="form-control d-none"/>
+ 						</div>
+ 						<label for="input-invoice-number" class="col-sm-2 col-form-label">{{ entry_invoice_number }}</label>
+ 						<div class="col-sm-4">
+ 							<input type="text" name="invoice_number" value="{{ invoice_number }}" id="input-invoice-number" class="form-control"{% if readonly %} readonly{% endif %}/>
+ 						</div>
+ 					</div>
++					<div class="row mb-3 required">
++						<label for="input-payment-type" class="col-sm-2 col-form-label">{{ entry_payment_type }}</label>
++						<div class="col-sm-4">
++							<select name="payment_type" id="input-payment-type" class="form-select"{% if readonly %} disabled{% endif %}>
++								<option value="cash"{% if payment_type == 'cash' %} selected{% endif %}>{{ text_payment_cash }}</option>
++								<option value="bank"{% if payment_type == 'bank' %} selected{% endif %}>{{ text_payment_bank }}</option>
++								<option value="credit"{% if payment_type == 'credit' %} selected{% endif %}>{{ text_payment_credit }}</option>
++								<option value="combined"{% if payment_type == 'combined' %} selected{% endif %}>{{ text_payment_combined }}</option>
++							</select>
++						</div>
++						<label for="input-bank-account" class="col-sm-2 col-form-label" id="label-bank-account">{{ entry_bank_account }}</label>
++						<div class="col-sm-4" id="group-bank-account">
++							<select name="bank_account_id" id="input-bank-account" class="form-select"{% if readonly %} disabled{% endif %}>
++								<option value=""></option>
++								{% for bank_account in bank_accounts %}
++									<option value="{{ bank_account.bank_account_id }}"{% if bank_account.bank_account_id == bank_account_id %} selected{% endif %}>{{ bank_account.name }}</option>
++								{% endfor %}
++							</select>
++						</div>
++					</div>
++					<div class="row mb-3" id="group-paid-amount">
++						<label for="input-paid-amount" class="col-sm-2 col-form-label">{{ entry_paid_amount }}</label>
++						<div class="col-sm-4">
++							<div class="input-group">
++								<input type="text" name="paid_amount" value="{{ paid_amount }}" id="input-paid-amount" class="form-control text-end"{% if readonly %} readonly{% endif %}/>
++								<span class="input-group-text">{{ currency_code }}</span>
++							</div>
++						</div>
++					</div>
+ 					<div class="row mb-3">
+ 						<label for="input-comment" class="col-sm-2 col-form-label">{{ entry_comment }}</label>
+ 						<div class="col-sm-10">
+@@ -101,6 +137,71 @@
+ 					</div>
+ 					<input type="hidden" name="purchase_invoice_id" value="{{ purchase_invoice_id }}"/>
+ 				</form>
++
++				{% if readonly %}
++					<hr/>
++					<div class="row">
++						<div class="col-sm-4">
++							<strong>{{ text_total_amount }}:</strong> {{ total_amount }} {{ currency_code }}
++						</div>
++						<div class="col-sm-4">
++							<strong>{{ text_paid_amount }}:</strong> {{ paid_amount }} {{ currency_code }}
++						</div>
++						<div class="col-sm-4">
++							<strong>{{ text_outstanding }}:</strong> {{ outstanding_formatted }}
++						</div>
++					</div>
++
++					{% if payments %}
++						<hr/>
++						<h5>{{ text_payment_history }}</h5>
++						<table class="table table-bordered table-sm">
++							<thead>
++								<tr>
++									<th>{{ column_date_added }}</th>
++									<th>{{ entry_bank_account }}</th>
++									<th class="text-end">{{ column_amount }}</th>
++								</tr>
++							</thead>
++							<tbody>
++								{% for payment in payments %}
++									<tr>
++										<td>{{ payment.date_added }}</td>
++										<td>{{ payment.bank_account_name }}</td>
++										<td class="text-end">{{ payment.amount }}</td>
++									</tr>
++								{% endfor %}
++							</tbody>
++						</table>
++					{% endif %}
++
++					{% if can_pay %}
++						<hr/>
++						<h5>{{ text_record_payment }}</h5>
++						<div id="pay-alert-placeholder"></div>
++						<form id="form-purchase-invoice-payment">
++							<div class="row mb-3">
++								<div class="col-sm-4">
++									<select id="input-pay-bank-account" class="form-select">
++										<option value=""></option>
++										{% for bank_account in bank_accounts %}
++											<option value="{{ bank_account.bank_account_id }}">{{ bank_account.name }}</option>
++										{% endfor %}
++									</select>
++								</div>
++								<div class="col-sm-4">
++									<div class="input-group">
++										<input type="text" id="input-pay-amount" placeholder="{{ entry_amount }}" class="form-control text-end"/>
++										<span class="input-group-text">{{ currency_code }}</span>
++									</div>
++								</div>
++								<div class="col-sm-4">
++									<button type="submit" class="btn btn-primary">{{ button_record_payment }}</button>
++								</div>
++							</div>
++						</form>
++					{% endif %}
++				{% endif %}
+ 			</div>
+ 		</div>
+ 	</div>
+@@ -125,7 +226,27 @@ function addProductRow(productId, productName, quantity, unitCost, barcode) {
+     productRowIndex++;
+ }
+ 
++function togglePaymentFields() {
++    var type = $('#input-payment-type').val();
++
++    if (type === 'credit') {
++        $('#group-bank-account, #label-bank-account').hide();
++    } else {
++        $('#group-bank-account, #label-bank-account').show();
++    }
++
++    if (type === 'combined') {
++        $('#group-paid-amount').show();
++    } else {
++        $('#group-paid-amount').hide();
++    }
++}
++
++togglePaymentFields();
++
+ {% if not readonly %}
++$('#input-payment-type').on('change', togglePaymentFields);
++
+ $('#input-product').autocomplete({
+     'source': function(request, response) {
+         $.ajax({
+@@ -197,5 +318,34 @@ $('#table-product').on('click', '.button-remove-product', function() {
+     $(this).closest('tr').remove();
+ });
+ {% endif %}
++
++{% if can_pay %}
++$('#form-purchase-invoice-payment').on('submit', function(e) {
++    e.preventDefault();
++
++    $.ajax({
++        url: '{{ pay }}',
++        type: 'post',
++        data: {
++            purchase_invoice_id: {{ purchase_invoice_id }},
++            bank_account_id: $('#input-pay-bank-account').val(),
++            amount: $('#input-pay-amount').val()
++        },
++        dataType: 'json',
++        success: function(json) {
++            $('#pay-alert-placeholder').html('');
++
++            if (json.error) {
++                $('#pay-alert-placeholder').html('<div class="alert alert-danger">' + (json.error.warning || '') + '</div>');
++                return;
++            }
++
++            $('#pay-alert-placeholder').html('<div class="alert alert-success">' + json.success + '</div>');
++
++            location.reload();
++        }
++    });
++});
++{% endif %}
+ //--></script>
+ {{ footer }}
+diff --git a/panel/view/template/catalog/purchase_invoice_list.twig b/panel/view/template/catalog/purchase_invoice_list.twig
+index 739d847..fcdb481 100644
+--- a/panel/view/template/catalog/purchase_invoice_list.twig
++++ b/panel/view/template/catalog/purchase_invoice_list.twig
+@@ -7,6 +7,7 @@
+         <th>{{ column_warehouse }}</th>
+         <th class="text-center">{{ column_invoice_date }}</th>
+         <th>{{ column_date_added }}</th>
++        <th class="text-end">{{ column_outstanding }}</th>
+         <th class="text-end col-1">{{ column_action }}</th>
+       </tr>
+     </thead>
+@@ -19,12 +20,13 @@
+             <td>{{ purchase_invoice.warehouse_name }}</td>
+             <td class="text-center">{{ purchase_invoice.invoice_date ?: '-' }}</td>
+             <td>{{ purchase_invoice.date_added }}</td>
++            <td class="text-end">{% if purchase_invoice.outstanding %}<span class="badge bg-warning text-dark">{{ purchase_invoice.outstanding }}</span>{% else %}-{% endif %}</td>
+             <td class="text-end"><a href="{{ purchase_invoice.view }}" data-bs-toggle="tooltip" title="{{ button_view }}" class="btn btn-primary"><i class="fa-solid fa-eye"></i></a></td>
+           </tr>
+         {% endfor %}
+       {% else %}
+         <tr>
+-          <td class="text-center" colspan="6">{{ text_no_results }}</td>
++          <td class="text-center" colspan="7">{{ text_no_results }}</td>
+         </tr>
+       {% endif %}
+     </tbody>

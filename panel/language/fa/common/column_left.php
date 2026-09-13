@@ -92,6 +92,7 @@ $_['text_import_product_url']  = 'وارد کردن محصول از آدرس ا�
 $_['text_warehouse']           = 'انبارها';
 $_['text_warehouse_transfer']  = 'انتقال بین انبارها';
 $_['text_purchase_invoice']    = 'فاکتورهای خرید';
+$_['text_supplier']            = 'تامین‌کنندگان';
 $_['text_pos']                 = 'صندوق فروش (POS)';
 $_['text_preorder']            = 'پیش‌سفارش‌ها';
 $_['text_accounting']          = 'حسابداری';

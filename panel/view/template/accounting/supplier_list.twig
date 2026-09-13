@@ -1,0 +1,36 @@
+<form id="form-supplier" method="post" data-oc-toggle="ajax" data-oc-load="{{ action }}" data-oc-target="#supplier">
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th class="text-center" style="width: 1px;"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', $(this).prop('checked'));" class="form-check-input"/></th>
+          <th>{{ column_name }}</th>
+          <th class="text-center">{{ column_telephone }}</th>
+          <th class="text-center">{{ column_currency }}</th>
+          <th class="text-end">{{ column_balance }}</th>
+          <th class="text-center">{{ column_status }}</th>
+          <th class="text-end col-1">{{ column_action }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if suppliers %}
+          {% for supplier in suppliers %}
+            <tr>
+              <td class="text-center"><input type="checkbox" name="selected[]" value="{{ supplier.supplier_id }}" class="form-check-input"/></td>
+              <td>{{ supplier.name }}</td>
+              <td class="text-center" dir="ltr">{{ supplier.telephone }}</td>
+              <td class="text-center">{{ supplier.currency_code }}</td>
+              <td class="text-end" dir="ltr">{{ supplier.balance }} {{ supplier.currency_code }}</td>
+              <td class="text-center">{% if supplier.status %}<span class="badge text-bg-success">{{ text_enabled }}</span>{% else %}<span class="badge text-bg-danger">{{ text_disabled }}</span>{% endif %}</td>
+              <td class="text-end"><a href="{{ supplier.edit }}" data-bs-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa-solid fa-pencil"></i></a></td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td class="text-center" colspan="7">{{ text_no_results }}</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</form>

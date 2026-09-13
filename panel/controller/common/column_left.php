@@ -72,14 +72,6 @@ class ColumnLeft extends \MDcart\System\Engine\Controller {
 				];
 			}
 
-			if ($this->user->hasPermission('access', 'catalog/purchase_invoice')) {
-				$catalog[] = [
-					'name'     => $this->language->get('text_purchase_invoice'),
-					'href'     => $this->url->link('catalog/purchase_invoice', 'user_token=' . $this->session->data['user_token']),
-					'children' => []
-				];
-			}
-
 			if ($this->user->hasPermission('access', 'catalog/subscription_plan')) {
 				$catalog[] = [
 					'name'     => $this->language->get('text_subscription_plan'),
@@ -462,6 +454,28 @@ class ColumnLeft extends \MDcart\System\Engine\Controller {
 				$accounting[] = [
 					'name'     => $this->language->get('text_bank_cash_accounts'),
 					'href'     => $this->url->link('accounting/bank_account', 'user_token=' . $this->session->data['user_token']),
+					'children' => []
+				];
+			}
+
+			if ($this->user->hasPermission('access', 'accounting/supplier')) {
+				$accounting[] = [
+					'name'     => $this->language->get('text_supplier'),
+					'href'     => $this->url->link('accounting/supplier', 'user_token=' . $this->session->data['user_token']),
+					'children' => []
+				];
+			}
+
+			// Purchase Invoice lives here (not under Catalog) because, as of this
+			// update, saving one posts a real journal entry (Debit Inventory,
+			// Credit Bank/Cash and/or Accounts Payable) - it's an accounting
+			// document with a counterparty and a payment method, not just a
+			// stock-count screen. Its route/permission string is unchanged
+			// (catalog/purchase_invoice) - only where it appears in this menu moved.
+			if ($this->user->hasPermission('access', 'catalog/purchase_invoice')) {
+				$accounting[] = [
+					'name'     => $this->language->get('text_purchase_invoice'),
+					'href'     => $this->url->link('catalog/purchase_invoice', 'user_token=' . $this->session->data['user_token']),
 					'children' => []
 				];
 			}

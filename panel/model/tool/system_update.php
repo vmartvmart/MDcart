@@ -466,6 +466,32 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 			// notification_and_payment_extensions above, for the same reason (this is a
 			// brand new feature, so every already-deployed install predates its seed data
 			// by definition).
+			// New Suppliers screen (accounting/supplier) - needs its own table (new
+			// feature, so no install has it yet) plus the Administrator permission,
+			// same CREATE TABLE IF NOT EXISTS approach runMigrations() itself uses
+			// for its own tracking table, so this is safe whether or not
+			// install_starter.sql's copy of this table already ran on this install.
+			'supplier_table_and_permission' => function (): void {
+				$this->db->query(
+					"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "supplier` ("
+					. "`supplier_id` int(11) NOT NULL AUTO_INCREMENT,"
+					. "`name` varchar(128) NOT NULL,"
+					. "`telephone` varchar(32) NOT NULL DEFAULT '',"
+					. "`email` varchar(96) NOT NULL DEFAULT '',"
+					. "`address` varchar(255) NOT NULL DEFAULT '',"
+					. "`tax_id` varchar(64) NOT NULL DEFAULT '',"
+					. "`currency_code` varchar(3) NOT NULL DEFAULT '',"
+					. "`status` tinyint(1) NOT NULL DEFAULT 1,"
+					. "`sort_order` int(11) NOT NULL DEFAULT 0,"
+					. "`date_added` datetime NOT NULL,"
+					. "`date_modified` datetime NOT NULL,"
+					. "PRIMARY KEY (`supplier_id`)"
+					. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
+				);
+
+				$this->grantAdministratorPermissions(['accounting/supplier']);
+			},
+
 			'auto_translate_extension' => function (): void {
 				$this->grantAdministratorPermissions(['extension/auto_translate/other/auto_translate']);
 
@@ -504,6 +530,72 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 							"INSERT INTO `" . DB_PREFIX . "event` SET `code` = '" . $this->db->escape($code) . "', `description` = '" . $this->db->escape($description) . "',"
 							. " `trigger` = '" . $this->db->escape($trigger) . "', `action` = '" . $this->db->escape($action) . "', `status` = '1', `sort_order` = '1'"
 						);
+					}
+				}
+			},
+
+			// Purchase Invoice gains the real financial side the user asked
+			// for: a Supplier (supplier_id, already covered by
+			// supplier_table_and_permission above), a currency/exchange
+			// rate, a payment type, and a paid_amount - plus a new
+			// oc_purchase_invoice_payment table for settling a
+			// credit/combined invoice later, and a new "Foreign Exchange
+			// Gain/Loss" (5900) system account to absorb the rate
+			// difference between the invoice date and the settlement date.
+			// ADD COLUMN IF NOT EXISTS / CREATE TABLE IF NOT EXISTS so this
+			// is safe whether or not install_starter.sql's own copy of
+			// these already ran on this install.
+			'purchase_invoice_accounting_extension' => function (): void {
+				$columns = [
+					'`supplier_id` int(11) NOT NULL DEFAULT 0 AFTER `warehouse_id`',
+					'`currency_code` varchar(3) NOT NULL DEFAULT \'\' AFTER `supplier_name`',
+					'`exchange_rate` decimal(15,6) NOT NULL DEFAULT 1.000000 AFTER `currency_code`',
+					'`total_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `exchange_rate`',
+					'`payment_type` varchar(20) NOT NULL DEFAULT \'credit\' AFTER `total_amount`',
+					'`bank_account_id` int(11) NOT NULL DEFAULT 0 AFTER `payment_type`',
+					'`paid_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `bank_account_id`'
+				];
+
+				foreach ($columns as $column) {
+					$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD COLUMN IF NOT EXISTS " . $column);
+				}
+
+				$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD KEY IF NOT EXISTS `supplier_id` (`supplier_id`)");
+
+				// Any invoice saved before this migration has no total_amount
+				// on its header row - backfill it once from its line items so
+				// existing invoices show a correct outstanding balance instead
+				// of appearing fully paid (0 total - 0 paid = 0 owed).
+				$this->db->query(
+					"UPDATE `" . DB_PREFIX . "purchase_invoice` `pi`"
+					. " LEFT JOIN (SELECT `purchase_invoice_id`, SUM(`quantity` * `unit_cost`) AS `sum_total` FROM `" . DB_PREFIX . "purchase_invoice_product` GROUP BY `purchase_invoice_id`) `t` ON (`t`.`purchase_invoice_id` = `pi`.`purchase_invoice_id`)"
+					. " SET `pi`.`total_amount` = COALESCE(`t`.`sum_total`, 0), `pi`.`paid_amount` = COALESCE(`t`.`sum_total`, 0)"
+					. " WHERE `pi`.`total_amount` = 0 AND `pi`.`payment_type` = 'credit'"
+				);
+
+				$this->db->query(
+					"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "purchase_invoice_payment` ("
+					. "`purchase_invoice_payment_id` int(11) NOT NULL AUTO_INCREMENT,"
+					. "`purchase_invoice_id` int(11) NOT NULL,"
+					. "`bank_account_id` int(11) NOT NULL DEFAULT 0,"
+					. "`amount` decimal(15,4) NOT NULL DEFAULT 0.0000,"
+					. "`exchange_rate` decimal(15,6) NOT NULL DEFAULT 1.000000,"
+					. "`journal_id` int(11) NOT NULL DEFAULT 0,"
+					. "`user_id` int(11) NOT NULL DEFAULT 0,"
+					. "`date_added` datetime NOT NULL,"
+					. "PRIMARY KEY (`purchase_invoice_payment_id`),"
+					. "KEY `purchase_invoice_id` (`purchase_invoice_id`)"
+					. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
+				);
+
+				if ($this->db->query("SHOW TABLES LIKE '" . DB_PREFIX . "account'")->num_rows) {
+					$query = $this->db->query("SELECT `account_id` FROM `" . DB_PREFIX . "account` WHERE `code` = '5900'");
+
+					if (!$query->num_rows) {
+						$parent_query = $this->db->query("SELECT `account_id` FROM `" . DB_PREFIX . "account` WHERE `code` = '5000'");
+						$parent_id = $parent_query->num_rows ? (int)$parent_query->row['account_id'] : 0;
+
+						$this->db->query("INSERT INTO `" . DB_PREFIX . "account` SET `parent_id` = '" . $parent_id . "', `code` = '5900', `name` = 'Foreign Exchange Gain/Loss', `type` = 'expense', `is_system` = '1', `is_bank_cash` = '0', `status` = '1', `date_added` = NOW()");
 					}
 				}
 			},
