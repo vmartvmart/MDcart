@@ -1,0 +1,7 @@
+{
+  "name": "Auto Translate (fa <-> en)",
+  "description": "Automatically fills in a product or category's empty Persian/English name, description, tags and SEO meta fields by translating from whichever language was actually entered, using the Anthropic Claude API.",
+  "version": "1.0",
+  "author": "",
+  "link": ""
+}

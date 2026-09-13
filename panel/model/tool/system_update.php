@@ -418,7 +418,7 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 				$events = [
 					['ippanel_order', 'Sends IPPanel SMS notifications on new orders and order status changes.', 'model/checkout/order.addHistory/before', 'extension/ippanel/event/order'],
 					['bale_order', 'Sends Bale notifications on new orders and order status changes.', 'model/checkout/order.addHistory/before', 'extension/bale/event/order'],
-					['stock_alert_restock', 'Notifies subscribed customers when a product is restocked.', 'admin/model/catalog/product.editProduct/after', 'extension/stock_alert/event/restock'],
+					['stock_alert_restock', 'Notifies subscribed customers when a product is restocked.', 'model/catalog/product.editProduct/after', 'extension/stock_alert/event/restock'],
 					['telegram_order', 'Sends Telegram notifications on new orders and order status changes.', 'model/checkout/order.addHistory/before', 'extension/telegram/event/order'],
 					['whatsapp_order', 'Sends WhatsApp notifications on new orders and order status changes.', 'model/checkout/order.addHistory/before', 'extension/whatsapp/event/order'],
 				];
@@ -443,6 +443,69 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 			// oc_language table before that change still shows "Persian".
 			'persian_language_name' => function (): void {
 				$this->db->query("UPDATE `" . DB_PREFIX . "language` SET `name` = 'فارسی' WHERE `code` = 'fa' AND `name` = 'Persian'");
+			},
+
+			// The 'stock_alert_restock' row inserted by notification_and_payment_extensions
+			// above (and by install_starter.sql, on any install that ran it before this fix)
+			// carried a wrong trigger string with a spurious "admin/" prefix that never
+			// matches anything the framework actually fires (see Event::trigger() /
+			// Loader::callback() — the fired string is always just 'model/' . <the route
+			// passed to $this->load->model()> . '/after', with no "admin/" segment), so the
+			// back-in-stock notification silently never sent on any install that already
+			// has this row. This retroactively corrects the already-inserted data; new
+			// installs get the correct string directly (see install_starter.sql and the
+			// migration above).
+			'fix_stock_alert_trigger' => function (): void {
+				$this->db->query("UPDATE `" . DB_PREFIX . "event` SET `trigger` = 'model/catalog/product.editProduct/after' WHERE `code` = 'stock_alert_restock' AND `trigger` != 'model/catalog/product.editProduct/after'");
+			},
+
+			// Auto-translation (extension/auto_translate): fills in a product/category's
+			// empty fa/en name, description, tags and SEO meta fields by translating from
+			// whichever language was actually entered, via the Anthropic Claude API — same
+			// "grant permission + seed extension/extension_install/event rows" pattern as
+			// notification_and_payment_extensions above, for the same reason (this is a
+			// brand new feature, so every already-deployed install predates its seed data
+			// by definition).
+			'auto_translate_extension' => function (): void {
+				$this->grantAdministratorPermissions(['extension/auto_translate/other/auto_translate']);
+
+				$query = $this->db->query(
+					"SELECT `extension_id` FROM `" . DB_PREFIX . "extension`"
+					. " WHERE `extension` = 'auto_translate' AND `type` = 'other' AND `code` = 'auto_translate'"
+				);
+
+				if (!$query->num_rows) {
+					$this->db->query("INSERT INTO `" . DB_PREFIX . "extension` SET `extension` = 'auto_translate', `type` = 'other', `code` = 'auto_translate'");
+				}
+
+				$query = $this->db->query("SELECT `extension_install_id` FROM `" . DB_PREFIX . "extension_install` WHERE `code` = 'auto_translate'");
+
+				if (!$query->num_rows) {
+					$this->db->query(
+						"INSERT INTO `" . DB_PREFIX . "extension_install` SET `extension_id` = '0', `extension_download_id` = '0',"
+						. " `name` = 'Auto Translate (fa <-> en)', `description` = '" . $this->db->escape('Automatically fills in a product or category\'s empty Persian/English name, description, tags and SEO meta fields by translating from whichever language was actually entered, using the Anthropic Claude API.') . "',"
+						. " `code` = 'auto_translate', `version` = '1.0', `author` = '', `link` = '', `status` = '0', `date_added` = NOW()"
+					);
+				}
+
+				// (code, description, trigger, action)
+				$events = [
+					['auto_translate_product_add', 'Auto-translates a product\'s empty fa/en fields from the other language on save.', 'model/catalog/product.addProduct/after', 'extension/auto_translate/event/product.add'],
+					['auto_translate_product_edit', 'Auto-translates a product\'s empty fa/en fields from the other language on save.', 'model/catalog/product.editProduct/after', 'extension/auto_translate/event/product.edit'],
+					['auto_translate_category_add', 'Auto-translates a category\'s empty fa/en fields from the other language on save.', 'model/catalog/category.addCategory/after', 'extension/auto_translate/event/category.add'],
+					['auto_translate_category_edit', 'Auto-translates a category\'s empty fa/en fields from the other language on save.', 'model/catalog/category.editCategory/after', 'extension/auto_translate/event/category.edit'],
+				];
+
+				foreach ($events as [$code, $description, $trigger, $action]) {
+					$query = $this->db->query("SELECT `event_id` FROM `" . DB_PREFIX . "event` WHERE `code` = '" . $this->db->escape($code) . "'");
+
+					if (!$query->num_rows) {
+						$this->db->query(
+							"INSERT INTO `" . DB_PREFIX . "event` SET `code` = '" . $this->db->escape($code) . "', `description` = '" . $this->db->escape($description) . "',"
+							. " `trigger` = '" . $this->db->escape($trigger) . "', `action` = '" . $this->db->escape($action) . "', `status` = '1', `sort_order` = '1'"
+						);
+					}
+				}
 			},
 		];
 	}
