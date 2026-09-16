@@ -599,6 +599,26 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 					}
 				}
 			},
+			// `oc_currency`.`value` used to be `double(15,8)` - specifying
+			// decimal places on a DOUBLE column makes MariaDB actually
+			// round every stored value to 8 places after the point,
+			// instead of keeping full floating-point precision. That's
+			// harmless while config_currency (the pricing anchor - see
+			// event/currency.php) is USD, since every other currency's
+			// value then stays close to 1 and 8 decimals is plenty. But
+			// the moment the anchor becomes a large-magnitude currency
+			// like Rial (millions per USD), every other currency's value
+			// becomes a very small fraction (e.g. ~0.0000004), and 8
+			// decimal places leaves only 1-2 significant digits -
+			// silently wrecking every multi-currency conversion in the
+			// store. Widening to a plain, unconstrained `double` keeps
+			// full IEEE precision regardless of how large or small the
+			// anchor currency's magnitude is, so switching the base
+			// currency (see the repeg logic in event/currency.php) is
+			// actually safe to do.
+			'currency_value_precision' => function (): void {
+				$this->db->query("ALTER TABLE `" . DB_PREFIX . "currency` MODIFY `value` double DEFAULT NULL");
+			},
 		];
 	}
 

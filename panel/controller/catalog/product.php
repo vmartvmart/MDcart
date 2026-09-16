@@ -702,6 +702,12 @@ class Product extends \MDcart\System\Engine\Controller {
 			$data['price'] = '';
 		}
 
+		// Every monetary field on this form (Price, Discount, Subscription,
+		// Option price adjustments) is stored in the store's base/pricing
+		// currency (config_currency) - shown next to those fields so it's
+		// never ambiguous which currency to type the number in.
+		$data['config_currency'] = (string)$this->config->get('config_currency');
+
 		// Tax Class
 		$this->load->model('localisation/tax_class');
 

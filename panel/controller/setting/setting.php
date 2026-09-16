@@ -139,6 +139,7 @@ class Setting extends \MDcart\System\Engine\Controller {
 		$data['currencies'] = $this->model_localisation_currency->getCurrencies();
 
 		$data['config_currency'] = $this->config->get('config_currency');
+		$data['config_currency_display'] = $this->config->get('config_currency_display');
 
 		$data['currency_engines'] = [];
 

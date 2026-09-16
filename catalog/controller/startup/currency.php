@@ -28,7 +28,21 @@ class Currency extends \MDcart\System\Engine\Controller {
 		}
 
 		if (!array_key_exists($code, $currencies)) {
-			$code = $this->config->get('config_currency');
+			// config_currency_display lets the admin show customers a
+			// different default currency than the one prices are actually
+			// entered/computed in (config_currency, the pricing anchor -
+			// see panel/controller/event/currency.php). Fall back to the
+			// pricing currency itself when no separate display currency has
+			// been chosen, or when it names a currency that no longer
+			// exists/is disabled - this keeps existing stores behaving
+			// exactly as before this setting was introduced.
+			$config_currency_display = (string)$this->config->get('config_currency_display');
+
+			if ($config_currency_display !== '' && array_key_exists($config_currency_display, $currencies)) {
+				$code = $config_currency_display;
+			} else {
+				$code = $this->config->get('config_currency');
+			}
 		}
 
 		if (!isset($this->session->data['currency']) || $this->session->data['currency'] != $code) {

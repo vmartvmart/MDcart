@@ -286,6 +286,17 @@
                   </div>
                 </div>
                 <div class="row mb-3">
+                  <label for="input-currency-display" class="col-sm-2 col-form-label">{{ entry_currency_display }}</label>
+                  <div class="col-sm-10">
+                    <select name="config_currency_display" id="input-currency-display" class="form-select">
+                      {% for currency in currencies %}
+                        <option value="{{ currency.code }}"{% if currency.code == config_currency_display or (not config_currency_display and currency.code == config_currency) %} selected{% endif %}>{{ currency.title }}</option>
+                      {% endfor %}
+                    </select>
+                    <div class="form-text">{{ help_currency_display }}</div>
+                  </div>
+                </div>
+                <div class="row mb-3">
                   <label for="input-currency-engine" class="col-sm-2 col-form-label">{{ entry_currency_engine }}</label>
                   <div class="col-sm-10">
                     <select name="config_currency_engine" id="input-currency-engine" class="form-select">

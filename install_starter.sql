@@ -1240,7 +1240,7 @@ CREATE TABLE `oc_currency` (
   `symbol_left` varchar(12) DEFAULT NULL,
   `symbol_right` varchar(12) DEFAULT NULL,
   `decimal_place` int(1) DEFAULT 2,
-  `value` double(15,8) DEFAULT NULL,
+  `value` double DEFAULT NULL,
   `status` tinyint(1) DEFAULT 0,
   `date_modified` datetime DEFAULT NULL,
   PRIMARY KEY (`currency_id`)

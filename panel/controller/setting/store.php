@@ -333,6 +333,12 @@ class Store extends \MDcart\System\Engine\Controller {
 			$data['config_currency'] = $this->config->get('config_currency');
 		}
 
+		if (isset($setting_info['config_currency_display'])) {
+			$data['config_currency_display'] = $setting_info['config_currency_display'];
+		} else {
+			$data['config_currency_display'] = $this->config->get('config_currency_display');
+		}
+
 		// Options
 		if (isset($setting_info['config_product_description_length'])) {
 			$data['config_product_description_length'] = $setting_info['config_product_description_length'];

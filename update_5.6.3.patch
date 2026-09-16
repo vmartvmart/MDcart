@@ -1,0 +1,218 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index b54e6ef..c170474 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -83,5 +83,10 @@
+     "version": "5.6.2",
+     "fa": "رفع یک اشکال مهم در تعیین ارز پایه‌ی قیمت‌گذاری: تا پیش از این، تغییر «واحد پول پیش‌فرض» در System > Settings > General هیچ اثری روی مبنای واقعی محاسبات نداشت (مبنا همیشه به‌صورت پنهان دلار می‌ماند)، پس هر قیمتی که وارد می‌شد صرف‌نظر از این تنظیم، دلاری تفسیر می‌شد - خطری واقعی برای هر فروشگاهی که قصد قیمت‌گذاری ریالی دارد. حالا با ذخیره‌ی این تنظیم، همان ارز به‌طور خودکار مبنای واقعی (value=1) می‌شود و بقیه‌ی ارزها با همان نسبت‌های واقعی‌شان نسبت به آن بازچینی می‌شوند. کنار فیلد «قیمت» در فرم محصول (و ستون‌های قیمت در تخفیف/اشتراک/گزینه‌ها) هم برچسب ارز اضافه شد تا همیشه مشخص باشد قیمت با چه ارزی وارد می‌شود. ابزار «نرخ ارز» (Accounting > Exchange Rate) هم با هر مبنایی سازگار شد. همچنین دقت ذخیره‌سازی ستون نرخ ارز (oc_currency.value) از ۸ رقم اعشار ثابت به دقت کامل اعشاری افزایش یافت، چون وقتی مبنا ریال باشد (میلیون‌ها واحد)، ارزهای دیگر عددی بسیار کوچک می‌شوند که با ۸ رقم اعشار ثابت تقریباً بی‌دقت می‌شدند.",
+     "en": "Fixed an important bug in how the pricing base currency was determined: until now, changing the \"Default Currency\" in System > Settings > General had no real effect on the actual computation basis (it silently stayed pinned to USD), so every price entered was interpreted as USD regardless of that setting - a real risk for any store intending to price in Rial. Now, saving that setting automatically pins that currency as the real anchor (value=1) and rescales every other currency to match its real cross-rates. A currency-code label was also added next to the Price field on the product form (and the Discount/Subscription/Option price columns) so it's always clear which currency a price should be entered in. The Exchange Rate tool (Accounting > Exchange Rate) now works correctly regardless of which currency is the base. Additionally, the currency rate column's storage precision (oc_currency.value) was widened from a fixed 8 decimal places to full floating-point precision, since when the base is Rial (millions of units), every other currency becomes a very small number that 8 fixed decimals could barely represent."
++  },
++  {
++    "version": "5.6.3",
++    "fa": "جدا شدن «ارز قیمت‌گذاری» از «ارز نمایش پیش‌فرض به مشتری»: تا پیش از این یک تنظیم واحد (واحد پول پیش‌فرض) هم مبنای وارد کردن قیمت محصولات بود و هم ارزی که به مشتری جدید نمایش داده می‌شد - یعنی نمی‌شد مثلاً قیمت‌ها را به درهم وارد کرد ولی به مشتری پیش‌فرض تومان نشان داد. حالا در System > Settings > General (و در تنظیمات هر فروشگاه) یک فیلد جدید «ارز نمایش پیش‌فرض به مشتری» اضافه شده که مستقل از «ارز قیمت‌گذاری (مبنا)» قابل انتخاب است؛ اگر خالی بماند، رفتار قبلی دقیقاً حفظ می‌شود (نمایش پیش‌فرض همان ارز قیمت‌گذاری خواهد بود).",
++    "en": "Split the \"Pricing Currency\" from the \"Default Display Currency\": previously a single setting (Default Currency) doubled as both the currency product prices had to be entered in AND the currency shown to a new customer by default - so, for example, you couldn't enter prices in AED while showing Toman to customers by default. System > Settings > General (and each store's settings) now has a new \"Default Display Currency\" field that can be set independently of the \"Pricing Currency (Base)\" above it; leaving it unset preserves the previous behavior exactly (the display default falls back to the pricing currency)."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index d6a86bf..803d94e 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.2
++5.6.3
+diff --git a/catalog/controller/startup/currency.php b/catalog/controller/startup/currency.php
+index 4988355..2773a33 100644
+--- a/catalog/controller/startup/currency.php
++++ b/catalog/controller/startup/currency.php
+@@ -28,7 +28,21 @@ class Currency extends \MDcart\System\Engine\Controller {
+ 		}
+ 
+ 		if (!array_key_exists($code, $currencies)) {
+-			$code = $this->config->get('config_currency');
++			// config_currency_display lets the admin show customers a
++			// different default currency than the one prices are actually
++			// entered/computed in (config_currency, the pricing anchor -
++			// see panel/controller/event/currency.php). Fall back to the
++			// pricing currency itself when no separate display currency has
++			// been chosen, or when it names a currency that no longer
++			// exists/is disabled - this keeps existing stores behaving
++			// exactly as before this setting was introduced.
++			$config_currency_display = (string)$this->config->get('config_currency_display');
++
++			if ($config_currency_display !== '' && array_key_exists($config_currency_display, $currencies)) {
++				$code = $config_currency_display;
++			} else {
++				$code = $this->config->get('config_currency');
++			}
+ 		}
+ 
+ 		if (!isset($this->session->data['currency']) || $this->session->data['currency'] != $code) {
+diff --git a/panel/controller/setting/setting.php b/panel/controller/setting/setting.php
+index e2f546c..2c87031 100644
+--- a/panel/controller/setting/setting.php
++++ b/panel/controller/setting/setting.php
+@@ -139,6 +139,7 @@ class Setting extends \MDcart\System\Engine\Controller {
+ 		$data['currencies'] = $this->model_localisation_currency->getCurrencies();
+ 
+ 		$data['config_currency'] = $this->config->get('config_currency');
++		$data['config_currency_display'] = $this->config->get('config_currency_display');
+ 
+ 		$data['currency_engines'] = [];
+ 
+diff --git a/panel/controller/setting/store.php b/panel/controller/setting/store.php
+index d5545f7..84c5518 100644
+--- a/panel/controller/setting/store.php
++++ b/panel/controller/setting/store.php
+@@ -333,6 +333,12 @@ class Store extends \MDcart\System\Engine\Controller {
+ 			$data['config_currency'] = $this->config->get('config_currency');
+ 		}
+ 
++		if (isset($setting_info['config_currency_display'])) {
++			$data['config_currency_display'] = $setting_info['config_currency_display'];
++		} else {
++			$data['config_currency_display'] = $this->config->get('config_currency_display');
++		}
++
+ 		// Options
+ 		if (isset($setting_info['config_product_description_length'])) {
+ 			$data['config_product_description_length'] = $setting_info['config_product_description_length'];
+diff --git a/panel/language/fa/setting/setting.php b/panel/language/fa/setting/setting.php
+index 73b32e4..dbace31 100644
+--- a/panel/language/fa/setting/setting.php
++++ b/panel/language/fa/setting/setting.php
+@@ -75,7 +75,8 @@ $_['entry_zone']                          = 'استان / منطقه';
+ $_['entry_timezone']                      = 'منطقه زمانی';
+ $_['entry_language']                      = 'زبان';
+ $_['entry_language_admin']                = 'زبان پنل مدیریت';
+-$_['entry_currency']                      = 'ارز';
++$_['entry_currency']                      = 'ارز قیمت‌گذاری (مبنا)';
++$_['entry_currency_display']              = 'ارز نمایش پیش‌فرض به مشتری';
+ $_['entry_currency_engine']               = 'موتور نرخ ارز';
+ $_['entry_currency_auto']                 = 'بروزرسانی خودکار ارز';
+ $_['entry_length_class']                  = 'واحد طول';
+@@ -202,7 +203,8 @@ $_['help_logo_admin']                     = 'فقط بالای همین پنل 
+ $_['help_open']                           = 'ساعات کاری فروشگاه خود را وارد کنید.';
+ $_['help_comment']                        = 'این فیلد برای یادداشت‌های ویژه‌ای است که می‌خواهید به مشتری بگویید، مثلاً: فروشگاه چک قبول نمی‌کند.';
+ $_['help_location']                       = 'موقعیت‌های مختلف فروشگاه شما که می‌خواهید در فرم تماس با ما نمایش داده شوند.';
+-$_['help_currency']                       = 'ارز پیش‌فرض را تغییر دهید. برای مشاهده تغییرات، کش مرورگر خود را پاک کرده و کوکی فعلی را بازنشانی کنید.';
++$_['help_currency']                       = 'ارزی که باید قیمت محصولات با آن وارد شود (فیلد «قیمت» در فرم محصول). با تغییر این مورد، همین ارز به‌طور خودکار مبنای محاسباتی می‌شود و بقیه‌ی ارزها با نسبت واقعی‌شان نسبت به آن تنظیم می‌شوند؛ قیمت‌های واردشده‌ی قبلی بازتفسیر نمی‌شوند، پس بهتر است این تنظیم فقط یک‌بار، همان ابتدای کار، انتخاب شود.';
++$_['help_currency_display']               = 'ارزی که به‌طور پیش‌فرض به مشتری جدید نمایش داده می‌شود (تا وقتی خودش از سلکتور ارز فروشگاه چیز دیگری انتخاب کند). می‌تواند با «ارز قیمت‌گذاری» بالا فرق داشته باشد؛ مثلاً قیمت‌ها را به درهم وارد کنید ولی به مشتری به‌صورت پیش‌فرض تومان نشان دهید. برای مشاهده تغییرات، کش مرورگر خود را پاک کرده و کوکی فعلی را بازنشانی کنید.';
+ $_['help_currency_auto']                  = 'فروشگاه خود را طوری تنظیم کنید که ارزها هر روز به‌صورت خودکار بروزرسانی شوند.';
+ $_['help_product_description_length']     = 'در نمای لیست، محدودیت تعداد کاراکتر توضیح کوتاه (دسته‌بندی‌ها، ویژه و غیره)';
+ $_['help_pagination']                     = 'تعیین می‌کند چند آیتم کاتالوگ در هر صفحه نمایش داده شود (محصولات، دسته‌بندی‌ها و غیره)';
+diff --git a/panel/language/fa/setting/store.php b/panel/language/fa/setting/store.php
+index 51842db..1e34f87 100644
+--- a/panel/language/fa/setting/store.php
++++ b/panel/language/fa/setting/store.php
+@@ -48,7 +48,8 @@ $_['entry_location']                   = 'موقعیت فروشگاه';
+ $_['entry_country']                    = 'کشور';
+ $_['entry_zone']                       = 'استان / منطقه';
+ $_['entry_language']                   = 'زبان';
+-$_['entry_currency']                   = 'ارز';
++$_['entry_currency']                   = 'ارز قیمت‌گذاری (مبنا)';
++$_['entry_currency_display']           = 'ارز نمایش پیش‌فرض به مشتری';
+ $_['entry_product_description_length'] = 'محدودیت توضیحات در لیست';
+ $_['entry_pagination']                 = 'تعداد آیتم در هر صفحه (پیش‌فرض)';
+ $_['entry_product_count']              = 'تعداد محصولات دسته‌بندی';
+@@ -92,7 +93,8 @@ $_['help_geocode']                     = 'لطفاً ژئوکد موقعیت ف
+ $_['help_open']                        = 'ساعات کاری فروشگاه خود را وارد کنید.';
+ $_['help_comment']                     = 'این فیلد برای یادداشت‌های ویژه‌ای است که می‌خواهید به مشتری بگویید، مثلاً: فروشگاه چک قبول نمی‌کند.';
+ $_['help_location']                    = 'موقعیت‌های مختلف فروشگاه شما که می‌خواهید در فرم تماس با ما نمایش داده شوند.';
+-$_['help_currency']                    = 'ارز پیش‌فرض را تغییر دهید. برای مشاهده تغییرات، کش مرورگر خود را پاک کرده و کوکی فعلی را بازنشانی کنید.';
++$_['help_currency']                    = 'ارزی که باید قیمت محصولات با آن وارد شود. با تغییر این مورد، همین ارز به‌طور خودکار مبنای محاسباتی می‌شود و بقیه‌ی ارزها با نسبت واقعی‌شان نسبت به آن تنظیم می‌شوند.';
++$_['help_currency_display']            = 'ارزی که به‌طور پیش‌فرض به مشتری جدید نمایش داده می‌شود (تا وقتی خودش از سلکتور ارز فروشگاه چیز دیگری انتخاب کند). می‌تواند با «ارز قیمت‌گذاری» فرق داشته باشد. برای مشاهده تغییرات، کش مرورگر خود را پاک کرده و کوکی فعلی را بازنشانی کنید.';
+ $_['help_pagination']                  = 'تعیین می‌کند چند آیتم کاتالوگ در هر صفحه نمایش داده شود (محصولات، دسته‌بندی‌ها و غیره)';
+ $_['help_product_description_length']  = 'در نمای لیست، محدودیت تعداد کاراکتر توضیح کوتاه (دسته‌بندی‌ها، ویژه و غیره)';
+ $_['help_cookie']                      = 'نمایش سیاست کوکی طبق قانون اتحادیه اروپا.';
+diff --git a/panel/language/us/setting/setting.php b/panel/language/us/setting/setting.php
+index 30dc020..344d747 100644
+--- a/panel/language/us/setting/setting.php
++++ b/panel/language/us/setting/setting.php
+@@ -75,7 +75,8 @@ $_['entry_zone']                          = 'Region / State';
+ $_['entry_timezone']                      = 'Time Zone';
+ $_['entry_language']                      = 'Language';
+ $_['entry_language_admin']                = 'Administration Language';
+-$_['entry_currency']                      = 'Currency';
++$_['entry_currency']                      = 'Pricing Currency (Base)';
++$_['entry_currency_display']              = 'Default Display Currency';
+ $_['entry_currency_engine']               = 'Currency Rate Engine';
+ $_['entry_currency_auto']                 = 'Auto Update Currency';
+ $_['entry_length_class']                  = 'Length Class';
+@@ -202,7 +203,8 @@ $_['help_logo_admin']                     = 'Shown only at the top of this admin
+ $_['help_open']                           = 'Fill in your store\'s opening times.';
+ $_['help_comment']                        = 'This field is for any special notes you would like to tell the customer i.e. Store does not accept cheques.';
+ $_['help_location']                       = 'The different store locations you have that you want displayed on the contact us form.';
+-$_['help_currency']                       = 'Change the default currency. Clear your browser cache to see the change and reset your existing cookie.';
++$_['help_currency']                       = 'The currency product prices must be entered in (the "Price" field on the product form). Changing this automatically makes that currency the computation base and rescales every other currency to match its real rate against it; prices already entered are not reinterpreted, so it is best to set this once, early on.';
++$_['help_currency_display']               = 'The currency shown to a new customer by default (until they pick a different one from the store\'s currency selector). This can differ from the Pricing Currency above - for example, enter prices in AED but show customers Toman by default. Clear your browser cache to see the change and reset your existing cookie.';
+ $_['help_currency_auto']                  = 'Set your store to automatically update currencies daily.';
+ $_['help_product_description_length']     = 'In the list view, short description character limit (categories, special etc)';
+ $_['help_pagination']                     = 'Determines how many catalog items are shown per page (products, categories, etc)';
+diff --git a/panel/language/us/setting/store.php b/panel/language/us/setting/store.php
+index c338dd1..6d0d014 100644
+--- a/panel/language/us/setting/store.php
++++ b/panel/language/us/setting/store.php
+@@ -48,7 +48,8 @@ $_['entry_location']                   = 'Store Location';
+ $_['entry_country']                    = 'Country';
+ $_['entry_zone']                       = 'Region / State';
+ $_['entry_language']                   = 'Language';
+-$_['entry_currency']                   = 'Currency';
++$_['entry_currency']                   = 'Pricing Currency (Base)';
++$_['entry_currency_display']           = 'Default Display Currency';
+ $_['entry_product_description_length'] = 'List Description Limit';
+ $_['entry_pagination']                 = 'Default Items Per Page';
+ $_['entry_product_count']              = 'Category Product Count';
+@@ -92,7 +93,8 @@ $_['help_geocode']                     = 'Please enter your store location geoco
+ $_['help_open']                        = 'Fill in your stores opening times.';
+ $_['help_comment']                     = 'This field is for any special notes you would like to tell the customer i.e. Store does not accept cheques.';
+ $_['help_location']                    = 'The different store locations you have that you want displayed on the contact us form.';
+-$_['help_currency']                    = 'Change the default currency. Clear your browser cache to see the change and reset your existing cookie.';
++$_['help_currency']                    = 'The currency product prices must be entered in. Changing this automatically makes that currency the computation base and rescales every other currency to match its real rate against it.';
++$_['help_currency_display']            = 'The currency shown to a new customer by default (until they pick a different one from the store\'s currency selector). Can differ from the Pricing Currency above. Clear your browser cache to see the change and reset your existing cookie.';
+ $_['help_pagination']                  = 'Determines how many catalog items are shown per page (products, categories, etc)';
+ $_['help_product_description_length']  = 'In the list view, short description character limit (categories, special etc)';
+ $_['help_cookie']                      = 'Display Cookie policy as part of the EU Law.';
+diff --git a/panel/view/template/setting/setting.twig b/panel/view/template/setting/setting.twig
+index ab932ca..d98ba7d 100644
+--- a/panel/view/template/setting/setting.twig
++++ b/panel/view/template/setting/setting.twig
+@@ -285,6 +285,17 @@
+                     <div class="form-text">{{ help_currency }}</div>
+                   </div>
+                 </div>
++                <div class="row mb-3">
++                  <label for="input-currency-display" class="col-sm-2 col-form-label">{{ entry_currency_display }}</label>
++                  <div class="col-sm-10">
++                    <select name="config_currency_display" id="input-currency-display" class="form-select">
++                      {% for currency in currencies %}
++                        <option value="{{ currency.code }}"{% if currency.code == config_currency_display or (not config_currency_display and currency.code == config_currency) %} selected{% endif %}>{{ currency.title }}</option>
++                      {% endfor %}
++                    </select>
++                    <div class="form-text">{{ help_currency_display }}</div>
++                  </div>
++                </div>
+                 <div class="row mb-3">
+                   <label for="input-currency-engine" class="col-sm-2 col-form-label">{{ entry_currency_engine }}</label>
+                   <div class="col-sm-10">
+diff --git a/panel/view/template/setting/store_form.twig b/panel/view/template/setting/store_form.twig
+index 2969c6e..da219cb 100644
+--- a/panel/view/template/setting/store_form.twig
++++ b/panel/view/template/setting/store_form.twig
+@@ -249,6 +249,17 @@
+                     <div class="form-text">{{ help_currency }}</div>
+                   </div>
+                 </div>
++                <div class="row mb-3">
++                  <label for="input-currency-display" class="col-sm-2 col-form-label">{{ entry_currency_display }}</label>
++                  <div class="col-sm-10">
++                    <select name="config_currency_display" id="input-currency-display" class="form-select">
++                      {% for currency in currencies %}
++                        <option value="{{ currency.code }}"{% if currency.code == config_currency_display or (not config_currency_display and currency.code == config_currency) %} selected{% endif %}>{{ currency.title }}</option>
++                      {% endfor %}
++                    </select>
++                    <div class="form-text">{{ help_currency_display }}</div>
++                  </div>
++                </div>
+               </fieldset>
+             </div>
+             <div id="tab-option" class="tab-pane">

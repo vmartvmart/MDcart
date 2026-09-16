@@ -1,0 +1,289 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 18a1983..b54e6ef 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -78,5 +78,10 @@
+     "version": "5.6.1",
+     "fa": "رفع یک باگ کوچک از بروزرسانی قبلی: سندهای حسابداری خودکار فاکتور خرید و تسویه‌ی آن، توی دفتر روزنامه (Accounting > Journal Entries) به‌جای برچسب فارسی/انگلیسی، یک متن خام مثل «text_type_purchase_invoice» نشون می‌دادن و توی فیلتر نوع سند هم قابل‌انتخاب نبودن؛ فقط دو رشته‌ی زبان و دو گزینه‌ی دراپ‌داون کم بود.",
+     "en": "Small fix for the previous update: the automatic journal entries for a Purchase Invoice and its settlement showed up in the General Journal (Accounting > Journal Entries) as a raw string like \"text_type_purchase_invoice\" instead of a translated label, and couldn't be picked in the type filter — just two missing language strings and two missing dropdown options."
++  },
++  {
++    "version": "5.6.2",
++    "fa": "رفع یک اشکال مهم در تعیین ارز پایه‌ی قیمت‌گذاری: تا پیش از این، تغییر «واحد پول پیش‌فرض» در System > Settings > General هیچ اثری روی مبنای واقعی محاسبات نداشت (مبنا همیشه به‌صورت پنهان دلار می‌ماند)، پس هر قیمتی که وارد می‌شد صرف‌نظر از این تنظیم، دلاری تفسیر می‌شد - خطری واقعی برای هر فروشگاهی که قصد قیمت‌گذاری ریالی دارد. حالا با ذخیره‌ی این تنظیم، همان ارز به‌طور خودکار مبنای واقعی (value=1) می‌شود و بقیه‌ی ارزها با همان نسبت‌های واقعی‌شان نسبت به آن بازچینی می‌شوند. کنار فیلد «قیمت» در فرم محصول (و ستون‌های قیمت در تخفیف/اشتراک/گزینه‌ها) هم برچسب ارز اضافه شد تا همیشه مشخص باشد قیمت با چه ارزی وارد می‌شود. ابزار «نرخ ارز» (Accounting > Exchange Rate) هم با هر مبنایی سازگار شد. همچنین دقت ذخیره‌سازی ستون نرخ ارز (oc_currency.value) از ۸ رقم اعشار ثابت به دقت کامل اعشاری افزایش یافت، چون وقتی مبنا ریال باشد (میلیون‌ها واحد)، ارزهای دیگر عددی بسیار کوچک می‌شوند که با ۸ رقم اعشار ثابت تقریباً بی‌دقت می‌شدند.",
++    "en": "Fixed an important bug in how the pricing base currency was determined: until now, changing the \"Default Currency\" in System > Settings > General had no real effect on the actual computation basis (it silently stayed pinned to USD), so every price entered was interpreted as USD regardless of that setting - a real risk for any store intending to price in Rial. Now, saving that setting automatically pins that currency as the real anchor (value=1) and rescales every other currency to match its real cross-rates. A currency-code label was also added next to the Price field on the product form (and the Discount/Subscription/Option price columns) so it's always clear which currency a price should be entered in. The Exchange Rate tool (Accounting > Exchange Rate) now works correctly regardless of which currency is the base. Additionally, the currency rate column's storage precision (oc_currency.value) was widened from a fixed 8 decimal places to full floating-point precision, since when the base is Rial (millions of units), every other currency becomes a very small number that 8 fixed decimals could barely represent."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index b7c7542..d6a86bf 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.1
++5.6.2
+diff --git a/install_starter.sql b/install_starter.sql
+index 604c7b6..008b0a6 100644
+--- a/install_starter.sql
++++ b/install_starter.sql
+@@ -1240,7 +1240,7 @@ CREATE TABLE `oc_currency` (
+   `symbol_left` varchar(12) DEFAULT NULL,
+   `symbol_right` varchar(12) DEFAULT NULL,
+   `decimal_place` int(1) DEFAULT 2,
+-  `value` double(15,8) DEFAULT NULL,
++  `value` double DEFAULT NULL,
+   `status` tinyint(1) DEFAULT 0,
+   `date_modified` datetime DEFAULT NULL,
+   PRIMARY KEY (`currency_id`)
+diff --git a/panel/controller/catalog/product.php b/panel/controller/catalog/product.php
+index 93069a9..20e7e30 100644
+--- a/panel/controller/catalog/product.php
++++ b/panel/controller/catalog/product.php
+@@ -702,6 +702,12 @@ class Product extends \MDcart\System\Engine\Controller {
+ 			$data['price'] = '';
+ 		}
+ 
++		// Every monetary field on this form (Price, Discount, Subscription,
++		// Option price adjustments) is stored in the store's base/pricing
++		// currency (config_currency) - shown next to those fields so it's
++		// never ambiguous which currency to type the number in.
++		$data['config_currency'] = (string)$this->config->get('config_currency');
++
+ 		// Tax Class
+ 		$this->load->model('localisation/tax_class');
+ 
+diff --git a/panel/controller/event/currency.php b/panel/controller/event/currency.php
+index 0418383..b2d556a 100644
+--- a/panel/controller/event/currency.php
++++ b/panel/controller/event/currency.php
+@@ -28,6 +28,53 @@ class Currency extends \MDcart\System\Engine\Controller {
+ 			$currency = $this->config->get('config_currency');
+ 		}
+ 
++		// Re-peg: `oc_currency.value` is only meaningful relative to
++		// whichever currency is treated as the anchor (value = 1.00000000).
++		// The rest of MDcart (product prices, order totals, the accounting
++		// journal, Purchase Invoice FX handling) all assumes that anchor IS
++		// config_currency - but nothing enforced that until now, so an
++		// admin could change config_currency in Settings > General and
++		// every stored price would silently keep being interpreted in
++		// whatever currency used to be the anchor (USD by default). When
++		// the admin is about to switch the default currency to a new one,
++		// pin that new currency's value to exactly 1 and rescale every
++		// other currency by the same factor so their real cross-rates
++		// (USD/EUR/AED/IRR/...) are preserved, just re-expressed relative
++		// to the new anchor. This mirrors what stock OpenCart's ECB
++		// extension does for the currencies it knows about, but applies
++		// unconditionally so it also covers IRR/IRT/AED, which ECB does
++		// not track.
++		//
++		// This does NOT touch already-stored product/order prices - those
++		// numbers stay exactly as typed. Switching the default currency is
++		// still something to do deliberately (ideally once, early on),
++		// since any price entered before the switch was denominated in the
++		// old anchor and will read as if it were in the new one afterward.
++		if ($route == 'model/setting/setting/editSetting' && $args[0] == 'config' && isset($args[1]['config_currency'])) {
++			$old_currency = (string)$this->config->get('config_currency');
++			$new_currency = (string)$args[1]['config_currency'];
++
++			if ($new_currency !== '' && $new_currency !== $old_currency) {
++				$this->load->model('localisation/currency');
++
++				$anchor_info = $this->model_localisation_currency->getCurrencyByCode($new_currency);
++
++				if ($anchor_info && (float)$anchor_info['value'] > 0) {
++					$scale = (float)$anchor_info['value'];
++
++					foreach ($this->model_localisation_currency->getCurrencies() as $result) {
++						if ((float)$result['value'] <= 0) {
++							continue;
++						}
++
++						$new_value = ($result['code'] === $new_currency) ? 1.00000000 : ((float)$result['value'] / $scale);
++
++						$this->model_localisation_currency->editValueByCode($result['code'], $new_value);
++					}
++				}
++			}
++		}
++
+ 		// Extension
+ 		$this->load->model('setting/extension');
+ 
+diff --git a/panel/model/accounting/exchange_rate.php b/panel/model/accounting/exchange_rate.php
+index c880c46..06145f4 100644
+--- a/panel/model/accounting/exchange_rate.php
++++ b/panel/model/accounting/exchange_rate.php
+@@ -42,8 +42,9 @@ class ExchangeRate extends \MDcart\System\Engine\Model {
+ 
+ 		// The number an Iranian admin actually thinks in: how many Rial is
+ 		// one AED worth right now, derived from the store's own currency
+-		// table (IRR.value and AED.value are both "relative to USD", so
+-		// their ratio is the Rial/AED cross rate).
++		// table (IRR.value and AED.value are both relative to the same
++		// anchor currency, whatever it currently is, so their ratio is
++		// still the Rial/AED cross rate regardless of which one that is).
+ 		$rial_per_aed = 0.0;
+ 
+ 		if (!empty($rates['irr']['value']) && !empty($rates['aed']['value'])) {
+@@ -63,20 +64,36 @@ class ExchangeRate extends \MDcart\System\Engine\Model {
+ 	 * Applies a freshly fetched or manually entered "1 AED = X Rial" market
+ 	 * rate to the store's currency table.
+ 	 *
+-	 * Derivation: the store's currency table stores every currency's value
+-	 * relative to USD (the base currency always has value = 1). We only
+-	 * ever observe one real market data point at a time - the AED/Rial
+-	 * cross rate - but AED is reliably pegged to USD at a fixed, known
+-	 * ratio (self::AED_USD_PEG). Multiplying the two gives the Rial/USD
+-	 * rate implied by today's AED/Rial market price:
++	 * Derivation: we only ever observe one real market data point at a time
++	 * - the AED/Rial cross rate - but AED is reliably pegged to USD at a
++	 * fixed, known ratio (self::AED_USD_PEG). Multiplying the two gives the
++	 * real-world Rial/USD rate implied by today's AED/Rial market price:
+ 	 *
+ 	 *     Rial/USD = (AED/USD peg) x (Rial per AED, just fetched/entered)
+ 	 *
+-	 * That is then IRR's new `value`. Toman has no ISO currency code and is
+-	 * simply Rial / 10 for display, per how this store represents it, so
+-	 * IRT's `value` is always exactly IRR's value / 10 - never fetched or
+-	 * entered separately. AED's own `value` is re-asserted at the fixed peg
+-	 * every time, so it never drifts even if it was hand-edited elsewhere.
++	 * That gives us, in real terms, how much of USD/AED/IRR/IRT is worth
++	 * one USD (Toman has no ISO code and is always exactly Rial / 10, so
++	 * its "per USD" figure falls straight out of Rial's).
++	 *
++	 * The store's currency table, however, stores every currency's `value`
++	 * relative to whichever currency is config_currency right now (the
++	 * "anchor" - see event/currency.php, which is what keeps that anchor's
++	 * own value pinned at exactly 1 whenever the admin changes it, and
++	 * rescales every other currency to match). So the last step is to
++	 * re-express each "per USD" figure as "per anchor unit" instead, by
++	 * dividing through by the anchor's own "per USD" figure - and the
++	 * anchor currency itself is always left untouched, since its value
++	 * must stay pinned at exactly 1 for everything else in the store
++	 * (prices, orders, the accounting journal) to compute correctly. When
++	 * the anchor is USD (the default), that division is by 1 and every
++	 * figure below reduces to exactly what this method always computed
++	 * before anchor-switching existed. When the anchor is one of the
++	 * currencies THIS method manages (AED, IRR or IRT), today's market
++	 * reading gives us its "per USD" figure directly. For any other
++	 * anchor (EUR, GBP, ...), there is no fresh market data for it here,
++	 * so USD's own currently-stored `value` (USD per anchor unit) is used
++	 * to bridge - it already reflects the anchor's real rate as of
++	 * whenever it was last synced (by a re-peg or another currency tool).
+ 	 *
+ 	 * @param float $rial_per_aed
+ 	 *
+@@ -85,10 +102,41 @@ class ExchangeRate extends \MDcart\System\Engine\Model {
+ 	public function applyRialPerAed(float $rial_per_aed): void {
+ 		$this->load->model('localisation/currency');
+ 
++		$anchor = (string)$this->config->get('config_currency');
++
+ 		$rial_per_usd = self::AED_USD_PEG * $rial_per_aed;
+ 
+-		$this->model_localisation_currency->editValueByCode('IRR', $rial_per_usd);
+-		$this->model_localisation_currency->editValueByCode('IRT', $rial_per_usd / 10);
+-		$this->model_localisation_currency->editValueByCode('AED', self::AED_USD_PEG);
++		// How much of each currency this tool manages equals 1 USD, in
++		// real-world terms, right now.
++		$per_usd = [
++			'USD' => 1.0,
++			'AED' => self::AED_USD_PEG,
++			'IRR' => $rial_per_usd,
++			'IRT' => $rial_per_usd / 10
++		];
++
++		if (isset($per_usd[$anchor])) {
++			$anchor_per_usd = $per_usd[$anchor];
++		} else {
++			$usd_info = $this->model_localisation_currency->getCurrencyByCode('USD');
++			$usd_value = (!empty($usd_info) && (float)$usd_info['value'] > 0) ? (float)$usd_info['value'] : 1.0;
++
++			// USD's stored value is "USD per anchor unit", so its
++			// reciprocal is "anchor units per USD" - exactly what we need
++			// here to match the shape of $per_usd above.
++			$anchor_per_usd = 1 / $usd_value;
++		}
++
++		foreach ($per_usd as $code => $value) {
++			// The anchor's own value must stay pinned at exactly 1 - it is
++			// never rewritten here, however today's market data happens to
++			// work out, since every other currency (including the ones
++			// this tool doesn't manage) is defined relative to it.
++			if ($code === $anchor) {
++				continue;
++			}
++
++			$this->model_localisation_currency->editValueByCode($code, $value / $anchor_per_usd);
++		}
+ 	}
+ }
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index c2b3ef6..5ddaef2 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -599,6 +599,26 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 					}
+ 				}
+ 			},
++			// `oc_currency`.`value` used to be `double(15,8)` - specifying
++			// decimal places on a DOUBLE column makes MariaDB actually
++			// round every stored value to 8 places after the point,
++			// instead of keeping full floating-point precision. That's
++			// harmless while config_currency (the pricing anchor - see
++			// event/currency.php) is USD, since every other currency's
++			// value then stays close to 1 and 8 decimals is plenty. But
++			// the moment the anchor becomes a large-magnitude currency
++			// like Rial (millions per USD), every other currency's value
++			// becomes a very small fraction (e.g. ~0.0000004), and 8
++			// decimal places leaves only 1-2 significant digits -
++			// silently wrecking every multi-currency conversion in the
++			// store. Widening to a plain, unconstrained `double` keeps
++			// full IEEE precision regardless of how large or small the
++			// anchor currency's magnitude is, so switching the base
++			// currency (see the repeg logic in event/currency.php) is
++			// actually safe to do.
++			'currency_value_precision' => function (): void {
++				$this->db->query("ALTER TABLE `" . DB_PREFIX . "currency` MODIFY `value` double DEFAULT NULL");
++			},
+ 		];
+ 	}
+ 
+diff --git a/panel/view/template/catalog/product_form.twig b/panel/view/template/catalog/product_form.twig
+index d499394..fc71a3a 100644
+--- a/panel/view/template/catalog/product_form.twig
++++ b/panel/view/template/catalog/product_form.twig
+@@ -220,6 +220,7 @@
+                   <div class="col-sm-10">
+                     <div class="input-group">
+                       <input type="text" name="price" value="{{ price }}" placeholder="{{ entry_price }}" id="input-price" class="form-control"/>
++                      <span class="input-group-text">{{ config_currency }}</span>
+                       {% if master_id %}
+                         <div class="input-group-text">
+                           <div class="form-switch">
+@@ -818,7 +819,7 @@
+                                     <th>{{ entry_option_value }}</th>
+                                     <th class="text-end">{{ entry_quantity }}</th>
+                                     <th>{{ entry_subtract }}</th>
+-                                    <th class="text-end">{{ entry_price }}</th>
++                                    <th class="text-end">{{ entry_price }} ({{ config_currency }})</th>
+                                     <th class="text-end">{{ entry_points }}</th>
+                                     <th class="text-end">{{ entry_weight }}</th>
+                                     <th></th>
+@@ -1090,7 +1091,7 @@
+                       <th>{{ entry_subscription }}</th>
+                       <th>{{ entry_customer_group }}</th>
+                       <th>{{ entry_trial_price }}</th>
+-                      <th>{{ entry_price }}</th>
++                      <th>{{ entry_price }} ({{ config_currency }})</th>
+                       <th>
+                         {% if master_id %}
+                           <div class="form-switch float-end">
+@@ -1137,7 +1138,7 @@
+                       <th>{{ entry_customer_group }}</th>
+                       <th class="text-end">{{ entry_quantity }}</th>
+                       <th class="text-end">{{ entry_priority }}</th>
+-                      <th class="text-end">{{ entry_price }}</th>
++                      <th class="text-end">{{ entry_price }} ({{ config_currency }})</th>
+                       <th class="text-end">{{ entry_type }}</th>
+                       <th class="text-end">{{ entry_special }}</th>
+                       <th>{{ entry_date_start }}</th>
