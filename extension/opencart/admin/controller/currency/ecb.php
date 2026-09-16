@@ -112,15 +112,35 @@ class ECB extends \MDcart\System\Engine\Controller {
 					$currencies[$currency->getAttribute('currency')] = $currency->getAttribute('rate');
 				}
 
+				$this->load->model('localisation/currency');
+
 				if (isset($currencies[$default])) {
+					// The anchor currency (config_currency - see event/
+					// currency.php) is itself one of the ISO currencies the
+					// ECB publishes, so its EUR-cross rate is right here.
 					$value = $currencies[$default];
+				} elseif (isset($currencies['USD'])) {
+					// The anchor is something the ECB doesn't track at all
+					// (Rial, Toman, Dirham, ...). Bridge through USD, which
+					// the ECB always publishes: $currencies['USD'] is
+					// "USD per EUR", and the currency table's own currently
+					// stored USD value is "USD per anchor unit" (kept correct
+					// by event/currency.php's re-peg and by the Accounting >
+					// Exchange Rate tool - run that first if it hasn't been
+					// run since switching the anchor, otherwise this bridges
+					// off a stale number). Dividing gives "EUR per anchor
+					// unit", the exact same shape $currencies[$default] would
+					// have had if the anchor were ECB-tracked, so the rest of
+					// this method needs no other changes.
+					$usd_info = $this->model_localisation_currency->getCurrencyByCode('USD');
+					$usd_value = (!empty($usd_info) && (float)$usd_info['value'] > 0) ? (float)$usd_info['value'] : 1.0;
+
+					$value = $currencies['USD'] / $usd_value;
 				} else {
 					$value = $currencies['EUR'];
 				}
 
 				if (count($currencies) > 1) {
-					$this->load->model('localisation/currency');
-
 					$results = $this->model_localisation_currency->getCurrencies();
 
 					foreach ($results as $result) {
