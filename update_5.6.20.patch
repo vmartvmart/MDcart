@@ -1,0 +1,285 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index a0035dd..ad5f776 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -168,5 +168,10 @@
+     "version": "5.6.19",
+     "fa": "ذره‌بین عکس محصول کالیبره شد: قبلاً محاسبه‌ی مختصات یک اشتباه ریاضی داشت که باعث می‌شد بخشی که ذره‌بین بزرگ نشون می‌ده، دقیقاً زیر ماوس نباشه (هرچه بزرگ‌نمایی بیشتر بود، این جابه‌جایی هم بیشتر می‌شد). حالا دقیقاً همون نقطه‌ای که ماوس روشه، وسط ذره‌بین نشون داده می‌شه - با محاسبه‌ی دقیق روی سایت زنده تأیید شد (اختلاف کمتر از یک پیکسل). فقط طبیعتاً دقیقاً کنار لبه‌های عکس، چون خود ذره‌بین نمی‌تونه از عکس بیرون بزنه، ممکنه بزرگ‌نمایی چند پیکسل از مرکز فاصله داشته باشه - دقیقاً مثل یک ذره‌بین واقعی که کنار لبه‌ی یک عکس می‌گیرید.",
+     "en": "Calibrated the product-image magnifier: the coordinate math had a bug that made the zoomed-in content not line up exactly with the cursor (the more zoomed in, the bigger the mismatch). It now shows precisely the point the cursor is over, dead-center in the lens - verified with exact pixel math on the live site (under 1px off). Right at the very edges of the image, since the lens itself can't extend past the photo, the zoomed view may sit a few pixels off-center from the cursor - the same as holding a real magnifying glass right at the edge of a picture."
++  },
++  {
++    "version": "5.6.20",
++    "fa": "سه اصلاح: (۱) نام واحد پول (مثل «تومان») توی انتخاب ارز و همه‌جای سایت (قیمت محصولات، سبد خرید و...) وقتی سایت انگلیسی بود، همچنان فارسی نشون داده می‌شد - چون این متن فقط توی جدول اصلی ارزها ذخیره شده بود، نه به تفکیک زبان. حالا مثل اسم ارز، این متن هم می‌تونه به تفکیک زبان تنظیم بشه؛ برای تومان مقدار انگلیسی «Toman» به‌صورت خودکار تنظیم شد. توجه: این تغییر بعد از اعمال پچ، نیاز به زدن دکمه‌ی «اجرای اصلاحات معلق دیتابیس» از صفحه‌ی «بروزرسانی سیستم» داره تا واقعاً فعال بشه. (۲) ذره‌بین عکس محصول کمی بزرگ‌تر شد. (۳) یک اصلاح فنی پیش‌گیرانه: دو تا از اصلاحات دیتابیسی قبلی (مربوط به فاکتور خرید و محدودیت تعداد محصول) از یک دستور SQL استفاده می‌کردن که روی نسخه‌ی MySQL سرور شما خطای نحوی می‌داد؛ حالا با روش دیگه‌ای نوشته شدن که روی همه نسخه‌های MySQL درست کار می‌کنه.",
++    "en": "Three fixes: (1) The currency name (like \"Toman\") in the currency selector, and everywhere a price is shown across the site (product pages, cart, etc.), kept displaying in Persian even when the site was in English - because that text was only stored once, not per language. It can now be set per language just like the currency's title; the Toman's English value was automatically set to \"Toman\". Note: this needs the \"Run Pending Database Fixes\" button (System Update page) clicked once after applying, to actually take effect. (2) The product-image magnifier is a bit bigger now. (3) A preventive technical fix: two earlier database fixes (for purchase invoices and the per-product quantity limit) used a SQL clause that causes a syntax error on your server's MySQL version; they're now written a different way that works on every MySQL version."
+   }
+ ]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index 9eb3834..6fed251 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.19
++5.6.20
+diff --git a/catalog/model/localisation/currency.php b/catalog/model/localisation/currency.php
+index ee56355..27ce7f9 100644
+--- a/catalog/model/localisation/currency.php
++++ b/catalog/model/localisation/currency.php
+@@ -44,7 +44,7 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * $currency_info = $this->model_localisation_currency->getCurrency($currency_id);
+ 	 */
+ 	public function getCurrency(int $currency_id): array {
+-		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`currency_id` = '" . (int)$currency_id . "'");
++		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title`, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`currency_id` = '" . (int)$currency_id . "'");
+ 
+ 		return $query->row;
+ 	}
+@@ -63,7 +63,7 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * $currency_info = $this->model_localisation_currency->getCurrencyByCode($currency);
+ 	 */
+ 	public function getCurrencyByCode(string $currency): array {
+-		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`code` = '" . $this->db->escape($currency) . "' AND `c`.`status` = '1'");
++		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title`, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`code` = '" . $this->db->escape($currency) . "' AND `c`.`status` = '1'");
+ 
+ 		return $query->row;
+ 	}
+@@ -82,7 +82,7 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * $currencies = $this->model_localisation_currency->getCurrencies();
+ 	 */
+ 	public function getCurrencies(): array {
+-		$sql = "SELECT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`status` = '1' ORDER BY COALESCE(`cd`.`title`, `c`.`title`) ASC";
++		$sql = "SELECT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title`, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`status` = '1' ORDER BY COALESCE(`cd`.`title`, `c`.`title`) ASC";
+ 
+ 		$currency_data = $this->cache->get('currency.' . md5($sql));
+ 
+diff --git a/catalog/view/template/product/product.twig b/catalog/view/template/product/product.twig
+index 7479aec..8bc6a07 100644
+--- a/catalog/view/template/product/product.twig
++++ b/catalog/view/template/product/product.twig
+@@ -433,7 +433,7 @@ $(document).ready(function() {
+         // Loupe diameter: a comfortable fraction of the image's own size,
+         // kept within sane bounds (and never bigger than the image itself)
+         // so it looks right on both small and large product photos.
+-        lensSize = Math.max(90, Math.min(220, Math.min(imgRect.width, imgRect.height) * 0.4));
++        lensSize = Math.max(110, Math.min(260, Math.min(imgRect.width, imgRect.height) * 0.5));
+         lensSize = Math.min(lensSize, imgRect.width, imgRect.height);
+ 
+         $lens.css({
+diff --git a/install_starter.sql b/install_starter.sql
+index 2c966bb..4a8d34f 100644
+--- a/install_starter.sql
++++ b/install_starter.sql
+@@ -1262,6 +1262,8 @@ CREATE TABLE `oc_currency_description` (
+   `currency_id` int(11) NOT NULL,
+   `language_id` int(11) NOT NULL,
+   `title` varchar(32) DEFAULT NULL,
++  `symbol_left` varchar(32) DEFAULT NULL,
++  `symbol_right` varchar(32) DEFAULT NULL,
+   PRIMARY KEY (`currency_id`,`language_id`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+ INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('1', '1', 'Pound Sterling');
+@@ -1282,7 +1284,7 @@ INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VA
+ INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('8', '2', 'دلار استرالیا');
+ INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('9', '1', 'Iranian Rial');
+ INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('9', '2', 'ریال ایران');
+-INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('10', '1', 'Iranian Toman');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`, `symbol_right`) VALUES ('10', '1', 'Iranian Toman', 'Toman');
+ INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('10', '2', 'تومان ایران');
+ INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('11', '1', 'United Arab Emirates Dirham');
+ INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('11', '2', 'درهم امارات');
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index e8ce273..1689ceb 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -542,25 +542,30 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 			// credit/combined invoice later, and a new "Foreign Exchange
+ 			// Gain/Loss" (5900) system account to absorb the rate
+ 			// difference between the invoice date and the settlement date.
+-			// ADD COLUMN IF NOT EXISTS / CREATE TABLE IF NOT EXISTS so this
+-			// is safe whether or not install_starter.sql's own copy of
+-			// these already ran on this install.
++			// CREATE TABLE IF NOT EXISTS (below) works on every MySQL, but
++			// idempotent ADD COLUMN/ADD KEY do not - see columnExists()'s
++			// docblock. Each column here is keyed by name so it can be
++			// checked individually before adding it.
+ 			'purchase_invoice_accounting_extension' => function (): void {
+ 				$columns = [
+-					'`supplier_id` int(11) NOT NULL DEFAULT 0 AFTER `warehouse_id`',
+-					'`currency_code` varchar(3) NOT NULL DEFAULT \'\' AFTER `supplier_name`',
+-					'`exchange_rate` decimal(15,6) NOT NULL DEFAULT 1.000000 AFTER `currency_code`',
+-					'`total_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `exchange_rate`',
+-					'`payment_type` varchar(20) NOT NULL DEFAULT \'credit\' AFTER `total_amount`',
+-					'`bank_account_id` int(11) NOT NULL DEFAULT 0 AFTER `payment_type`',
+-					'`paid_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `bank_account_id`'
++					'supplier_id' => '`supplier_id` int(11) NOT NULL DEFAULT 0 AFTER `warehouse_id`',
++					'currency_code' => '`currency_code` varchar(3) NOT NULL DEFAULT \'\' AFTER `supplier_name`',
++					'exchange_rate' => '`exchange_rate` decimal(15,6) NOT NULL DEFAULT 1.000000 AFTER `currency_code`',
++					'total_amount' => '`total_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `exchange_rate`',
++					'payment_type' => '`payment_type` varchar(20) NOT NULL DEFAULT \'credit\' AFTER `total_amount`',
++					'bank_account_id' => '`bank_account_id` int(11) NOT NULL DEFAULT 0 AFTER `payment_type`',
++					'paid_amount' => '`paid_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `bank_account_id`',
+ 				];
+ 
+-				foreach ($columns as $column) {
+-					$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD COLUMN IF NOT EXISTS " . $column);
++				foreach ($columns as $name => $definition) {
++					if (!$this->columnExists('purchase_invoice', $name)) {
++						$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD COLUMN " . $definition);
++					}
+ 				}
+ 
+-				$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD KEY IF NOT EXISTS `supplier_id` (`supplier_id`)");
++				if (!$this->keyExists('purchase_invoice', 'supplier_id')) {
++					$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD KEY `supplier_id` (`supplier_id`)");
++				}
+ 
+ 				// Any invoice saved before this migration has no total_amount
+ 				// on its header row - backfill it once from its line items so
+@@ -678,6 +683,59 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 				$this->cache->delete('currency');
+ 			},
+ 
++			// currency_description_table (above) made the currency NAME
++			// per-language, but the SYMBOL (symbol_left/symbol_right on
++			// `currency`) is still one language-agnostic field. For most
++			// currencies that's fine - $, €, £, ﷼, د.إ are the same glyph
++			// in any language - but the Iranian Toman's "symbol" is
++			// actually just the Persian word تومان, so it kept showing up
++			// even on the English storefront (reported live 2026-09-17).
++			// Adds the same kind of per-language override columns to
++			// `currency_description`, and backfills an English "Toman" for
++			// the one currency that actually needs it - everything else is
++			// left alone (NULL override = falls back to the base table's
++			// symbol, unchanged).
++			'currency_symbol_per_language' => function (): void {
++				if (!$this->columnExists('currency_description', 'symbol_left')) {
++					$this->db->query("ALTER TABLE `" . DB_PREFIX . "currency_description` ADD COLUMN `symbol_left` varchar(32) DEFAULT NULL AFTER `title`");
++				}
++
++				if (!$this->columnExists('currency_description', 'symbol_right')) {
++					$this->db->query("ALTER TABLE `" . DB_PREFIX . "currency_description` ADD COLUMN `symbol_right` varchar(32) DEFAULT NULL AFTER `symbol_left`");
++				}
++
++				$currency = $this->db->query("SELECT `currency_id`, `symbol_left`, `symbol_right` FROM `" . DB_PREFIX . "currency` WHERE `code` = 'IRT'")->row;
++
++				if ($currency) {
++					$languages = $this->db->query("SELECT `language_id`, `code` FROM `" . DB_PREFIX . "language` WHERE `code` IN ('us', 'en', 'en-gb')")->rows;
++
++					foreach ($languages as $language) {
++						$existing = $this->db->query("SELECT `symbol_left`, `symbol_right` FROM `" . DB_PREFIX . "currency_description` WHERE `currency_id` = '" . (int)$currency['currency_id'] . "' AND `language_id` = '" . (int)$language['language_id'] . "'")->row;
++
++						if ($existing === false) {
++							// No description row for this language yet (the
++							// currency_description_table migration above
++							// should already have created one for every
++							// currency/language pair, but guard anyway
++							// rather than assume).
++							continue;
++						}
++
++						if (!empty($existing['symbol_left']) || !empty($existing['symbol_right'])) {
++							continue; // already has an override - don't clobber an admin's own edit
++						}
++
++						if ($currency['symbol_left'] !== '') {
++							$this->db->query("UPDATE `" . DB_PREFIX . "currency_description` SET `symbol_left` = 'Toman' WHERE `currency_id` = '" . (int)$currency['currency_id'] . "' AND `language_id` = '" . (int)$language['language_id'] . "'");
++						} elseif ($currency['symbol_right'] !== '') {
++							$this->db->query("UPDATE `" . DB_PREFIX . "currency_description` SET `symbol_right` = 'Toman' WHERE `currency_id` = '" . (int)$currency['currency_id'] . "' AND `language_id` = '" . (int)$language['language_id'] . "'");
++						}
++					}
++				}
++
++				$this->cache->delete('currency');
++			},
++
+ 			// Admin-configurable per-customer order limit (e.g. "max 2 of
+ 			// this product per customer, ever"), enforced in
+ 			// catalog/controller/checkout/cart.php's add() by summing a
+@@ -686,7 +744,9 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 			// this is a no-op for every existing product until an admin
+ 			// opts a specific product into a limit.
+ 			'product_max_customer_quantity' => function (): void {
+-				$this->db->query("ALTER TABLE `" . DB_PREFIX . "product` ADD COLUMN IF NOT EXISTS `max_customer_quantity` int(11) DEFAULT 0 AFTER `minimum`");
++				if (!$this->columnExists('product', 'max_customer_quantity')) {
++					$this->db->query("ALTER TABLE `" . DB_PREFIX . "product` ADD COLUMN `max_customer_quantity` int(11) DEFAULT 0 AFTER `minimum`");
++				}
+ 			},
+ 		];
+ 	}
+@@ -802,6 +862,42 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 		}
+ 	}
+ 
++	/**
++	 * Column Exists
++	 *
++	 * `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` (MySQL 8.0.29+ only) is a
++	 * syntax error on older MySQL still found on some hosts (confirmed live
++	 * on this project's own production host, 2026-09-17 - see the
++	 * `product_max_customer_quantity` incident write-up). Any migration
++	 * that needs to add a column idempotently must check first with this
++	 * instead of relying on that clause.
++	 */
++	private function columnExists(string $table, string $column): bool {
++		$query = $this->db->query(
++			"SELECT `COLUMN_NAME` FROM `information_schema`.`COLUMNS`"
++			. " WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '" . $this->db->escape(DB_PREFIX . $table) . "'"
++			. " AND `COLUMN_NAME` = '" . $this->db->escape($column) . "'"
++		);
++
++		return (bool)$query->num_rows;
++	}
++
++	/**
++	 * Key Exists
++	 *
++	 * Same reasoning as columnExists() above, for `ADD KEY IF NOT EXISTS`
++	 * (also unsupported on older MySQL).
++	 */
++	private function keyExists(string $table, string $key): bool {
++		$query = $this->db->query(
++			"SELECT `INDEX_NAME` FROM `information_schema`.`STATISTICS`"
++			. " WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '" . $this->db->escape(DB_PREFIX . $table) . "'"
++			. " AND `INDEX_NAME` = '" . $this->db->escape($key) . "'"
++		);
++
++		return (bool)$query->num_rows;
++	}
++
+ 	/**
+ 	 * Run Migrations
+ 	 *
+diff --git a/system/library/cart/currency.php b/system/library/cart/currency.php
+index d513713..83c1290 100644
+--- a/system/library/cart/currency.php
++++ b/system/library/cart/currency.php
+@@ -28,7 +28,28 @@ class Currency {
+ 		$this->db = $registry->get('db');
+ 		$this->language = $registry->get('language');
+ 
+-		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "currency`");
++		// This is what actually formats every price shown anywhere on the
++		// site (product pages, cart, checkout, orders...), so it needs the
++		// same per-language symbol override as the currency dropdown
++		// (catalog/model/localisation/currency.php) - otherwise a currency
++		// like the Iranian Toman, whose "symbol" is really just the
++		// Persian word تومان, would keep appearing on every price even on
++		// the English storefront (confirmed live 2026-09-17). `config` may
++		// not be registered yet in every context this class is
++		// constructed from, so this degrades to the old language-agnostic
++		// behaviour rather than fatal-erroring if it's unavailable.
++		$config = $registry->has('config') ? $registry->get('config') : null;
++		$language_id = $config ? (int)$config->get('config_language_id') : 0;
++
++		if ($language_id) {
++			$query = $this->db->query(
++				"SELECT `c`.*, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right`"
++				. " FROM `" . DB_PREFIX . "currency` `c`"
++				. " LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . $language_id . "')"
++			);
++		} else {
++			$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "currency`");
++		}
+ 
+ 		foreach ($query->rows as $result) {
+ 			$this->currencies[$result['code']] = [

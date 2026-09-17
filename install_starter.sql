@@ -1262,6 +1262,8 @@ CREATE TABLE `oc_currency_description` (
   `currency_id` int(11) NOT NULL,
   `language_id` int(11) NOT NULL,
   `title` varchar(32) DEFAULT NULL,
+  `symbol_left` varchar(32) DEFAULT NULL,
+  `symbol_right` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`currency_id`,`language_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('1', '1', 'Pound Sterling');
@@ -1282,7 +1284,7 @@ INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VA
 INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('8', '2', 'دلار استرالیا');
 INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('9', '1', 'Iranian Rial');
 INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('9', '2', 'ریال ایران');
-INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('10', '1', 'Iranian Toman');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`, `symbol_right`) VALUES ('10', '1', 'Iranian Toman', 'Toman');
 INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('10', '2', 'تومان ایران');
 INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('11', '1', 'United Arab Emirates Dirham');
 INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('11', '2', 'درهم امارات');

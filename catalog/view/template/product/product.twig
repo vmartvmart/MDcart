@@ -433,7 +433,7 @@ $(document).ready(function() {
         // Loupe diameter: a comfortable fraction of the image's own size,
         // kept within sane bounds (and never bigger than the image itself)
         // so it looks right on both small and large product photos.
-        lensSize = Math.max(90, Math.min(220, Math.min(imgRect.width, imgRect.height) * 0.4));
+        lensSize = Math.max(110, Math.min(260, Math.min(imgRect.width, imgRect.height) * 0.5));
         lensSize = Math.min(lensSize, imgRect.width, imgRect.height);
 
         $lens.css({

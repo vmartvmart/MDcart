@@ -542,25 +542,30 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 			// credit/combined invoice later, and a new "Foreign Exchange
 			// Gain/Loss" (5900) system account to absorb the rate
 			// difference between the invoice date and the settlement date.
-			// ADD COLUMN IF NOT EXISTS / CREATE TABLE IF NOT EXISTS so this
-			// is safe whether or not install_starter.sql's own copy of
-			// these already ran on this install.
+			// CREATE TABLE IF NOT EXISTS (below) works on every MySQL, but
+			// idempotent ADD COLUMN/ADD KEY do not - see columnExists()'s
+			// docblock. Each column here is keyed by name so it can be
+			// checked individually before adding it.
 			'purchase_invoice_accounting_extension' => function (): void {
 				$columns = [
-					'`supplier_id` int(11) NOT NULL DEFAULT 0 AFTER `warehouse_id`',
-					'`currency_code` varchar(3) NOT NULL DEFAULT \'\' AFTER `supplier_name`',
-					'`exchange_rate` decimal(15,6) NOT NULL DEFAULT 1.000000 AFTER `currency_code`',
-					'`total_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `exchange_rate`',
-					'`payment_type` varchar(20) NOT NULL DEFAULT \'credit\' AFTER `total_amount`',
-					'`bank_account_id` int(11) NOT NULL DEFAULT 0 AFTER `payment_type`',
-					'`paid_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `bank_account_id`'
+					'supplier_id' => '`supplier_id` int(11) NOT NULL DEFAULT 0 AFTER `warehouse_id`',
+					'currency_code' => '`currency_code` varchar(3) NOT NULL DEFAULT \'\' AFTER `supplier_name`',
+					'exchange_rate' => '`exchange_rate` decimal(15,6) NOT NULL DEFAULT 1.000000 AFTER `currency_code`',
+					'total_amount' => '`total_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `exchange_rate`',
+					'payment_type' => '`payment_type` varchar(20) NOT NULL DEFAULT \'credit\' AFTER `total_amount`',
+					'bank_account_id' => '`bank_account_id` int(11) NOT NULL DEFAULT 0 AFTER `payment_type`',
+					'paid_amount' => '`paid_amount` decimal(15,4) NOT NULL DEFAULT 0.0000 AFTER `bank_account_id`',
 				];
 
-				foreach ($columns as $column) {
-					$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD COLUMN IF NOT EXISTS " . $column);
+				foreach ($columns as $name => $definition) {
+					if (!$this->columnExists('purchase_invoice', $name)) {
+						$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD COLUMN " . $definition);
+					}
 				}
 
-				$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD KEY IF NOT EXISTS `supplier_id` (`supplier_id`)");
+				if (!$this->keyExists('purchase_invoice', 'supplier_id')) {
+					$this->db->query("ALTER TABLE `" . DB_PREFIX . "purchase_invoice` ADD KEY `supplier_id` (`supplier_id`)");
+				}
 
 				// Any invoice saved before this migration has no total_amount
 				// on its header row - backfill it once from its line items so
@@ -678,6 +683,59 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 				$this->cache->delete('currency');
 			},
 
+			// currency_description_table (above) made the currency NAME
+			// per-language, but the SYMBOL (symbol_left/symbol_right on
+			// `currency`) is still one language-agnostic field. For most
+			// currencies that's fine - $, €, £, ﷼, د.إ are the same glyph
+			// in any language - but the Iranian Toman's "symbol" is
+			// actually just the Persian word تومان, so it kept showing up
+			// even on the English storefront (reported live 2026-09-17).
+			// Adds the same kind of per-language override columns to
+			// `currency_description`, and backfills an English "Toman" for
+			// the one currency that actually needs it - everything else is
+			// left alone (NULL override = falls back to the base table's
+			// symbol, unchanged).
+			'currency_symbol_per_language' => function (): void {
+				if (!$this->columnExists('currency_description', 'symbol_left')) {
+					$this->db->query("ALTER TABLE `" . DB_PREFIX . "currency_description` ADD COLUMN `symbol_left` varchar(32) DEFAULT NULL AFTER `title`");
+				}
+
+				if (!$this->columnExists('currency_description', 'symbol_right')) {
+					$this->db->query("ALTER TABLE `" . DB_PREFIX . "currency_description` ADD COLUMN `symbol_right` varchar(32) DEFAULT NULL AFTER `symbol_left`");
+				}
+
+				$currency = $this->db->query("SELECT `currency_id`, `symbol_left`, `symbol_right` FROM `" . DB_PREFIX . "currency` WHERE `code` = 'IRT'")->row;
+
+				if ($currency) {
+					$languages = $this->db->query("SELECT `language_id`, `code` FROM `" . DB_PREFIX . "language` WHERE `code` IN ('us', 'en', 'en-gb')")->rows;
+
+					foreach ($languages as $language) {
+						$existing = $this->db->query("SELECT `symbol_left`, `symbol_right` FROM `" . DB_PREFIX . "currency_description` WHERE `currency_id` = '" . (int)$currency['currency_id'] . "' AND `language_id` = '" . (int)$language['language_id'] . "'")->row;
+
+						if ($existing === false) {
+							// No description row for this language yet (the
+							// currency_description_table migration above
+							// should already have created one for every
+							// currency/language pair, but guard anyway
+							// rather than assume).
+							continue;
+						}
+
+						if (!empty($existing['symbol_left']) || !empty($existing['symbol_right'])) {
+							continue; // already has an override - don't clobber an admin's own edit
+						}
+
+						if ($currency['symbol_left'] !== '') {
+							$this->db->query("UPDATE `" . DB_PREFIX . "currency_description` SET `symbol_left` = 'Toman' WHERE `currency_id` = '" . (int)$currency['currency_id'] . "' AND `language_id` = '" . (int)$language['language_id'] . "'");
+						} elseif ($currency['symbol_right'] !== '') {
+							$this->db->query("UPDATE `" . DB_PREFIX . "currency_description` SET `symbol_right` = 'Toman' WHERE `currency_id` = '" . (int)$currency['currency_id'] . "' AND `language_id` = '" . (int)$language['language_id'] . "'");
+						}
+					}
+				}
+
+				$this->cache->delete('currency');
+			},
+
 			// Admin-configurable per-customer order limit (e.g. "max 2 of
 			// this product per customer, ever"), enforced in
 			// catalog/controller/checkout/cart.php's add() by summing a
@@ -686,7 +744,9 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 			// this is a no-op for every existing product until an admin
 			// opts a specific product into a limit.
 			'product_max_customer_quantity' => function (): void {
-				$this->db->query("ALTER TABLE `" . DB_PREFIX . "product` ADD COLUMN IF NOT EXISTS `max_customer_quantity` int(11) DEFAULT 0 AFTER `minimum`");
+				if (!$this->columnExists('product', 'max_customer_quantity')) {
+					$this->db->query("ALTER TABLE `" . DB_PREFIX . "product` ADD COLUMN `max_customer_quantity` int(11) DEFAULT 0 AFTER `minimum`");
+				}
 			},
 		];
 	}
@@ -800,6 +860,42 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 		if ($changed) {
 			$this->db->query("UPDATE `" . DB_PREFIX . "user_group` SET `permission` = '" . $this->db->escape(json_encode($permission)) . "' WHERE `user_group_id` = '1'");
 		}
+	}
+
+	/**
+	 * Column Exists
+	 *
+	 * `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` (MySQL 8.0.29+ only) is a
+	 * syntax error on older MySQL still found on some hosts (confirmed live
+	 * on this project's own production host, 2026-09-17 - see the
+	 * `product_max_customer_quantity` incident write-up). Any migration
+	 * that needs to add a column idempotently must check first with this
+	 * instead of relying on that clause.
+	 */
+	private function columnExists(string $table, string $column): bool {
+		$query = $this->db->query(
+			"SELECT `COLUMN_NAME` FROM `information_schema`.`COLUMNS`"
+			. " WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '" . $this->db->escape(DB_PREFIX . $table) . "'"
+			. " AND `COLUMN_NAME` = '" . $this->db->escape($column) . "'"
+		);
+
+		return (bool)$query->num_rows;
+	}
+
+	/**
+	 * Key Exists
+	 *
+	 * Same reasoning as columnExists() above, for `ADD KEY IF NOT EXISTS`
+	 * (also unsupported on older MySQL).
+	 */
+	private function keyExists(string $table, string $key): bool {
+		$query = $this->db->query(
+			"SELECT `INDEX_NAME` FROM `information_schema`.`STATISTICS`"
+			. " WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = '" . $this->db->escape(DB_PREFIX . $table) . "'"
+			. " AND `INDEX_NAME` = '" . $this->db->escape($key) . "'"
+		);
+
+		return (bool)$query->num_rows;
 	}
 
 	/**

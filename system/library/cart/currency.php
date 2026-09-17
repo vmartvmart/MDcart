@@ -28,7 +28,28 @@ class Currency {
 		$this->db = $registry->get('db');
 		$this->language = $registry->get('language');
 
-		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "currency`");
+		// This is what actually formats every price shown anywhere on the
+		// site (product pages, cart, checkout, orders...), so it needs the
+		// same per-language symbol override as the currency dropdown
+		// (catalog/model/localisation/currency.php) - otherwise a currency
+		// like the Iranian Toman, whose "symbol" is really just the
+		// Persian word تومان, would keep appearing on every price even on
+		// the English storefront (confirmed live 2026-09-17). `config` may
+		// not be registered yet in every context this class is
+		// constructed from, so this degrades to the old language-agnostic
+		// behaviour rather than fatal-erroring if it's unavailable.
+		$config = $registry->has('config') ? $registry->get('config') : null;
+		$language_id = $config ? (int)$config->get('config_language_id') : 0;
+
+		if ($language_id) {
+			$query = $this->db->query(
+				"SELECT `c`.*, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right`"
+				. " FROM `" . DB_PREFIX . "currency` `c`"
+				. " LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . $language_id . "')"
+			);
+		} else {
+			$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "currency`");
+		}
 
 		foreach ($query->rows as $result) {
 			$this->currencies[$result['code']] = [
