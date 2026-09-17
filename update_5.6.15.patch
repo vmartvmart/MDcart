@@ -1,0 +1,98 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 9e14450..c67135f 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -143,5 +143,10 @@
+     "version": "5.6.14",
+     "fa": "به صفحه‌ی هر محصول یک حالت «ذره‌بین» مثل آمازون اضافه شد: وقتی ماوس روی عکس اصلی محصول می‌رود، یک قاب کوچک (لنز) دنبال ماوس حرکت می‌کند و همون بخش، با کیفیت کامل تصویر بزرگ (همون تصویری که با کلیک روی عکس در حالت بزرگ‌نمایی قبلی هم دیده می‌شد)، در یک پنل کنار عکس بزرگ‌نمایی‌شده نشون داده می‌شه - بدون هیچ تاری، چون از همون فایل تصویر بزرگ موجود استفاده می‌کنه، نه بزرگ کردن مصنوعی عکس کوچک. این حالت فقط روی کامپیوتر (با ماوس واقعی) فعاله؛ روی موبایل و تبلت دست نمی‌خوره و رفتار قبلی (لمس برای باز شدن تصویر در حالت بزرگ) دقیقاً همونطور که بود باقی می‌مونه. کلیک روی عکس هم مثل قبل، گالری بزرگ‌نمایی رو باز می‌کنه - هیچ رفتار قبلی حذف نشده، فقط این ویژگی جدید اضافه شده.",
+     "en": "Added an Amazon-style hover magnifier to every product page: moving the mouse over the main product image now shows a small lens following the cursor, with that region displayed at full quality (using the same large image the existing click-to-zoom lightbox already used) in a pane beside the image - no blur, since it draws from the real full-size image file rather than artificially stretching the small one. This only activates on a real mouse (desktop); phones and tablets are untouched and keep their existing tap-to-open-lightbox behavior exactly as before. Clicking the image still opens the zoom gallery as before too - nothing existing was removed, this is purely additive."
++  },
++  {
++    "version": "5.6.15",
++    "fa": "نوار بالای سایت (ارز، زبان، تلفن، حساب کاربری، علاقه‌مندی‌ها، سبد خرید، تسویه‌حساب) شلوغ‌تر از حد لازم بود: کنار هر آیکون یک برچسب متنی تکراری هم نشون داده می‌شد (مثلاً «ارز» کنار خود واحد پول، یا «حساب کاربری» کنار آیکون کاربر). این متن‌های تکراری حذف شدن و به‌جاش با نگه‌داشتن ماوس روی هر آیکون، یک راهنمای کوچک (tooltip) نشون می‌ده که چیه - دقیقاً همون چیزی که خواسته شده بود. آیکون تلفن هم به‌جای بردن به صفحه «تماس با ما» (که فقط یک فرم داشت)، حالا با نگه‌داشتن ماوس شماره تلفن فروشگاه رو نشون می‌ده و با کلیک روش (روی موبایل) مستقیم شماره رو می‌گیره - صفحه «تماس با ما» هنوز از پایین سایت (فوتر) در دسترسه، فقط از این آیکون بالا حذف شد. نکته: شماره تلفن فروشگاه فعلاً در تنظیمات خالیه، برای همین فعلاً این آیکون اصلاً نمایش داده نمی‌شه؛ کافیه از پنل مدیریت بخش «تنظیمات > عمومی» فیلد «تلفن» رو پر کنید تا آیکون ظاهر بشه.",
++    "en": "The top bar (currency, language, phone, account, wishlist, cart, checkout) was more cluttered than it needed to be: each icon also showed a redundant text label next to it (e.g. \"Currency\" next to the currency symbol itself, or \"My Account\" next to the user icon). Those redundant labels were removed; hovering over any icon now shows a small tooltip explaining what it is instead, exactly as requested. The phone icon no longer links to the \"Contact Us\" page (which just had a form) - hovering now shows the store's phone number, and clicking it (on mobile) dials it directly. The Contact Us page is still reachable from the footer, it was only removed from this top icon. Note: the store's phone number is currently blank in settings, so this icon won't show at all until one is entered - just fill in the \"Telephone\" field under Settings > General in the admin panel."
+   }
+ ]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index 57f6345..3cbd7ab 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.14
++5.6.15
+diff --git a/catalog/controller/common/header.php b/catalog/controller/common/header.php
+index 9296b75..f6afed0 100644
+--- a/catalog/controller/common/header.php
++++ b/catalog/controller/common/header.php
+@@ -109,6 +109,14 @@ class Header extends \MDcart\System\Engine\Controller {
+ 		$data['contact'] = $this->url->link('information/contact', 'language=' . $this->config->get('config_language'));
+ 		$data['telephone'] = $this->config->get('config_telephone');
+ 
++		// A "tel:" link needs just the dialable digits (plus a leading "+"
++		// for an international number) - the store's configured phone
++		// number is free text meant for display (dashes, spaces, parens),
++		// so it can't be used as the href as-is. Used by the header's
++		// phone icon to start a call directly instead of opening the
++		// Contact page - see header.twig.
++		$data['telephone_tel'] = preg_replace('/[^0-9+]/', '', (string)$data['telephone']);
++
+ 		$data['language'] = $this->load->controller('common/language');
+ 		$data['currency'] = $this->load->controller('common/currency');
+ 		$data['search'] = $this->load->controller('common/search');
+diff --git a/catalog/view/template/common/currency.twig b/catalog/view/template/common/currency.twig
+index 25ba601..fa0a5e7 100644
+--- a/catalog/view/template/common/currency.twig
++++ b/catalog/view/template/common/currency.twig
+@@ -1,6 +1,6 @@
+ {% if currencies|length > 1 %}
+   <form id="form-currency" action="{{ action }}" method="post" data-oc-toggle="ajax">
+-    <div class="dropdown"><span role="button" data-bs-toggle="dropdown" class="dropdown-toggle">{% if symbol_left %}<strong>{{ symbol_left }}</strong>{% elseif symbol_right %}<strong>{{ symbol_right }}</strong>{% endif %} <span class="d-none d-md-inline">{{ text_currency }}</span> <i class="fa-solid fa-caret-down"></i></span>
++    <div class="dropdown"><span role="button" data-bs-toggle="dropdown" class="dropdown-toggle" title="{{ text_currency }}">{% if symbol_left %}<strong>{{ symbol_left }}</strong>{% elseif symbol_right %}<strong>{{ symbol_right }}</strong>{% endif %} <i class="fa-solid fa-caret-down"></i></span>
+       <ul class="dropdown-menu">
+         {% for currency in currencies %}
+           {% if currency.symbol_left %}
+diff --git a/catalog/view/template/common/header.twig b/catalog/view/template/common/header.twig
+index 985d9a6..8566f38 100644
+--- a/catalog/view/template/common/header.twig
++++ b/catalog/view/template/common/header.twig
+@@ -53,10 +53,12 @@
+         </div>
+         <div class="col text-end">
+           <ul class="list-inline">
+-            <li class="list-inline-item"><a href="{{ contact }}"><i class="fa-solid fa-phone"></i> <span class="d-none d-lg-inline">{{ telephone }}</span></a></li>
++            {% if telephone %}
++              <li class="list-inline-item"><a href="tel:{{ telephone_tel }}" title="{{ telephone }}"><i class="fa-solid fa-phone"></i></a></li>
++            {% endif %}
+             <li class="list-inline-item">
+               <div class="dropdown">
+-                <span role="button" class="dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-solid fa-user"></i> <span class="d-none d-lg-inline">{{ text_account }}</span> <i class="fa-solid fa-caret-down"></i></span>
++                <span role="button" class="dropdown-toggle" data-bs-toggle="dropdown" title="{{ text_account }}"><i class="fa-solid fa-user"></i> <i class="fa-solid fa-caret-down"></i></span>
+                 <ul class="dropdown-menu dropdown-menu-right">
+                   {% if not logged %}
+                     <li><a href="{{ register }}" class="dropdown-item">{{ text_register }}</a></li>
+@@ -71,9 +73,9 @@
+                 </ul>
+               </div>
+             </li>
+-            <li class="list-inline-item"><a href="{{ wishlist }}" id="wishlist-total" title="{{ text_wishlist }}"><i class="fa-solid fa-heart"></i> <span class="d-none d-lg-inline">{{ text_wishlist }}</span></a></li>
+-            <li class="list-inline-item"><a href="{{ shopping_cart }}" title="{{ text_shopping_cart }}"><i class="fa-solid fa-cart-shopping"></i> <span class="d-none d-lg-inline">{{ text_shopping_cart }}</span></a></li>
+-            <li class="list-inline-item"><a href="{{ checkout }}" title="{{ text_checkout }}"><i class="fa-solid fa-share"></i> <span class="d-none d-lg-inline">{{ text_checkout }}</span></a></li>
++            <li class="list-inline-item"><a href="{{ wishlist }}" id="wishlist-total" title="{{ text_wishlist }}"><i class="fa-solid fa-heart"></i></a></li>
++            <li class="list-inline-item"><a href="{{ shopping_cart }}" title="{{ text_shopping_cart }}"><i class="fa-solid fa-cart-shopping"></i></a></li>
++            <li class="list-inline-item"><a href="{{ checkout }}" title="{{ text_checkout }}"><i class="fa-solid fa-share"></i></a></li>
+           </ul>
+         </div>
+       </div>
+diff --git a/catalog/view/template/common/language.twig b/catalog/view/template/common/language.twig
+index 1d7ae03..31564e2 100644
+--- a/catalog/view/template/common/language.twig
++++ b/catalog/view/template/common/language.twig
+@@ -1,6 +1,6 @@
+ {% if languages|length > 1 %}
+   <form id="form-language" action="{{ action }}" method="post" data-oc-toggle="ajax">
+-    <div class="dropdown"><span role="button" data-bs-toggle="dropdown" class="dropdown-toggle"><img src="{{ image }}" alt="{{ name }}" title="{{ name }}"> <span class="d-none d-md-inline">{{ text_language }}</span> <i class="fa-solid fa-caret-down"></i></span>
++    <div class="dropdown"><span role="button" data-bs-toggle="dropdown" class="dropdown-toggle" title="{{ text_language }}"><img src="{{ image }}" alt="{{ name }}" title="{{ name }}"> <i class="fa-solid fa-caret-down"></i></span>
+       <ul class="dropdown-menu">
+         {% for language in languages %}
+           <li><span role="button" data-code="{{ language.code }}" class="dropdown-item"><img src="{{ language.image }}" alt="{{ language.name }}" title="{{ language.name }}"/> {{ language.name }}</span></li>

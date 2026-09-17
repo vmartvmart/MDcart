@@ -1,0 +1,256 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 3dbc395..cf9cca6 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -133,5 +133,10 @@
+     "version": "5.6.12",
+     "fa": "رفع واقعی و کامل باگ بسته شدن کشوی سبد خرید کوچک: علت اصلی چیزی نبود که در 5.6.10 تصور می‌شد (از دست رفتن وضعیت هنگام بارگذاری مجدد)، بلکه رفتار پیش‌فرض خود Bootstrap بود - به‌صورت پیش‌فرض، کشو با کلیک روی هر چیزی، حتی خود دکمه‌های + و - که داخل همان کشو هستند، فوراً بسته می‌شود. این روی سایت زنده مستقیماً تست و تایید شد. راه‌حل: به دکمه سبد کوچک یک ویژگی اضافه شد که می‌گوید کشو فقط با کلیک بیرون از آن بسته شود، نه با کلیک روی محتوای داخلش (مثل دکمه‌های تعداد یا حذف).",
+     "en": "Actually and fully fixed the mini-cart dropdown closing bug: the real cause wasn't what 5.6.10 assumed (losing state on reload) - it was Bootstrap's own default behavior, which closes a dropdown on any click, including clicks on the +/- buttons that live inside that same dropdown. Verified directly on the live site before and after the fix. Fix: the mini-cart's toggle button now tells Bootstrap to only close on clicks outside the dropdown, not on clicks inside it (like the quantity or remove buttons)."
++  },
++  {
++    "version": "5.6.13",
++    "fa": "رفع یک باگ حیاتی که از نسخه ۵.۶.۷ باعث شده بود ثبت محصول جدید و ذخیره‌ی هر ویرایشی روی محصولات (از جمله فقط تغییر اسم) با خطا متوقف بشه: در ۵.۶.۷ یک ستون جدید («حداکثر تعداد سفارش هر مشتری») به جدول محصولات اضافه شده بود، اما چون این تغییر دیتابیس فقط از طریق دکمه «دریافت و اعمال بروزرسانی» همین پنل اجرا می‌شه (نه با اعمال مستقیم پچ روی سرور، که روش فعلی تحویل تغییرات به این سایته)، آن ستون هیچ‌وقت واقعاً روی دیتابیس زنده ساخته نشد. این مورد مشخص با یک دستور SQL مستقیم فوراً رفع شد و هیچ اطلاعاتی از دست نرفت. برای اینکه این دسته باگ دیگر تکرار نشه، یک دکمه‌ی جدید «اجرای اصلاحات معلق دیتابیس» به صفحه «بروزرسانی» اضافه شد (کنار دکمه‌های همیشگی) که بدون دانلود یا تغییر هیچ فایلی، فقط اصلاحات دیتابیسی معلق (مثل همین مورد) را بررسی و در صورت نیاز اجرا می‌کند؛ اجرای آن کاملاً بی‌خطر و قابل تکرار است. توصیه می‌شود بعد از اعمال این پچ، یک‌بار این دکمه زده بشه تا مطمئن بشیم هیچ اصلاح معلق دیگه‌ای هم جا نمونده.",
++    "en": "Fixed a critical bug that, since 5.6.7, made saving a new product or any edit to an existing one (including just changing its name) fail with an error: 5.6.7 had added a new database column (\"Max Quantity Per Customer\") to the products table, but because that kind of database change only ever runs automatically through this admin panel's own \"Get & Apply Update\" button - not through applying a patch file directly on the server, which is how changes are currently delivered to this site - that column was never actually created on the live database. This specific case was fixed immediately with a direct SQL statement; no data was lost. To stop this category of bug from recurring, a new \"Run Pending Database Fixes\" button was added to the Update page (alongside the existing ones) that checks for and, if needed, runs only pending database fixes like this one, without downloading or changing any files; it's completely safe to run, including more than once. Recommended: click this button once after applying this patch, to make sure nothing else is pending."
+   }
+ ]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index b8a773e..f8a1daf 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.12
++5.6.13
+diff --git a/panel/controller/tool/system_update.php b/panel/controller/tool/system_update.php
+index 9bbda49..3861c46 100644
+--- a/panel/controller/tool/system_update.php
++++ b/panel/controller/tool/system_update.php
+@@ -48,6 +48,7 @@ class SystemUpdate extends \MDcart\System\Engine\Controller {
+ 		// still callable, just no longer wired to a form here.
+ 		$data['check'] = $this->url->link('tool/system_update.check', 'user_token=' . $this->session->data['user_token'], true);
+ 		$data['baseline'] = $this->url->link('tool/system_update.baseline', 'user_token=' . $this->session->data['user_token'], true);
++		$data['migrate'] = $this->url->link('tool/system_update.migrate', 'user_token=' . $this->session->data['user_token'], true);
+ 		$data['apply'] = $this->url->link('tool/system_update.apply', 'user_token=' . $this->session->data['user_token'], true);
+ 		$data['progress'] = $this->url->link('tool/system_update.progress', 'user_token=' . $this->session->data['user_token'], true);
+ 		$data['backups'] = $this->url->link('tool/system_update.backups', 'user_token=' . $this->session->data['user_token'], true);
+@@ -208,6 +209,56 @@ class SystemUpdate extends \MDcart\System\Engine\Controller {
+ 		$this->response->setOutput(json_encode($json));
+ 	}
+ 
++	/**
++	 * Migrate
++	 *
++	 * Runs any pending one-time database fixes (see the model's
++	 * getMigrations()) on their own, without downloading or copying any
++	 * code. Normally these run automatically as the last step of apply()
++	 * below, but an install that receives its code changes some other way
++	 * (e.g. a patch file applied directly on the server by whoever
++	 * maintains this install, bypassing this page's own download-and-
++	 * apply flow entirely) never triggers that step — so a schema or
++	 * permission fix a patch depended on could sit pending indefinitely
++	 * with no visible symptom until something using it breaks. This
++	 * button is the manual escape hatch for exactly that situation.
++	 *
++	 * @return void
++	 */
++	public function migrate(): void {
++		ob_start();
++
++		$this->load->language('tool/system_update');
++
++		$json = [];
++
++		if (!$this->user->hasPermission('modify', 'tool/system_update')) {
++			$json['error'] = $this->language->get('error_permission');
++		}
++
++		if (!$json) {
++			$this->load->model('tool/system_update');
++
++			$result = $this->model_tool_system_update->runMigrations();
++
++			if ($result['failed']) {
++				$json['warning'] = sprintf($this->language->get('text_migrate_partial'), count($result['applied']), count($result['failed']));
++			} elseif ($result['applied']) {
++				$json['success'] = sprintf($this->language->get('text_migrate_success'), count($result['applied']));
++			} else {
++				$json['success'] = $this->language->get('text_migrate_none');
++			}
++
++			$json['applied'] = $result['applied'];
++			$json['failed'] = $result['failed'];
++		}
++
++		$this->discardStrayOutput();
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++
+ 	/**
+ 	 * Apply
+ 	 *
+diff --git a/panel/language/fa/tool/system_update.php b/panel/language/fa/tool/system_update.php
+index 2c4668d..84133e2 100644
+--- a/panel/language/fa/tool/system_update.php
++++ b/panel/language/fa/tool/system_update.php
+@@ -37,6 +37,11 @@ $_['text_backup_created_prefix']   = 'یک بکاپ خودکار قبل از ا
+ $_['text_confirm_restore']         = 'آیا مطمئن هستید؟ فایل‌ها و دیتابیس سایت به همان وضعیت زمان این بکاپ بازمی‌گردند. این کار قابل بازگشت نیست مگر از یک بکاپ دیگر.';
+ $_['text_restoring']               = 'در حال بازگردانی از بکاپ... صفحه را نبندید.';
+ $_['text_restore_success']         = 'بازگردانی با موفقیت انجام شد.';
++$_['text_migrating']               = 'در حال بررسی و اجرای اصلاحات معلق دیتابیس...';
++$_['text_migrate_success']         = '%d اصلاح دیتابیسی معلق با موفقیت اجرا شد.';
++$_['text_migrate_partial']         = '%d اصلاح با موفقیت اجرا شد، اما %d مورد با خطا مواجه شد (جزئیات در کنسول مرورگر). این موارد در تلاش بعدی دوباره امتحان می‌شوند.';
++$_['text_migrate_none']            = 'هیچ اصلاح دیتابیسی معلقی وجود نداشت؛ همه چیز از قبل به‌روز بود.';
++$_['text_help_migrate']            = 'اگه تغییرات کد رو از راهی غیر از دکمه «دریافت و اعمال بروزرسانی» بالا روی سایت اعمال کرده‌اید (مثلاً یک فایل پچ)، ممکنه یک اصلاح دیتابیسی لازم (مثل یک ستون جدید یا یک دسترسی جدید) هنوز روی این سایت اجرا نشده باشه. این دکمه بدون دانلود یا تغییر هیچ فایلی، فقط همون اصلاحات دیتابیسی معلق رو بررسی و اجرا می‌کنه؛ اجرای دوباره‌اش هم کاملاً بی‌خطره.';
+ 
+ // Progress steps (shown live above the progress bar while "دریافت و اعمال بروزرسانی" is running)
+ $_['text_step_start']              = 'در حال شروع...';
+@@ -67,6 +72,7 @@ $_['button_check']                 = 'بررسی برای بروزرسانی';
+ $_['button_apply']                 = 'دریافت و اعمال بروزرسانی';
+ $_['button_baseline']              = 'ثبت نسخه فعلی به عنوان پایه (بدون دانلود)';
+ $_['button_restore']               = 'بازگردانی';
++$_['button_migrate']               = 'اجرای اصلاحات معلق دیتابیس';
+ 
+ // Error
+ $_['error_permission']             = 'هشدار: شما اجازه دسترسی به این بخش را ندارید!';
+diff --git a/panel/language/us/tool/system_update.php b/panel/language/us/tool/system_update.php
+index 767b2ca..37a14db 100644
+--- a/panel/language/us/tool/system_update.php
++++ b/panel/language/us/tool/system_update.php
+@@ -37,6 +37,11 @@ $_['text_backup_created_prefix']   = 'An automatic backup was taken before this
+ $_['text_confirm_restore']         = 'Are you sure? The site\'s files and database will be reverted to the state of this backup. This cannot be undone except from another backup.';
+ $_['text_restoring']               = 'Restoring from backup... do not close this page.';
+ $_['text_restore_success']         = 'Restore completed successfully.';
++$_['text_migrating']               = 'Checking for and running pending database fixes...';
++$_['text_migrate_success']         = '%d pending database fix(es) applied successfully.';
++$_['text_migrate_partial']         = '%d fix(es) applied successfully, but %d failed (see the browser console for details). Those will be retried automatically next time.';
++$_['text_migrate_none']            = 'No pending database fixes were found; everything was already up to date.';
++$_['text_help_migrate']            = 'If code changes were applied to this site some other way than the "Get & Apply Update" button above (e.g. a patch file), a database fix that update needed (a new column, a new permission, ...) may not have run on this site yet. This button checks for and runs only those pending database fixes, without downloading or changing any files; it\'s safe to run more than once.';
+ 
+ // Progress steps (shown live above the progress bar while "Get & Apply Update" is running)
+ $_['text_step_start']              = 'Starting...';
+@@ -67,6 +72,7 @@ $_['button_check']                 = 'Check for Update';
+ $_['button_apply']                 = 'Get &amp; Apply Update';
+ $_['button_baseline']              = 'Record Current as Baseline (no download)';
+ $_['button_restore']               = 'Restore';
++$_['button_migrate']               = 'Run Pending Database Fixes';
+ 
+ // Error
+ $_['error_permission']             = 'Warning: You do not have permission to access this!';
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index 8d7cd4d..e8ce273 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -817,9 +817,19 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 	 * rather than get stuck retrying a data fix), but it's also not
+ 	 * recorded as applied, so it's retried on the very next update.
+ 	 *
+-	 * @return void
++	 * Public (not just called at the end of applyUpdate()) so an install
++	 * that receives code changes some other way than this page's own
++	 * "download and apply" flow — e.g. a patch file applied directly on
++	 * the server, which never runs applyUpdate() or its migrations at all
++	 * — has a way to run any pending migrations on demand instead of
++	 * silently carrying a schema/permission mismatch until the next full
++	 * update happens to go through this page. See tool/system_update.
++	 * migrate() (the controller action this backs) and its confirm-dialog
++	 * text for why this exists as its own button.
++	 *
++	 * @return array{applied: string[], failed: array<string, string>}
+ 	 */
+-	private function runMigrations(): void {
++	public function runMigrations(): array {
+ 		$this->db->query(
+ 			"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "migration` ("
+ 			. "`migration_id` int(11) NOT NULL AUTO_INCREMENT,"
+@@ -830,6 +840,9 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 			. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+ 		);
+ 
++		$applied = [];
++		$failed = [];
++
+ 		foreach ($this->getMigrations() as $key => $callback) {
+ 			$query = $this->db->query("SELECT `migration_id` FROM `" . DB_PREFIX . "migration` WHERE `key` = '" . $this->db->escape($key) . "'");
+ 
+@@ -840,11 +853,20 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 			try {
+ 				$callback();
+ 			} catch (\Throwable $e) {
++				$failed[$key] = $e->getMessage();
++
+ 				continue;
+ 			}
+ 
+ 			$this->db->query("INSERT INTO `" . DB_PREFIX . "migration` SET `key` = '" . $this->db->escape($key) . "', `applied_at` = NOW()");
++
++			$applied[] = $key;
+ 		}
++
++		return [
++			'applied' => $applied,
++			'failed'  => $failed,
++		];
+ 	}
+ 
+ 	/**
+diff --git a/panel/view/template/tool/system_update.twig b/panel/view/template/tool/system_update.twig
+index 5a29e36..eb00250 100644
+--- a/panel/view/template/tool/system_update.twig
++++ b/panel/view/template/tool/system_update.twig
+@@ -69,6 +69,14 @@
+       </div>
+     </div>
+ 
++    <div class="card mt-3">
++      <div class="card-header"><i class="fa-solid fa-database"></i> {{ button_migrate }}</div>
++      <div class="card-body">
++        <div class="alert alert-secondary"><i class="fa-solid fa-circle-info"></i> {{ text_help_migrate }}</div>
++        <button type="button" id="button-migrate" class="btn btn-secondary"><i class="fa-solid fa-database"></i> {{ button_migrate }}</button>
++      </div>
++    </div>
++
+     <div class="card mt-3">
+       <div class="card-header"><i class="fa-solid fa-clock-rotate-left"></i> {{ text_backups }}</div>
+       <div class="card-body">
+@@ -457,6 +465,39 @@ $('#button-apply').on('click', function() {
+     });
+ });
+ 
++$('#button-migrate').on('click', function() {
++    var element = this;
++
++    $.ajax({
++        url: '{{ migrate }}',
++        type: 'post',
++        dataType: 'json',
++        beforeSend: function() {
++            $(element).prop('disabled', true);
++            scUpdateAlert('warning', '{{ text_migrating }}');
++        },
++        complete: function() {
++            $(element).prop('disabled', false);
++        },
++        success: function(json) {
++            if (json['error']) {
++                scUpdateAlert('danger', json['error']);
++
++                return;
++            }
++
++            if (json['failed'] && Object.keys(json['failed']).length) {
++                console.log('system_update.migrate: failed migrations', json['failed']);
++            }
++
++            scUpdateAlert(json['warning'] ? 'warning' : 'success', json['warning'] || json['success']);
++        },
++        error: function(xhr, ajaxOptions, thrownError) {
++            scAjaxError(xhr, thrownError);
++        }
++    });
++});
++
+ $(document).on('click', '.button-restore', function() {
+     if (!confirm('{{ text_confirm_restore }}')) {
+         return;

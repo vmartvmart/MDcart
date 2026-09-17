@@ -1,0 +1,196 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index cf9cca6..9e14450 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -138,5 +138,10 @@
+     "version": "5.6.13",
+     "fa": "رفع یک باگ حیاتی که از نسخه ۵.۶.۷ باعث شده بود ثبت محصول جدید و ذخیره‌ی هر ویرایشی روی محصولات (از جمله فقط تغییر اسم) با خطا متوقف بشه: در ۵.۶.۷ یک ستون جدید («حداکثر تعداد سفارش هر مشتری») به جدول محصولات اضافه شده بود، اما چون این تغییر دیتابیس فقط از طریق دکمه «دریافت و اعمال بروزرسانی» همین پنل اجرا می‌شه (نه با اعمال مستقیم پچ روی سرور، که روش فعلی تحویل تغییرات به این سایته)، آن ستون هیچ‌وقت واقعاً روی دیتابیس زنده ساخته نشد. این مورد مشخص با یک دستور SQL مستقیم فوراً رفع شد و هیچ اطلاعاتی از دست نرفت. برای اینکه این دسته باگ دیگر تکرار نشه، یک دکمه‌ی جدید «اجرای اصلاحات معلق دیتابیس» به صفحه «بروزرسانی» اضافه شد (کنار دکمه‌های همیشگی) که بدون دانلود یا تغییر هیچ فایلی، فقط اصلاحات دیتابیسی معلق (مثل همین مورد) را بررسی و در صورت نیاز اجرا می‌کند؛ اجرای آن کاملاً بی‌خطر و قابل تکرار است. توصیه می‌شود بعد از اعمال این پچ، یک‌بار این دکمه زده بشه تا مطمئن بشیم هیچ اصلاح معلق دیگه‌ای هم جا نمونده.",
+     "en": "Fixed a critical bug that, since 5.6.7, made saving a new product or any edit to an existing one (including just changing its name) fail with an error: 5.6.7 had added a new database column (\"Max Quantity Per Customer\") to the products table, but because that kind of database change only ever runs automatically through this admin panel's own \"Get & Apply Update\" button - not through applying a patch file directly on the server, which is how changes are currently delivered to this site - that column was never actually created on the live database. This specific case was fixed immediately with a direct SQL statement; no data was lost. To stop this category of bug from recurring, a new \"Run Pending Database Fixes\" button was added to the Update page (alongside the existing ones) that checks for and, if needed, runs only pending database fixes like this one, without downloading or changing any files; it's completely safe to run, including more than once. Recommended: click this button once after applying this patch, to make sure nothing else is pending."
++  },
++  {
++    "version": "5.6.14",
++    "fa": "به صفحه‌ی هر محصول یک حالت «ذره‌بین» مثل آمازون اضافه شد: وقتی ماوس روی عکس اصلی محصول می‌رود، یک قاب کوچک (لنز) دنبال ماوس حرکت می‌کند و همون بخش، با کیفیت کامل تصویر بزرگ (همون تصویری که با کلیک روی عکس در حالت بزرگ‌نمایی قبلی هم دیده می‌شد)، در یک پنل کنار عکس بزرگ‌نمایی‌شده نشون داده می‌شه - بدون هیچ تاری، چون از همون فایل تصویر بزرگ موجود استفاده می‌کنه، نه بزرگ کردن مصنوعی عکس کوچک. این حالت فقط روی کامپیوتر (با ماوس واقعی) فعاله؛ روی موبایل و تبلت دست نمی‌خوره و رفتار قبلی (لمس برای باز شدن تصویر در حالت بزرگ) دقیقاً همونطور که بود باقی می‌مونه. کلیک روی عکس هم مثل قبل، گالری بزرگ‌نمایی رو باز می‌کنه - هیچ رفتار قبلی حذف نشده، فقط این ویژگی جدید اضافه شده.",
++    "en": "Added an Amazon-style hover magnifier to every product page: moving the mouse over the main product image now shows a small lens following the cursor, with that region displayed at full quality (using the same large image the existing click-to-zoom lightbox already used) in a pane beside the image - no blur, since it draws from the real full-size image file rather than artificially stretching the small one. This only activates on a real mouse (desktop); phones and tablets are untouched and keep their existing tap-to-open-lightbox behavior exactly as before. Clicking the image still opens the zoom gallery as before too - nothing existing was removed, this is purely additive."
+   }
+ ]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index f8a1daf..57f6345 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.13
++5.6.14
+diff --git a/catalog/view/stylesheet/stylesheet.css b/catalog/view/stylesheet/stylesheet.css
+index c599feb..bc52eb4 100644
+--- a/catalog/view/stylesheet/stylesheet.css
++++ b/catalog/view/stylesheet/stylesheet.css
+@@ -560,3 +560,34 @@ footer h5 {
+   font-size: 16px;
+   color: #FFFFFF;
+ }
++
++/* Product page hover-to-zoom (magnifier), see product.twig's inline script.
++   Scoped to #product-info specifically so it never touches the unrelated
++   ".product-thumb .image" rules elsewhere (category/search listing cards). */
++#product-info .image.magnific-popup {
++  position: relative;
++}
++
++#product-info .product-zoom-lens {
++  display: none;
++  position: absolute;
++  z-index: 20;
++  pointer-events: none;
++  background-color: rgba(255, 255, 255, 0.35);
++  border: 1px solid rgba(0, 0, 0, 0.35);
++  box-sizing: border-box;
++}
++
++#product-info .product-zoom-pane {
++  display: none;
++  position: absolute;
++  top: 0;
++  z-index: 1000;
++  pointer-events: none;
++  background-repeat: no-repeat;
++  background-color: #fff;
++  border: 1px solid #dee2e6;
++  border-radius: .375rem;
++  box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .175);
++  overflow: hidden;
++}
+diff --git a/catalog/view/template/product/product.twig b/catalog/view/template/product/product.twig
+index b1345b0..fa74f38 100644
+--- a/catalog/view/template/product/product.twig
++++ b/catalog/view/template/product/product.twig
+@@ -13,7 +13,7 @@
+           <div class="col-sm">
+             <div class="image magnific-popup">
+               {% if thumb %}
+-                <a href="{{ popup }}" title="{{ heading_title }}"><img src="{{ thumb }}" title="{{ heading_title }}" alt="{{ heading_title }}" class="img-thumbnail mb-3"/></a>
++                <a href="{{ popup }}" title="{{ heading_title }}" id="product-zoom-target" class="product-zoom-target"><img src="{{ thumb }}" title="{{ heading_title }}" alt="{{ heading_title }}" class="img-thumbnail mb-3"/></a>
+               {% endif %}
+               {% if images %}
+                 <div>
+@@ -369,5 +369,120 @@ $(document).ready(function() {
+         }
+     });
+ });
++
++// Amazon-style hover-to-zoom (magnifier) on the main product image: a small
++// "lens" rectangle follows the cursor over the (small) displayed image, and
++// a separate pane beside it shows that region using the full-size "popup"
++// image (already generated for the click-to-open lightbox above, reused
++// here as the zoom source with no extra image upload/config needed). Only
++// runs on devices that report a real mouse (hover + fine pointer) — on
++// touch devices this does nothing and the image keeps its normal
++// tap-to-open-lightbox behavior, unchanged.
++$(document).ready(function() {
++    var $target = $('#product-zoom-target');
++
++    if (!$target.length || !window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
++        return;
++    }
++
++    var $img = $target.find('img').first();
++    var zoomSrc = $target.attr('href');
++
++    if (!$img.length || !zoomSrc) {
++        return;
++    }
++
++    // Preload the full-size image so its true pixel dimensions are known
++    // (needed to zoom at native resolution instead of blurrily upscaling a
++    // guessed ratio) and so there's no flash of an empty pane on first
++    // hover while it's still downloading.
++    var naturalWidth = 0;
++    var naturalHeight = 0;
++    var preload = new Image();
++
++    preload.onload = function() {
++        naturalWidth = preload.naturalWidth;
++        naturalHeight = preload.naturalHeight;
++    };
++
++    preload.src = zoomSrc;
++
++    var $wrap = $target.closest('.image');
++    var $lens = $('<div class="product-zoom-lens"></div>');
++    var $pane = $('<div class="product-zoom-pane"></div>').css('background-image', 'url(' + zoomSrc + ')');
++
++    $wrap.append($lens).append($pane);
++
++    var zoomFactorX = 0;
++    var zoomFactorY = 0;
++    var imgRect = null;
++
++    // Flip the pane to whichever side of the image actually has room, so
++    // it's never partly cut off the edge of the screen — recomputed every
++    // time hovering starts, since the viewport/layout can change between
++    // hovers (window resize, orientation change, etc.).
++    function positionPane() {
++        var wrapRect = $wrap[0].getBoundingClientRect();
++        var paneWidth = imgRect.width;
++        var spaceEnd = window.innerWidth - wrapRect.right;
++        var spaceStart = wrapRect.left;
++        var showAtEnd = spaceEnd >= paneWidth + 16 || spaceEnd >= spaceStart;
++
++        $pane.css({
++            width: imgRect.width + 'px',
++            height: imgRect.height + 'px',
++            insetInlineStart: showAtEnd ? '100%' : 'auto',
++            insetInlineEnd: showAtEnd ? 'auto' : '100%',
++            marginInlineStart: showAtEnd ? '12px' : 0,
++            marginInlineEnd: showAtEnd ? 0 : '12px'
++        });
++    }
++
++    $target.on('mouseenter', function() {
++        if (!naturalWidth || !naturalHeight) {
++            // Full-size image hasn't finished loading yet - skip this
++            // hover rather than show a broken/empty zoom pane.
++            return;
++        }
++
++        imgRect = $img[0].getBoundingClientRect();
++        zoomFactorX = naturalWidth / imgRect.width;
++        zoomFactorY = naturalHeight / imgRect.height;
++
++        positionPane();
++
++        $pane.css('background-size', naturalWidth + 'px ' + naturalHeight + 'px');
++        $lens.css({
++            width: (imgRect.width / zoomFactorX) + 'px',
++            height: (imgRect.height / zoomFactorY) + 'px'
++        });
++
++        $lens.add($pane).show();
++    });
++
++    $target.on('mousemove', function(e) {
++        if (!imgRect) {
++            return;
++        }
++
++        var lensWidth = $lens.outerWidth();
++        var lensHeight = $lens.outerHeight();
++
++        var x = Math.max(0, Math.min(e.clientX - imgRect.left, imgRect.width));
++        var y = Math.max(0, Math.min(e.clientY - imgRect.top, imgRect.height));
++
++        var lensX = Math.max(0, Math.min(x - lensWidth / 2, imgRect.width - lensWidth));
++        var lensY = Math.max(0, Math.min(y - lensHeight / 2, imgRect.height - lensHeight));
++
++        $lens.css({ left: lensX + 'px', top: lensY + 'px' });
++
++        $pane.css('background-position', (-(lensX * zoomFactorX)) + 'px ' + (-(lensY * zoomFactorY)) + 'px');
++    });
++
++    $target.on('mouseleave', function() {
++        $lens.add($pane).hide();
++        imgRect = null;
++    });
++});
+ //--></script>
+ {{ footer }}
