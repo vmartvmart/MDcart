@@ -36,3 +36,4 @@ $_['error_required']             = '%s required!';
 $_['error_regex']                = '%s is not a valid input!';
 $_['error_product']              = 'Warning: Product could not be found!';
 $_['error_subscription']         = 'Subscription Plan is not valid!';
+$_['error_customer_quantity']    = 'The maximum quantity of this product per customer is %s. You can order at most %s more of this product.';

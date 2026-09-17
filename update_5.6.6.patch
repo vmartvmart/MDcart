@@ -1,0 +1,519 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index aa19d23..604c90b 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -98,5 +98,10 @@
+     "version": "5.6.5",
+     "fa": "ابزار Accounting > Exchange Rate حالا با همان یک کلیک (چه «دریافت خودکار» چه «ذخیره دستی»)، علاوه بر درهم/ریال/تومان، بقیه‌ی ارزها (دلار، یورو، پوند، یوان و غیره) را هم همزمان از منبع بین‌المللی رسمی‌شان (بانک مرکزی اروپا) بروزرسانی می‌کند - قبلاً باید جداگانه به مسیر Localisation > Currencies هم می‌رفتید و دکمه‌ی «Refresh» آنجا را هم می‌زدید، وگرنه آن ارزها بدون هشدار قدیمی می‌ماندند.",
+     "en": "The Accounting > Exchange Rate tool now, with that same single click (either \"Fetch\" or \"Save Manually\"), also refreshes every other currency (Dollar, Euro, Pound, Yuan, etc.) from its own official international source (the European Central Bank) at the same time as AED/Rial/Toman - previously you had to separately visit Localisation > Currencies and press its own \"Refresh\" button too, or those currencies would silently go stale."
++  },
++  {
++    "version": "5.6.6",
++    "fa": "نام هر ارز حالا می‌تواند برای هر زبان جداگانه تنظیم شود - مثلاً «درهم امارات» در فارسی و «United Arab Emirates Dirham» در انگلیسی - به‌جای یک متن ثابت که در همه‌جا (پنل مدیریت و فروشگاه، با هر زبانی) یکسان نمایش داده می‌شد. روی نصب‌های موجود، این بروزرسانی به‌طور خودکار نام انگلیسی استاندارد ارزهای شناخته‌شده (از جمله درهم، ریال و تومان) را پر می‌کند و نام فارسی فعلی هرکدام دست‌نخورده باقی می‌ماند؛ برای تغییر دستی، Localisation > Currencies را باز کنید.",
++    "en": "Each currency's name can now be set separately per language - e.g. \"United Arab Emirates Dirham\" in English and \"درهم امارات\" in Persian - instead of one fixed piece of text shown everywhere (admin panel and storefront, in any language). On existing installs, this update automatically fills in the standard English name for recognised currencies (including Dirham, Rial and Toman) while leaving each one's current Persian name untouched; to edit by hand, open Localisation > Currencies."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index bf787a3..10c1148 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.5
++5.6.6
+diff --git a/catalog/model/localisation/currency.php b/catalog/model/localisation/currency.php
+index 56716fb..ee56355 100644
+--- a/catalog/model/localisation/currency.php
++++ b/catalog/model/localisation/currency.php
+@@ -44,7 +44,7 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * $currency_info = $this->model_localisation_currency->getCurrency($currency_id);
+ 	 */
+ 	public function getCurrency(int $currency_id): array {
+-		$query = $this->db->query("SELECT DISTINCT * FROM `" . DB_PREFIX . "currency` WHERE `currency_id` = '" . (int)$currency_id . "'");
++		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`currency_id` = '" . (int)$currency_id . "'");
+ 
+ 		return $query->row;
+ 	}
+@@ -63,7 +63,7 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * $currency_info = $this->model_localisation_currency->getCurrencyByCode($currency);
+ 	 */
+ 	public function getCurrencyByCode(string $currency): array {
+-		$query = $this->db->query("SELECT DISTINCT * FROM `" . DB_PREFIX . "currency` WHERE `code` = '" . $this->db->escape($currency) . "' AND `status` = '1'");
++		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`code` = '" . $this->db->escape($currency) . "' AND `c`.`status` = '1'");
+ 
+ 		return $query->row;
+ 	}
+@@ -82,7 +82,7 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * $currencies = $this->model_localisation_currency->getCurrencies();
+ 	 */
+ 	public function getCurrencies(): array {
+-		$sql = "SELECT * FROM `" . DB_PREFIX . "currency` WHERE `status` = '1' ORDER BY `title` ASC";
++		$sql = "SELECT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`status` = '1' ORDER BY COALESCE(`cd`.`title`, `c`.`title`) ASC";
+ 
+ 		$currency_data = $this->cache->get('currency.' . md5($sql));
+ 
+diff --git a/install_starter.sql b/install_starter.sql
+index 008b0a6..726f910 100644
+--- a/install_starter.sql
++++ b/install_starter.sql
+@@ -1253,9 +1253,39 @@ INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbo
+ INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('6', 'Russian Ruble', 'RUB', '', '₽', '2', '56.40360000', '0', '2018-02-16 12:00:00');
+ INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('7', 'Chinese Yuan Renminbi', 'CNY', '¥', '', '2', '6.70824707', '0', '2026-09-12 09:55:44');
+ INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('8', 'Australian Dollar', 'AUD', '$', '', '2', '1.39415114', '0', '2026-09-12 09:55:44');
+-INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('9', 'ریال ایران', 'IRR', '', '﷼', '0', '2341365.65000000', '1', '2026-09-10 08:03:53');
+-INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('10', 'تومان ایران', 'IRT', '', 'تومان', '0', '234136.56500000', '1', '2026-09-10 08:03:53');
+-INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('11', 'درهم امارات', 'AED', '', 'د.إ', '2', '3.67250000', '1', '2026-09-10 08:03:53');
++INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('9', 'Iranian Rial', 'IRR', '', '﷼', '0', '2341365.65000000', '1', '2026-09-10 08:03:53');
++INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('10', 'Iranian Toman', 'IRT', '', 'تومان', '0', '234136.56500000', '1', '2026-09-10 08:03:53');
++INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('11', 'United Arab Emirates Dirham', 'AED', '', 'د.إ', '2', '3.67250000', '1', '2026-09-10 08:03:53');
++
++DROP TABLE IF EXISTS `oc_currency_description`;
++CREATE TABLE `oc_currency_description` (
++  `currency_id` int(11) NOT NULL,
++  `language_id` int(11) NOT NULL,
++  `title` varchar(32) DEFAULT NULL,
++  PRIMARY KEY (`currency_id`,`language_id`)
++) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('1', '1', 'Pound Sterling');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('1', '2', 'پوند بریتانیا');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('2', '1', 'US Dollar');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('2', '2', 'دلار آمریکا');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('3', '1', 'Euro');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('3', '2', 'یورو');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('4', '1', 'Hong Kong Dollar');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('4', '2', 'دلار هنگ‌کنگ');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('5', '1', 'Indian Rupee');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('5', '2', 'روپیه هند');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('6', '1', 'Russian Ruble');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('6', '2', 'روبل روسیه');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('7', '1', 'Chinese Yuan Renminbi');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('7', '2', 'یوان چین');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('8', '1', 'Australian Dollar');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('8', '2', 'دلار استرالیا');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('9', '1', 'Iranian Rial');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('9', '2', 'ریال ایران');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('10', '1', 'Iranian Toman');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('10', '2', 'تومان ایران');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('11', '1', 'United Arab Emirates Dirham');
++INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('11', '2', 'درهم امارات');
+ 
+ DROP TABLE IF EXISTS `oc_custom_field`;
+ CREATE TABLE `oc_custom_field` (
+diff --git a/panel/controller/localisation/currency.php b/panel/controller/localisation/currency.php
+index a2a70b7..1270053 100644
+--- a/panel/controller/localisation/currency.php
++++ b/panel/controller/localisation/currency.php
+@@ -236,10 +236,14 @@ class Currency extends \MDcart\System\Engine\Controller {
+ 			$data['currency_id'] = 0;
+ 		}
+ 
++		$this->load->model('localisation/language');
++
++		$data['languages'] = $this->model_localisation_language->getLanguages();
++
+ 		if (!empty($currency_info)) {
+-			$data['title'] = $currency_info['title'];
++			$data['currency_description'] = $this->model_localisation_currency->getDescriptions($currency_info['currency_id']);
+ 		} else {
+-			$data['title'] = '';
++			$data['currency_description'] = [];
+ 		}
+ 
+ 		if (!empty($currency_info)) {
+@@ -302,20 +306,22 @@ class Currency extends \MDcart\System\Engine\Controller {
+ 		}
+ 
+ 		$required = [
+-			'currency_id'   => 0,
+-			'title'         => '',
+-			'code'          => '',
+-			'symbol_left'   => '',
+-			'symbol_right'  => '',
+-			'decimal_place' => 0,
+-			'value'         => 0.0,
+-			'status'        => 0
++			'currency_id'           => 0,
++			'currency_description'  => [],
++			'code'                  => '',
++			'symbol_left'           => '',
++			'symbol_right'          => '',
++			'decimal_place'         => 0,
++			'value'                 => 0.0,
++			'status'                => 0
+ 		];
+ 
+ 		$post_info = $this->request->post + $required;
+ 
+-		if (!oc_validate_length($post_info['title'], 3, 32)) {
+-			$json['error']['title'] = $this->language->get('error_title');
++		foreach ($post_info['currency_description'] as $language_id => $value) {
++			if (!oc_validate_length($value['title'] ?? '', 3, 32)) {
++				$json['error']['title_' . $language_id] = $this->language->get('error_title');
++			}
+ 		}
+ 
+ 		if (oc_strlen($post_info['code']) != 3) {
+@@ -331,6 +337,22 @@ class Currency extends \MDcart\System\Engine\Controller {
+ 		}
+ 
+ 		if (!$json) {
++			// `oc_currency.title` stays populated as a legacy fallback (see
++			// the model's class docblock) - prefer the English/us
++			// description (language_id 1), since that's the language every
++			// installed store has, falling back to whichever language was
++			// actually filled in if English was left blank.
++			$post_info['title'] = (string)($post_info['currency_description'][1]['title'] ?? '');
++
++			if ($post_info['title'] === '') {
++				foreach ($post_info['currency_description'] as $currency_description) {
++					if (!empty($currency_description['title'])) {
++						$post_info['title'] = (string)$currency_description['title'];
++						break;
++					}
++				}
++			}
++
+ 			if (!$post_info['currency_id']) {
+ 				$json['currency_id'] = $this->model_localisation_currency->addCurrency($post_info);
+ 			} else {
+diff --git a/panel/language/fa/localisation/currency.php b/panel/language/fa/localisation/currency.php
+index ddf174e..07e49e3 100644
+--- a/panel/language/fa/localisation/currency.php
++++ b/panel/language/fa/localisation/currency.php
+@@ -29,6 +29,7 @@ $_['entry_status']         = 'وضعیت';
+ // Help
+ $_['help_code']            = 'اگر این ارز پیش‌فرض شماست، آن را تغییر ندهید.';
+ $_['help_value']           = 'مقدار ارز پیش‌فرض شما بر حسب واحد ارز فعلی. برای ارز پیش‌فرض، مقدار ۱ را وارد کنید.';
++$_['help_title']           = 'برای هر زبان جداگانه وارد کنید - مثلاً می‌توانید در فارسی «درهم امارات» و در انگلیسی «United Arab Emirates Dirham» بنویسید. هر زبان همان عنوانی را که اینجا برایش وارد کرده‌اید در فروشگاه و پنل مدیریت می‌بیند.';
+ 
+ // Error
+ $_['error_permission']     = 'هشدار: شما اجازه تغییر ارزها را ندارید!';
+diff --git a/panel/language/us/localisation/currency.php b/panel/language/us/localisation/currency.php
+index c82cc35..b116c72 100644
+--- a/panel/language/us/localisation/currency.php
++++ b/panel/language/us/localisation/currency.php
+@@ -29,6 +29,7 @@ $_['entry_status']         = 'Status';
+ // Help
+ $_['help_code']            = 'Do not change if this is your default currency.';
+ $_['help_value']           = 'The value of your default currency in the current currency unit. Set to 1 for your default currency.';
++$_['help_title']           = 'Enter a separate title for each language - e.g. "United Arab Emirates Dirham" in English and "درهم امارات" in Persian. Each language sees whatever title you enter for it here, both in the storefront and in this admin panel.';
+ 
+ // Error
+ $_['error_permission']     = 'Warning: You do not have permission to modify currencies!';
+diff --git a/panel/model/localisation/currency.php b/panel/model/localisation/currency.php
+index 2c7a2c6..2865e28 100644
+--- a/panel/model/localisation/currency.php
++++ b/panel/model/localisation/currency.php
+@@ -3,6 +3,18 @@ namespace MDcart\Admin\Model\Localisation;
+ /**
+  * Class Currency
+  *
++ * `oc_currency.title` is kept as a legacy fallback (mirrored from the
++ * English/us description on every save), but the title actually shown to
++ * an admin now comes from `oc_currency_description` - one row per
++ * (currency_id, language_id) - so it can read "United Arab Emirates
++ * Dirham" under the English admin UI and "درهم امارات" under the Persian
++ * one, instead of the same text everywhere regardless of active language.
++ * getCurrency()/getCurrencyByCode()/getCurrencies() all LEFT JOIN that
++ * table on the admin's own active config_language_id and COALESCE back to
++ * the legacy column when a language has no translation yet, so this is
++ * fully backward compatible with any code still reading `$result['title']`
++ * directly.
++ *
+  * Can be loaded using $this->load->model('localisation/currency');
+  *
+  * @package MDcart\Admin\Model\Localisation
+@@ -20,7 +32,8 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * @example
+ 	 *
+ 	 * $currency_data = [
+-	 *     'title'         => 'Currency Title',
++	 *     'title'                 => 'Currency Title (legacy fallback, kept in sync with the English description)',
++	 *     'currency_description'  => [1 => ['title' => 'US Dollar'], 2 => ['title' => 'دلار آمریکا']],
+ 	 *     'code'          => 'Currency Code',
+ 	 *     'symbol_left'   => '$',
+ 	 *     'symbol_right'  => '',
+@@ -36,9 +49,17 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	public function addCurrency(array $data): int {
+ 		$this->db->query("INSERT INTO `" . DB_PREFIX . "currency` SET `title` = '" . $this->db->escape((string)$data['title']) . "', `code` = '" . $this->db->escape((string)$data['code']) . "', `symbol_left` = '" . $this->db->escape((string)$data['symbol_left']) . "', `symbol_right` = '" . $this->db->escape((string)$data['symbol_right']) . "', `decimal_place` = '" . (int)$data['decimal_place'] . "', `value` = '" . (float)$data['value'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `date_modified` = NOW()");
+ 
++		$currency_id = $this->db->getLastId();
++
++		if (!empty($data['currency_description'])) {
++			foreach ($data['currency_description'] as $language_id => $currency_description) {
++				$this->addDescription($currency_id, (int)$language_id, $currency_description);
++			}
++		}
++
+ 		$this->cache->delete('currency');
+ 
+-		return $this->db->getLastId();
++		return $currency_id;
+ 	}
+ 
+ 	/**
+@@ -70,9 +91,64 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	public function editCurrency(int $currency_id, array $data): void {
+ 		$this->db->query("UPDATE `" . DB_PREFIX . "currency` SET `title` = '" . $this->db->escape((string)$data['title']) . "', `code` = '" . $this->db->escape((string)$data['code']) . "', `symbol_left` = '" . $this->db->escape((string)$data['symbol_left']) . "', `symbol_right` = '" . $this->db->escape((string)$data['symbol_right']) . "', `decimal_place` = '" . (int)$data['decimal_place'] . "', `value` = '" . (float)$data['value'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `date_modified` = NOW() WHERE `currency_id` = '" . (int)$currency_id . "'");
+ 
++		if (!empty($data['currency_description'])) {
++			$this->deleteDescriptions($currency_id);
++
++			foreach ($data['currency_description'] as $language_id => $currency_description) {
++				$this->addDescription($currency_id, (int)$language_id, $currency_description);
++			}
++		}
++
+ 		$this->cache->delete('currency');
+ 	}
+ 
++	/**
++	 * Add Description
++	 *
++	 * Per-language currency title - see the class docblock note above
++	 * getCurrencies() for why this exists alongside the legacy `title`
++	 * column.
++	 *
++	 * @param int                  $currency_id
++	 * @param int                  $language_id
++	 * @param array<string, mixed> $data
++	 *
++	 * @return void
++	 */
++	public function addDescription(int $currency_id, int $language_id, array $data): void {
++		$this->db->query("INSERT INTO `" . DB_PREFIX . "currency_description` SET `currency_id` = '" . (int)$currency_id . "', `language_id` = '" . (int)$language_id . "', `title` = '" . $this->db->escape((string)$data['title']) . "'");
++	}
++
++	/**
++	 * Delete Descriptions
++	 *
++	 * @param int $currency_id
++	 *
++	 * @return void
++	 */
++	public function deleteDescriptions(int $currency_id): void {
++		$this->db->query("DELETE FROM `" . DB_PREFIX . "currency_description` WHERE `currency_id` = '" . (int)$currency_id . "'");
++	}
++
++	/**
++	 * Get Descriptions
++	 *
++	 * @param int $currency_id
++	 *
++	 * @return array<int, array<string, mixed>> keyed by language_id
++	 */
++	public function getDescriptions(int $currency_id): array {
++		$currency_description_data = [];
++
++		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "currency_description` WHERE `currency_id` = '" . (int)$currency_id . "'");
++
++		foreach ($query->rows as $result) {
++			$currency_description_data[(int)$result['language_id']] = ['title' => $result['title']];
++		}
++
++		return $currency_description_data;
++	}
++
+ 	/**
+ 	 * Edit Value By Code
+ 	 *
+@@ -130,7 +206,7 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * $currency_info = $this->model_localisation_currency->getCurrency($currency_id);
+ 	 */
+ 	public function getCurrency(int $currency_id): array {
+-		$query = $this->db->query("SELECT DISTINCT * FROM `" . DB_PREFIX . "currency` WHERE `currency_id` = '" . (int)$currency_id . "'");
++		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`currency_id` = '" . (int)$currency_id . "'");
+ 
+ 		return $query->row;
+ 	}
+@@ -149,7 +225,7 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * $currency_info = $this->model_localisation_currency->getCurrencyByCode($currency);
+ 	 */
+ 	public function getCurrencyByCode(string $currency): array {
+-		$query = $this->db->query("SELECT DISTINCT * FROM `" . DB_PREFIX . "currency` WHERE `code` = '" . $this->db->escape($currency) . "'");
++		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`code` = '" . $this->db->escape($currency) . "'");
+ 
+ 		return $query->row;
+ 	}
+@@ -177,19 +253,24 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * $results = $this->model_localisation_currency->getCurrencies($filter_data);
+ 	 */
+ 	public function getCurrencies(array $data = []): array {
+-		$sql = "SELECT * FROM `" . DB_PREFIX . "currency`";
++		$sql = "SELECT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "')";
+ 
++		// Column names below are qualified (rather than passed through
++		// directly from $data['sort']) both to avoid SQL injection via the
++		// sort parameter and to sidestep any ambiguity now that `title`
++		// exists on both the base table and in the SELECT list's COALESCE
++		// alias.
+ 		$sort_data = [
+-			'title',
+-			'code',
+-			'value',
+-			'date_modified'
++			'title'         => 'COALESCE(`cd`.`title`, `c`.`title`)',
++			'code'          => '`c`.`code`',
++			'value'         => '`c`.`value`',
++			'date_modified' => '`c`.`date_modified`'
+ 		];
+ 
+-		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
+-			$sql .= " ORDER BY " . $data['sort'];
++		if (isset($data['sort']) && isset($sort_data[$data['sort']])) {
++			$sql .= " ORDER BY " . $sort_data[$data['sort']];
+ 		} else {
+-			$sql .= " ORDER BY `title`";
++			$sql .= " ORDER BY " . $sort_data['title'];
+ 		}
+ 
+ 		if (isset($data['order']) && ($data['order'] == 'DESC')) {
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index 5ddaef2..0873cc9 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -619,9 +619,121 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 			'currency_value_precision' => function (): void {
+ 				$this->db->query("ALTER TABLE `" . DB_PREFIX . "currency` MODIFY `value` double DEFAULT NULL");
+ 			},
++
++			// oc_currency.title was a single column shared by every admin
++			// language and the whole storefront, so a currency's name could
++			// never actually change with the active language - a Persian
++			// admin and an English customer both saw whatever text was
++			// typed in once (e.g. "درهم امارات" everywhere, even under the
++			// English UI). This adds a proper per-language description
++			// table (mirrors how oc_country/oc_country_description already
++			// work - see panel/model/localisation/currency.php's class
++			// docblock) and backfills it for every currency this install
++			// already has.
++			//
++			// The Persian description is backfilled from whatever is
++			// currently in `title` - unchanged, since that text already
++			// displays correctly for the Persian admin/storefront today.
++			// The English description is backfilled from a lookup of
++			// standard ISO 4217 English names (self::CURRENCY_ENGLISH_NAMES)
++			// when the currency's code is a recognised one; otherwise it
++			// falls back to the same unchanged text as Persian, exactly
++			// like a currency added by hand later would, until the admin
++			// edits it via Localisation > Currencies to type in a proper
++			// English title.
++			'currency_description_table' => function (): void {
++				$this->db->query(
++					"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "currency_description` ("
++					. "`currency_id` int(11) NOT NULL,"
++					. "`language_id` int(11) NOT NULL,"
++					. "`title` varchar(32) DEFAULT NULL,"
++					. "PRIMARY KEY (`currency_id`,`language_id`)"
++					. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC"
++				);
++
++				$languages = $this->db->query("SELECT `language_id`, `code` FROM `" . DB_PREFIX . "language`")->rows;
++
++				$currencies = $this->db->query("SELECT `currency_id`, `title`, `code` FROM `" . DB_PREFIX . "currency`")->rows;
++
++				foreach ($currencies as $currency) {
++					$existing = $this->db->query("SELECT `language_id` FROM `" . DB_PREFIX . "currency_description` WHERE `currency_id` = '" . (int)$currency['currency_id'] . "'")->rows;
++
++					$existing_language_ids = array_column($existing, 'language_id');
++
++					foreach ($languages as $language) {
++						if (in_array($language['language_id'], $existing_language_ids)) {
++							continue;
++						}
++
++						$is_english = in_array($language['code'], ['us', 'en', 'en-gb'], true);
++
++						$title = ($is_english && isset(self::CURRENCY_ENGLISH_NAMES[$currency['code']]))
++							? self::CURRENCY_ENGLISH_NAMES[$currency['code']]
++							: (string)$currency['title'];
++
++						$this->db->query("INSERT INTO `" . DB_PREFIX . "currency_description` SET `currency_id` = '" . (int)$currency['currency_id'] . "', `language_id` = '" . (int)$language['language_id'] . "', `title` = '" . $this->db->escape($title) . "'");
++					}
++				}
++
++				$this->cache->delete('currency');
++			},
+ 		];
+ 	}
+ 
++	/**
++	 * Standard English (ISO 4217-style) currency names, used only to
++	 * backfill the English row of `oc_currency_description` for a
++	 * recognised currency code during the currency_description_table
++	 * migration above - see its comment for why. IRT (Toman) isn't a real
++	 * ISO 4217 code, but is included since this project uses it for Iran's
++	 * everyday unit alongside the official Rial.
++	 */
++	private const CURRENCY_ENGLISH_NAMES = [
++		'USD' => 'US Dollar',
++		'EUR' => 'Euro',
++		'GBP' => 'Pound Sterling',
++		'AED' => 'United Arab Emirates Dirham',
++		'IRR' => 'Iranian Rial',
++		'IRT' => 'Iranian Toman',
++		'HKD' => 'Hong Kong Dollar',
++		'INR' => 'Indian Rupee',
++		'RUB' => 'Russian Ruble',
++		'CNY' => 'Chinese Yuan Renminbi',
++		'AUD' => 'Australian Dollar',
++		'CAD' => 'Canadian Dollar',
++		'CHF' => 'Swiss Franc',
++		'JPY' => 'Japanese Yen',
++		'TRY' => 'Turkish Lira',
++		'SAR' => 'Saudi Riyal',
++		'QAR' => 'Qatari Riyal',
++		'KWD' => 'Kuwaiti Dinar',
++		'OMR' => 'Omani Rial',
++		'BHD' => 'Bahraini Dinar',
++		'IQD' => 'Iraqi Dinar',
++		'AFN' => 'Afghan Afghani',
++		'PKR' => 'Pakistani Rupee',
++		'SEK' => 'Swedish Krona',
++		'NOK' => 'Norwegian Krone',
++		'DKK' => 'Danish Krone',
++		'PLN' => 'Polish Zloty',
++		'CZK' => 'Czech Koruna',
++		'HUF' => 'Hungarian Forint',
++		'RON' => 'Romanian Leu',
++		'ZAR' => 'South African Rand',
++		'BRL' => 'Brazilian Real',
++		'MXN' => 'Mexican Peso',
++		'SGD' => 'Singapore Dollar',
++		'MYR' => 'Malaysian Ringgit',
++		'THB' => 'Thai Baht',
++		'IDR' => 'Indonesian Rupiah',
++		'PHP' => 'Philippine Peso',
++		'VND' => 'Vietnamese Dong',
++		'KRW' => 'South Korean Won',
++		'NZD' => 'New Zealand Dollar',
++		'ILS' => 'Israeli New Shekel',
++		'EGP' => 'Egyptian Pound',
++	];
++
+ 	/**
+ 	 * Grant Administrator Permissions
+ 	 *
+diff --git a/panel/view/template/localisation/currency_form.twig b/panel/view/template/localisation/currency_form.twig
+index 7403385..f468a57 100644
+--- a/panel/view/template/localisation/currency_form.twig
++++ b/panel/view/template/localisation/currency_form.twig
+@@ -20,10 +20,16 @@
+       <div class="card-body">
+         <form id="form-currency" action="{{ save }}" method="post" data-oc-toggle="ajax">
+           <div class="row mb-3 required">
+-            <label for="input-title" class="col-sm-2 col-form-label">{{ entry_title }}</label>
++            <label class="col-sm-2 col-form-label">{{ entry_title }}</label>
+             <div class="col-sm-10">
+-              <input type="text" name="title" value="{{ title }}" placeholder="{{ entry_title }}" id="input-title" class="form-control"/>
+-              <div id="error-title" class="invalid-feedback"></div>
++              {% for language in languages %}
++                <div class="input-group{% if not loop.last %} mb-2{% endif %}">
++                  <div class="input-group-text"><img src="{{ language.image }}" title="{{ language.name }}" alt="{{ language.name }}"/></div>
++                  <input type="text" name="currency_description[{{ language.language_id }}][title]" value="{{ currency_description[language.language_id] ? currency_description[language.language_id].title }}" placeholder="{{ entry_title }}" id="input-title-{{ language.language_id }}" class="form-control"/>
++                </div>
++                <div id="error-title-{{ language.language_id }}" class="invalid-feedback"></div>
++              {% endfor %}
++              <div class="form-text">{{ help_title }}</div>
+             </div>
+           </div>
+           <div class="row mb-3 required">

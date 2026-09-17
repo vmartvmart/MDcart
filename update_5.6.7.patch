@@ -1,0 +1,320 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 604c90b..6aeeb3e 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -103,5 +103,10 @@
+     "version": "5.6.6",
+     "fa": "نام هر ارز حالا می‌تواند برای هر زبان جداگانه تنظیم شود - مثلاً «درهم امارات» در فارسی و «United Arab Emirates Dirham» در انگلیسی - به‌جای یک متن ثابت که در همه‌جا (پنل مدیریت و فروشگاه، با هر زبانی) یکسان نمایش داده می‌شد. روی نصب‌های موجود، این بروزرسانی به‌طور خودکار نام انگلیسی استاندارد ارزهای شناخته‌شده (از جمله درهم، ریال و تومان) را پر می‌کند و نام فارسی فعلی هرکدام دست‌نخورده باقی می‌ماند؛ برای تغییر دستی، Localisation > Currencies را باز کنید.",
+     "en": "Each currency's name can now be set separately per language - e.g. \"United Arab Emirates Dirham\" in English and \"درهم امارات\" in Persian - instead of one fixed piece of text shown everywhere (admin panel and storefront, in any language). On existing installs, this update automatically fills in the standard English name for recognised currencies (including Dirham, Rial and Toman) while leaving each one's current Persian name untouched; to edit by hand, open Localisation > Currencies."
++  },
++  {
++    "version": "5.6.7",
++    "fa": "کارت محصول (در لیست دسته‌بندی و صفحه محصول) حالا به‌جای وارد کردن دستی تعداد، دکمه‌های + و - برای افزایش/کاهش تعداد دارد. همچنین یک محدودیت جدید و اختیاری به هر محصول اضافه شد: «حداکثر تعداد سفارش برای هر مشتری» (در فرم محصول، کنار «حداقل تعداد سفارش») - وقتی روی عددی بیشتر از صفر تنظیم شود، فروشگاه جمع سفارش‌های قبلی تایید‌شده‌ی آن مشتری به‌علاوه‌ی آنچه در سبد خرید اوست را حساب می‌کند و اگر از حد مجاز بیشتر شود اجازه‌ی افزودن به سبد را نمی‌دهد. عدد صفر (پیش‌فرض) یعنی بدون محدودیت - هیچ محصول موجودی رفتارش تغییر نمی‌کند مگر اینکه ادمین عمداً این عدد را برایش تنظیم کند.",
++    "en": "The product card (in category listings and the product page) now has +/- buttons to adjust quantity instead of only typing it in. Also added a new, optional per-product limit: \"Max Quantity Per Customer\" (in the product form, next to \"Minimum Quantity\") - when set above zero, the store totals that customer's own already-confirmed past orders plus whatever is already in their cart, and blocks adding more once the limit would be exceeded. Zero (the default) means unlimited - no existing product's behavior changes unless an admin deliberately sets this."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 10c1148..b3ae5c7 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.6
++5.6.7
+diff --git a/catalog/controller/checkout/cart.php b/catalog/controller/checkout/cart.php
+index f2948ef..209f9c6 100644
+--- a/catalog/controller/checkout/cart.php
++++ b/catalog/controller/checkout/cart.php
+@@ -278,6 +278,46 @@ class Cart extends \MDcart\System\Engine\Controller {
+ 			if ($subscriptions && (!$subscription_plan_id || !in_array($subscription_plan_id, array_column($subscriptions, 'subscription_plan_id')))) {
+ 				$json['error']['subscription'] = $this->language->get('error_subscription');
+ 			}
++
++			// Admin-configurable per-customer order limit (Catalog > Products
++			// > Data > "Max Quantity Per Customer"). 0 = unlimited, the
++			// default, so this is a no-op for every product that hasn't
++			// opted in. Counts this customer's own already-CONFIRMED orders
++			// (order_status_id > 0 - an abandoned/incomplete checkout never
++			// reached that state, so it doesn't count against the limit)
++			// plus whatever of this product is already sitting in their
++			// cart, so repeatedly adding a few at a time can't bypass it.
++			// A guest (not logged in) has no trackable order history, so
++			// only their current cart is checked for them.
++			if (!empty($product_info['max_customer_quantity'])) {
++				$limit = (int)$product_info['max_customer_quantity'];
++
++				$already_ordered = 0;
++
++				if ($this->customer->isLogged()) {
++					$order_query = $this->db->query(
++						"SELECT COALESCE(SUM(`op`.`quantity`), 0) AS `total` FROM `" . DB_PREFIX . "order_product` `op`"
++						. " LEFT JOIN `" . DB_PREFIX . "order` `o` ON (`o`.`order_id` = `op`.`order_id`)"
++						. " WHERE `o`.`customer_id` = '" . (int)$this->customer->getId() . "' AND `op`.`product_id` = '" . (int)$product_info['product_id'] . "' AND `o`.`order_status_id` > '0'"
++					);
++
++					$already_ordered = (int)$order_query->row['total'];
++				}
++
++				$already_in_cart = 0;
++
++				foreach ($this->cart->getProducts() as $cart_product) {
++					if ($cart_product['product_id'] == $product_info['product_id']) {
++						$already_in_cart += $cart_product['quantity'];
++					}
++				}
++
++				$remaining = max(0, $limit - $already_ordered - $already_in_cart);
++
++				if ($quantity > $remaining) {
++					$json['error']['warning'] = sprintf($this->language->get('error_customer_quantity'), $limit, $remaining);
++				}
++			}
+ 		} else {
+ 			$json['error']['warning'] = $this->language->get('error_product');
+ 		}
+diff --git a/catalog/language/fa/checkout/cart.php b/catalog/language/fa/checkout/cart.php
+index ae9d04e..ca5a140 100644
+--- a/catalog/language/fa/checkout/cart.php
++++ b/catalog/language/fa/checkout/cart.php
+@@ -36,3 +36,4 @@ $_['error_required']             = '%s الزامی است!';
+ $_['error_regex']                = '%s مقدار معتبری نیست!';
+ $_['error_product']              = 'هشدار: محصول یافت نشد!';
+ $_['error_subscription']         = 'طرح اشتراک معتبر نیست!';
++$_['error_customer_quantity']    = 'حداکثر تعداد قابل سفارش برای این محصول توسط هر مشتری %s عدد است. شما می‌توانید حداکثر %s عدد دیگر از این محصول سفارش بدهید.';
+diff --git a/catalog/language/us/checkout/cart.php b/catalog/language/us/checkout/cart.php
+index b587337..4fc53db 100644
+--- a/catalog/language/us/checkout/cart.php
++++ b/catalog/language/us/checkout/cart.php
+@@ -36,3 +36,4 @@ $_['error_required']             = '%s required!';
+ $_['error_regex']                = '%s is not a valid input!';
+ $_['error_product']              = 'Warning: Product could not be found!';
+ $_['error_subscription']         = 'Subscription Plan is not valid!';
++$_['error_customer_quantity']    = 'The maximum quantity of this product per customer is %s. You can order at most %s more of this product.';
+diff --git a/catalog/view/javascript/common.js b/catalog/view/javascript/common.js
+index 5729006..314002d 100644
+--- a/catalog/view/javascript/common.js
++++ b/catalog/view/javascript/common.js
+@@ -464,3 +464,43 @@ $(document).ready(function() {
+         });
+     });
+ });
++
++// Quantity +/- stepper - used on the product card (product/thumb.twig) and
++// the single product page (product/product.twig). Delegated on document so
++// it also works for cards loaded later via AJAX (category pagination,
++// related-product modules, etc). The actual quantity limit (minimum, and
++// any admin-set per-customer maximum) is still enforced server-side in
++// checkout/cart.php's add() regardless of what this lets someone click to.
++$(document).on('click', '.qty-stepper-plus', function(e) {
++    e.preventDefault();
++
++    var input = $(this).closest('.qty-stepper').find('input[name=\'quantity\']');
++    var min = parseInt(input.attr('min'), 10) || 1;
++    var value = parseInt(input.val(), 10);
++
++    if (isNaN(value) || value < min) {
++        value = min;
++    }
++
++    input.val(value + 1);
++});
++
++$(document).on('click', '.qty-stepper-minus', function(e) {
++    e.preventDefault();
++
++    var input = $(this).closest('.qty-stepper').find('input[name=\'quantity\']');
++    var min = parseInt(input.attr('min'), 10) || 1;
++    var value = parseInt(input.val(), 10);
++
++    if (isNaN(value)) {
++        value = min;
++    }
++
++    value -= 1;
++
++    if (value < min) {
++        value = min;
++    }
++
++    input.val(value);
++});
+diff --git a/catalog/view/template/product/product.twig b/catalog/view/template/product/product.twig
+index 2840b6d..0d059e7 100644
+--- a/catalog/view/template/product/product.twig
++++ b/catalog/view/template/product/product.twig
+@@ -240,9 +240,11 @@
+                 </div>
+               {% endif %}
+               <div class="mb-3">
+-                <div class="input-group">
++                <div class="input-group qty-stepper">
+                   <div class="input-group-text">{{ entry_qty }}</div>
+-                  <input type="text" name="quantity" value="{{ minimum }}" size="2" id="input-quantity" class="form-control"/>
++                  <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
++                  <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}" size="2" inputmode="numeric" id="input-quantity" class="form-control text-center"/>
++                  <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
+                   <button type="submit" id="button-cart" class="btn btn-primary btn-lg btn-block">{{ button_cart }}</button>
+                 </div>
+                 <input type="hidden" name="product_id" value="{{ product_id }}" id="input-product-id"/>
+diff --git a/catalog/view/template/product/thumb.twig b/catalog/view/template/product/thumb.twig
+index 3eb4372..fb5d50d 100644
+--- a/catalog/view/template/product/thumb.twig
++++ b/catalog/view/template/product/thumb.twig
+@@ -29,12 +29,17 @@
+       {% endif %}
+     </div>
+     <form method="post" data-oc-toggle="ajax" data-oc-load="{{ cart }}" data-oc-target="#cart">
++      <div class="input-group input-group-sm qty-stepper mb-2">
++        <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
++        <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}" inputmode="numeric" class="form-control text-center"/>
++        <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
++      </div>
+       <div class="button">
+         <button type="submit" formaction="{{ cart_add }}" data-bs-toggle="tooltip" title="{{ button_cart }}"><i class="fa-solid fa-shopping-cart"></i></button>
+         <button type="submit" formaction="{{ wishlist_add }}" data-bs-toggle="tooltip" title="{{ button_wishlist }}" ><i class="fa-solid fa-heart"></i></button>
+         <button type="submit" formaction="{{ compare_add }}" data-bs-toggle="tooltip" title="{{ button_compare }}"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
+       </div>
+-      <input type="hidden" name="product_id" value="{{ product_id }}"/> <input type="hidden" name="quantity" value="{{ minimum }}"/>
++      <input type="hidden" name="product_id" value="{{ product_id }}"/>
+     </form>
+   </div>
+ </div>
+\ No newline at end of file
+diff --git a/install_starter.sql b/install_starter.sql
+index 726f910..2c966bb 100644
+--- a/install_starter.sql
++++ b/install_starter.sql
+@@ -106953,6 +106953,7 @@ CREATE TABLE `oc_product` (
+   `length_class_id` int(11) DEFAULT 0,
+   `subtract` tinyint(1) DEFAULT 1,
+   `minimum` int(11) DEFAULT 1,
++  `max_customer_quantity` int(11) DEFAULT 0,
+   `rating` int(1) DEFAULT 0,
+   `sort_order` int(11) DEFAULT 0,
+   `status` tinyint(1) DEFAULT 0,
+diff --git a/panel/controller/catalog/product.php b/panel/controller/catalog/product.php
+index 20e7e30..411ffa7 100644
+--- a/panel/controller/catalog/product.php
++++ b/panel/controller/catalog/product.php
+@@ -737,6 +737,12 @@ class Product extends \MDcart\System\Engine\Controller {
+ 			$data['minimum'] = 1;
+ 		}
+ 
++		if (!empty($product_info)) {
++			$data['max_customer_quantity'] = $product_info['max_customer_quantity'];
++		} else {
++			$data['max_customer_quantity'] = 0;
++		}
++
+ 		if (!empty($product_info)) {
+ 			$data['subtract'] = $product_info['subtract'];
+ 		} else {
+@@ -1213,6 +1219,7 @@ class Product extends \MDcart\System\Engine\Controller {
+ 			'override'            => [],
+ 			'quantity'            => 0,
+ 			'minimum'             => 0,
++			'max_customer_quantity' => 0,
+ 			'subtract'            => 0,
+ 			'stock_status_id'     => 0,
+ 			'preorder_status'     => 0,
+diff --git a/panel/language/fa/catalog/product.php b/panel/language/fa/catalog/product.php
+index b7a9aab..a2870ce 100644
+--- a/panel/language/fa/catalog/product.php
++++ b/panel/language/fa/catalog/product.php
+@@ -79,6 +79,7 @@ $_['entry_date_added']           = 'تاریخ افزودن';
+ $_['entry_date_available']       = 'تاریخ موجود شدن';
+ $_['entry_quantity']             = 'موجودی';
+ $_['entry_minimum']              = 'حداقل تعداد سفارش';
++$_['entry_max_customer_quantity'] = 'حداکثر تعداد سفارش برای هر مشتری';
+ $_['entry_stock_status']         = 'وضعیت اتمام موجودی';
+ $_['entry_preorder_status']      = 'امکان پیش‌سفارش در صورت اتمام موجودی';
+ $_['entry_preorder_lead_days']   = 'زمان تحویل پیش‌فرض پیش‌سفارش (روز)';
+@@ -121,6 +122,7 @@ $_['entry_subscription']         = 'طرح اشتراک';
+ // Help
+ $_['help_tag']                   = 'با ویرگول جدا کنید';
+ $_['help_minimum']               = 'حداقل مقدار سفارش را الزامی کنید';
++$_['help_max_customer_quantity'] = 'حداکثر تعدادی که یک مشتری (با حساب کاربری خودش) در طول زمان می‌تواند از این محصول سفارش بدهد - جمع سفارش‌های قبلی تایید‌شده به‌علاوه‌ی آنچه الان در سبد اوست. عدد ۰ یعنی بدون محدودیت. برای مهمان (بدون ورود به حساب کاربری) فقط سبد خرید فعلی بررسی می‌شود، چون سفارش‌های قبلی مهمان قابل ردیابی نیست.';
+ $_['help_stock_status']          = 'وضعیتی که هنگام اتمام موجودی محصول نمایش داده می‌شود';
+ $_['help_preorder_status']       = 'در صورت فعال بودن، مشتریان در فروشگاه اینترنتی حتی پس از اتمام موجودی می‌توانند این محصول را به‌صورت پیش‌سفارش ثبت کنند. در صندوق فروش (POS) همیشه امکان فروش پیش‌سفارش برای هر محصولی وجود دارد، چون کاربر POS خودش نماینده تایید ادمین است.';
+ $_['help_preorder_lead_days']    = 'برای پیشنهاد خودکار تاریخ تحویل استفاده می‌شود (پیش‌سفارش‌های فروشگاه اینترنتی و مقدار پیش‌فرض در تقویم POS). اگر خالی بماند باز هم هنگام فروش باید تاریخ به‌صورت دستی انتخاب شود.';
+diff --git a/panel/language/us/catalog/product.php b/panel/language/us/catalog/product.php
+index da83845..befc26b 100644
+--- a/panel/language/us/catalog/product.php
++++ b/panel/language/us/catalog/product.php
+@@ -92,6 +92,7 @@ $_['entry_date_added']           = 'Date Added';
+ $_['entry_date_available']       = 'Date Available';
+ $_['entry_quantity']             = 'Quantity';
+ $_['entry_minimum']              = 'Minimum Quantity';
++$_['entry_max_customer_quantity'] = 'Max Quantity Per Customer';
+ $_['entry_stock_status']         = 'Out Of Stock Status';
+ $_['entry_preorder_status']      = 'Allow Pre-Order When Out Of Stock';
+ $_['entry_preorder_lead_days']   = 'Pre-Order Lead Time (Days)';
+@@ -134,6 +135,7 @@ $_['entry_subscription']         = 'Subscription Plan';
+ // Help
+ $_['help_tag']                   = 'Comma separated';
+ $_['help_minimum']               = 'Force a minimum ordered amount';
++$_['help_max_customer_quantity'] = 'The most a single customer (their own account) can ever order of this product, in total - their already-confirmed past orders plus whatever is currently in their cart. 0 means unlimited. For a guest (not logged in), only their current cart is checked, since a guest\'s past orders can\'t be tracked.';
+ $_['help_stock_status']          = 'Status shown when a product is out of stock';
+ $_['help_preorder_status']       = 'If enabled, customers on the storefront can still order this product once it is out of stock, as a pre-order. Point of Sale can always offer a pre-order on any product regardless of this setting, since a cashier already represents admin approval.';
+ $_['help_preorder_lead_days']    = 'Used to auto-suggest a delivery date (storefront pre-orders, and the default shown on the POS date picker). Leave blank for no default - a date will still need to be picked at sale time.';
+diff --git a/panel/model/catalog/product.php b/panel/model/catalog/product.php
+index 5b3f67f..ac8ef3a 100644
+--- a/panel/model/catalog/product.php
++++ b/panel/model/catalog/product.php
+@@ -56,7 +56,7 @@ class Product extends \MDcart\System\Engine\Model {
+ 	 * $product_id = $this->model_catalog_product->addProduct($product_data);
+ 	 */
+ 	public function addProduct(array $data): int {
+-		$this->db->query("INSERT INTO `" . DB_PREFIX . "product` SET `master_id` = '" . (int)$data['master_id'] . "', `model` = '" . $this->db->escape((string)$data['model']) . "', `location` = '" . $this->db->escape((string)$data['location']) . "', `variant` = '" . $this->db->escape(!empty($data['variant']) ? json_encode($data['variant']) : '') . "', `override` = '" . $this->db->escape(!empty($data['override']) ? json_encode($data['override']) : '') . "', `quantity` = '" . (int)$data['quantity'] . "', `minimum` = '" . (int)$data['minimum'] . "', `subtract` = '" . (isset($data['subtract']) ? (bool)$data['subtract'] : 0) . "', `stock_status_id` = '" . (int)$data['stock_status_id'] . "', `preorder_status` = '" . (isset($data['preorder_status']) ? (bool)$data['preorder_status'] : 0) . "', `preorder_lead_days` = " . (!empty($data['preorder_lead_days']) ? "'" . (int)$data['preorder_lead_days'] . "'" : "NULL") . ", `date_available` = '" . $this->db->escape((string)$data['date_available']) . "', `manufacturer_id` = '" . (int)$data['manufacturer_id'] . "', `shipping` = '" . (isset($data['shipping']) ? (bool)$data['shipping'] : 0) . "', `price` = '" . (float)$data['price'] . "', `points` = '" . (int)$data['points'] . "', `weight` = '" . (float)$data['weight'] . "', `weight_class_id` = '" . (int)$data['weight_class_id'] . "', `length` = '" . (float)$data['length'] . "', `width` = '" . (float)$data['width'] . "', `height` = '" . (float)$data['height'] . "', `length_class_id` = '" . (int)$data['length_class_id'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `tax_class_id` = '" . (int)$data['tax_class_id'] . "', `sort_order` = '" . (int)$data['sort_order'] . "', `date_added` = NOW(), `date_modified` = NOW()");
++		$this->db->query("INSERT INTO `" . DB_PREFIX . "product` SET `master_id` = '" . (int)$data['master_id'] . "', `model` = '" . $this->db->escape((string)$data['model']) . "', `location` = '" . $this->db->escape((string)$data['location']) . "', `variant` = '" . $this->db->escape(!empty($data['variant']) ? json_encode($data['variant']) : '') . "', `override` = '" . $this->db->escape(!empty($data['override']) ? json_encode($data['override']) : '') . "', `quantity` = '" . (int)$data['quantity'] . "', `minimum` = '" . (int)$data['minimum'] . "', `max_customer_quantity` = '" . (int)($data['max_customer_quantity'] ?? 0) . "', `subtract` = '" . (isset($data['subtract']) ? (bool)$data['subtract'] : 0) . "', `stock_status_id` = '" . (int)$data['stock_status_id'] . "', `preorder_status` = '" . (isset($data['preorder_status']) ? (bool)$data['preorder_status'] : 0) . "', `preorder_lead_days` = " . (!empty($data['preorder_lead_days']) ? "'" . (int)$data['preorder_lead_days'] . "'" : "NULL") . ", `date_available` = '" . $this->db->escape((string)$data['date_available']) . "', `manufacturer_id` = '" . (int)$data['manufacturer_id'] . "', `shipping` = '" . (isset($data['shipping']) ? (bool)$data['shipping'] : 0) . "', `price` = '" . (float)$data['price'] . "', `points` = '" . (int)$data['points'] . "', `weight` = '" . (float)$data['weight'] . "', `weight_class_id` = '" . (int)$data['weight_class_id'] . "', `length` = '" . (float)$data['length'] . "', `width` = '" . (float)$data['width'] . "', `height` = '" . (float)$data['height'] . "', `length_class_id` = '" . (int)$data['length_class_id'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `tax_class_id` = '" . (int)$data['tax_class_id'] . "', `sort_order` = '" . (int)$data['sort_order'] . "', `date_added` = NOW(), `date_modified` = NOW()");
+ 
+ 		$product_id = $this->db->getLastId();
+ 
+@@ -243,7 +243,7 @@ class Product extends \MDcart\System\Engine\Model {
+ 	 * $this->model_catalog_product->editProduct($product_id, $product_data);
+ 	 */
+ 	public function editProduct(int $product_id, array $data): void {
+-		$this->db->query("UPDATE `" . DB_PREFIX . "product` SET `model` = '" . $this->db->escape((string)$data['model']) . "', `location` = '" . $this->db->escape((string)$data['location']) . "', `variant` = '" . $this->db->escape(!empty($data['variant']) ? json_encode($data['variant']) : '') . "', `override` = '" . $this->db->escape(!empty($data['override']) ? json_encode($data['override']) : '') . "', `quantity` = '" . (int)$data['quantity'] . "', `minimum` = '" . (int)$data['minimum'] . "', `subtract` = '" . (isset($data['subtract']) ? (bool)$data['subtract'] : 0) . "', `stock_status_id` = '" . (int)$data['stock_status_id'] . "', `preorder_status` = '" . (isset($data['preorder_status']) ? (bool)$data['preorder_status'] : 0) . "', `preorder_lead_days` = " . (!empty($data['preorder_lead_days']) ? "'" . (int)$data['preorder_lead_days'] . "'" : "NULL") . ", `image` = '" . $this->db->escape((string)$data['image']) . "', `date_available` = '" . $this->db->escape((string)$data['date_available']) . "', `manufacturer_id` = '" . (int)$data['manufacturer_id'] . "', `shipping` = '" . (isset($data['shipping']) ? (bool)$data['shipping'] : 0) . "', `price` = '" . (float)$data['price'] . "', `points` = '" . (int)$data['points'] . "', `weight` = '" . (float)$data['weight'] . "', `weight_class_id` = '" . (int)$data['weight_class_id'] . "', `length` = '" . (float)$data['length'] . "', `width` = '" . (float)$data['width'] . "', `height` = '" . (float)$data['height'] . "', `length_class_id` = '" . (int)$data['length_class_id'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `tax_class_id` = '" . (int)$data['tax_class_id'] . "', `sort_order` = '" . (int)$data['sort_order'] . "', `date_modified` = NOW() WHERE `product_id` = '" . (int)$product_id . "'");
++		$this->db->query("UPDATE `" . DB_PREFIX . "product` SET `model` = '" . $this->db->escape((string)$data['model']) . "', `location` = '" . $this->db->escape((string)$data['location']) . "', `variant` = '" . $this->db->escape(!empty($data['variant']) ? json_encode($data['variant']) : '') . "', `override` = '" . $this->db->escape(!empty($data['override']) ? json_encode($data['override']) : '') . "', `quantity` = '" . (int)$data['quantity'] . "', `minimum` = '" . (int)$data['minimum'] . "', `max_customer_quantity` = '" . (int)($data['max_customer_quantity'] ?? 0) . "', `subtract` = '" . (isset($data['subtract']) ? (bool)$data['subtract'] : 0) . "', `stock_status_id` = '" . (int)$data['stock_status_id'] . "', `preorder_status` = '" . (isset($data['preorder_status']) ? (bool)$data['preorder_status'] : 0) . "', `preorder_lead_days` = " . (!empty($data['preorder_lead_days']) ? "'" . (int)$data['preorder_lead_days'] . "'" : "NULL") . ", `image` = '" . $this->db->escape((string)$data['image']) . "', `date_available` = '" . $this->db->escape((string)$data['date_available']) . "', `manufacturer_id` = '" . (int)$data['manufacturer_id'] . "', `shipping` = '" . (isset($data['shipping']) ? (bool)$data['shipping'] : 0) . "', `price` = '" . (float)$data['price'] . "', `points` = '" . (int)$data['points'] . "', `weight` = '" . (float)$data['weight'] . "', `weight_class_id` = '" . (int)$data['weight_class_id'] . "', `length` = '" . (float)$data['length'] . "', `width` = '" . (float)$data['width'] . "', `height` = '" . (float)$data['height'] . "', `length_class_id` = '" . (int)$data['length_class_id'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `tax_class_id` = '" . (int)$data['tax_class_id'] . "', `sort_order` = '" . (int)$data['sort_order'] . "', `date_modified` = NOW() WHERE `product_id` = '" . (int)$product_id . "'");
+ 
+ 		// Description
+ 		$this->model_catalog_product->deleteDescriptions($product_id);
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index 0873cc9..8d7cd4d 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -677,6 +677,17 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 
+ 				$this->cache->delete('currency');
+ 			},
++
++			// Admin-configurable per-customer order limit (e.g. "max 2 of
++			// this product per customer, ever"), enforced in
++			// catalog/controller/checkout/cart.php's add() by summing a
++			// logged-in customer's own already-confirmed orders plus what's
++			// currently in their cart. 0 (the default) means unlimited, so
++			// this is a no-op for every existing product until an admin
++			// opts a specific product into a limit.
++			'product_max_customer_quantity' => function (): void {
++				$this->db->query("ALTER TABLE `" . DB_PREFIX . "product` ADD COLUMN IF NOT EXISTS `max_customer_quantity` int(11) DEFAULT 0 AFTER `minimum`");
++			},
+ 		];
+ 	}
+ 
+diff --git a/panel/view/template/catalog/product_form.twig b/panel/view/template/catalog/product_form.twig
+index fc71a3a..b4c4094 100644
+--- a/panel/view/template/catalog/product_form.twig
++++ b/panel/view/template/catalog/product_form.twig
+@@ -277,6 +277,13 @@
+                     <div class="form-text">{{ help_minimum }}</div>
+                   </div>
+                 </div>
++                <div class="row mb-3">
++                  <label for="input-max-customer-quantity" class="col-sm-2 col-form-label">{{ entry_max_customer_quantity }}</label>
++                  <div class="col-sm-10">
++                    <input type="text" name="max_customer_quantity" value="{{ max_customer_quantity }}" placeholder="{{ entry_max_customer_quantity }}" id="input-max-customer-quantity" class="form-control"/>
++                    <div class="form-text">{{ help_max_customer_quantity }}</div>
++                  </div>
++                </div>
+                 <div class="row mb-3">
+                   <label class="col-sm-2 col-form-label">{{ entry_subtract }}</label>
+                   <div class="col-sm-10">

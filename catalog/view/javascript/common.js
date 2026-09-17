@@ -464,3 +464,43 @@ $(document).ready(function() {
         });
     });
 });
+
+// Quantity +/- stepper - used on the product card (product/thumb.twig) and
+// the single product page (product/product.twig). Delegated on document so
+// it also works for cards loaded later via AJAX (category pagination,
+// related-product modules, etc). The actual quantity limit (minimum, and
+// any admin-set per-customer maximum) is still enforced server-side in
+// checkout/cart.php's add() regardless of what this lets someone click to.
+$(document).on('click', '.qty-stepper-plus', function(e) {
+    e.preventDefault();
+
+    var input = $(this).closest('.qty-stepper').find('input[name=\'quantity\']');
+    var min = parseInt(input.attr('min'), 10) || 1;
+    var value = parseInt(input.val(), 10);
+
+    if (isNaN(value) || value < min) {
+        value = min;
+    }
+
+    input.val(value + 1);
+});
+
+$(document).on('click', '.qty-stepper-minus', function(e) {
+    e.preventDefault();
+
+    var input = $(this).closest('.qty-stepper').find('input[name=\'quantity\']');
+    var min = parseInt(input.attr('min'), 10) || 1;
+    var value = parseInt(input.val(), 10);
+
+    if (isNaN(value)) {
+        value = min;
+    }
+
+    value -= 1;
+
+    if (value < min) {
+        value = min;
+    }
+
+    input.val(value);
+});

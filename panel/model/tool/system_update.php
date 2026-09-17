@@ -619,8 +619,131 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 			'currency_value_precision' => function (): void {
 				$this->db->query("ALTER TABLE `" . DB_PREFIX . "currency` MODIFY `value` double DEFAULT NULL");
 			},
+
+			// oc_currency.title was a single column shared by every admin
+			// language and the whole storefront, so a currency's name could
+			// never actually change with the active language - a Persian
+			// admin and an English customer both saw whatever text was
+			// typed in once (e.g. "درهم امارات" everywhere, even under the
+			// English UI). This adds a proper per-language description
+			// table (mirrors how oc_country/oc_country_description already
+			// work - see panel/model/localisation/currency.php's class
+			// docblock) and backfills it for every currency this install
+			// already has.
+			//
+			// The Persian description is backfilled from whatever is
+			// currently in `title` - unchanged, since that text already
+			// displays correctly for the Persian admin/storefront today.
+			// The English description is backfilled from a lookup of
+			// standard ISO 4217 English names (self::CURRENCY_ENGLISH_NAMES)
+			// when the currency's code is a recognised one; otherwise it
+			// falls back to the same unchanged text as Persian, exactly
+			// like a currency added by hand later would, until the admin
+			// edits it via Localisation > Currencies to type in a proper
+			// English title.
+			'currency_description_table' => function (): void {
+				$this->db->query(
+					"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "currency_description` ("
+					. "`currency_id` int(11) NOT NULL,"
+					. "`language_id` int(11) NOT NULL,"
+					. "`title` varchar(32) DEFAULT NULL,"
+					. "PRIMARY KEY (`currency_id`,`language_id`)"
+					. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC"
+				);
+
+				$languages = $this->db->query("SELECT `language_id`, `code` FROM `" . DB_PREFIX . "language`")->rows;
+
+				$currencies = $this->db->query("SELECT `currency_id`, `title`, `code` FROM `" . DB_PREFIX . "currency`")->rows;
+
+				foreach ($currencies as $currency) {
+					$existing = $this->db->query("SELECT `language_id` FROM `" . DB_PREFIX . "currency_description` WHERE `currency_id` = '" . (int)$currency['currency_id'] . "'")->rows;
+
+					$existing_language_ids = array_column($existing, 'language_id');
+
+					foreach ($languages as $language) {
+						if (in_array($language['language_id'], $existing_language_ids)) {
+							continue;
+						}
+
+						$is_english = in_array($language['code'], ['us', 'en', 'en-gb'], true);
+
+						$title = ($is_english && isset(self::CURRENCY_ENGLISH_NAMES[$currency['code']]))
+							? self::CURRENCY_ENGLISH_NAMES[$currency['code']]
+							: (string)$currency['title'];
+
+						$this->db->query("INSERT INTO `" . DB_PREFIX . "currency_description` SET `currency_id` = '" . (int)$currency['currency_id'] . "', `language_id` = '" . (int)$language['language_id'] . "', `title` = '" . $this->db->escape($title) . "'");
+					}
+				}
+
+				$this->cache->delete('currency');
+			},
+
+			// Admin-configurable per-customer order limit (e.g. "max 2 of
+			// this product per customer, ever"), enforced in
+			// catalog/controller/checkout/cart.php's add() by summing a
+			// logged-in customer's own already-confirmed orders plus what's
+			// currently in their cart. 0 (the default) means unlimited, so
+			// this is a no-op for every existing product until an admin
+			// opts a specific product into a limit.
+			'product_max_customer_quantity' => function (): void {
+				$this->db->query("ALTER TABLE `" . DB_PREFIX . "product` ADD COLUMN IF NOT EXISTS `max_customer_quantity` int(11) DEFAULT 0 AFTER `minimum`");
+			},
 		];
 	}
+
+	/**
+	 * Standard English (ISO 4217-style) currency names, used only to
+	 * backfill the English row of `oc_currency_description` for a
+	 * recognised currency code during the currency_description_table
+	 * migration above - see its comment for why. IRT (Toman) isn't a real
+	 * ISO 4217 code, but is included since this project uses it for Iran's
+	 * everyday unit alongside the official Rial.
+	 */
+	private const CURRENCY_ENGLISH_NAMES = [
+		'USD' => 'US Dollar',
+		'EUR' => 'Euro',
+		'GBP' => 'Pound Sterling',
+		'AED' => 'United Arab Emirates Dirham',
+		'IRR' => 'Iranian Rial',
+		'IRT' => 'Iranian Toman',
+		'HKD' => 'Hong Kong Dollar',
+		'INR' => 'Indian Rupee',
+		'RUB' => 'Russian Ruble',
+		'CNY' => 'Chinese Yuan Renminbi',
+		'AUD' => 'Australian Dollar',
+		'CAD' => 'Canadian Dollar',
+		'CHF' => 'Swiss Franc',
+		'JPY' => 'Japanese Yen',
+		'TRY' => 'Turkish Lira',
+		'SAR' => 'Saudi Riyal',
+		'QAR' => 'Qatari Riyal',
+		'KWD' => 'Kuwaiti Dinar',
+		'OMR' => 'Omani Rial',
+		'BHD' => 'Bahraini Dinar',
+		'IQD' => 'Iraqi Dinar',
+		'AFN' => 'Afghan Afghani',
+		'PKR' => 'Pakistani Rupee',
+		'SEK' => 'Swedish Krona',
+		'NOK' => 'Norwegian Krone',
+		'DKK' => 'Danish Krone',
+		'PLN' => 'Polish Zloty',
+		'CZK' => 'Czech Koruna',
+		'HUF' => 'Hungarian Forint',
+		'RON' => 'Romanian Leu',
+		'ZAR' => 'South African Rand',
+		'BRL' => 'Brazilian Real',
+		'MXN' => 'Mexican Peso',
+		'SGD' => 'Singapore Dollar',
+		'MYR' => 'Malaysian Ringgit',
+		'THB' => 'Thai Baht',
+		'IDR' => 'Indonesian Rupiah',
+		'PHP' => 'Philippine Peso',
+		'VND' => 'Vietnamese Dong',
+		'KRW' => 'South Korean Won',
+		'NZD' => 'New Zealand Dollar',
+		'ILS' => 'Israeli New Shekel',
+		'EGP' => 'Egyptian Pound',
+	];
 
 	/**
 	 * Grant Administrator Permissions

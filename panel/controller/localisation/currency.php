@@ -236,10 +236,14 @@ class Currency extends \MDcart\System\Engine\Controller {
 			$data['currency_id'] = 0;
 		}
 
+		$this->load->model('localisation/language');
+
+		$data['languages'] = $this->model_localisation_language->getLanguages();
+
 		if (!empty($currency_info)) {
-			$data['title'] = $currency_info['title'];
+			$data['currency_description'] = $this->model_localisation_currency->getDescriptions($currency_info['currency_id']);
 		} else {
-			$data['title'] = '';
+			$data['currency_description'] = [];
 		}
 
 		if (!empty($currency_info)) {
@@ -302,20 +306,22 @@ class Currency extends \MDcart\System\Engine\Controller {
 		}
 
 		$required = [
-			'currency_id'   => 0,
-			'title'         => '',
-			'code'          => '',
-			'symbol_left'   => '',
-			'symbol_right'  => '',
-			'decimal_place' => 0,
-			'value'         => 0.0,
-			'status'        => 0
+			'currency_id'           => 0,
+			'currency_description'  => [],
+			'code'                  => '',
+			'symbol_left'           => '',
+			'symbol_right'          => '',
+			'decimal_place'         => 0,
+			'value'                 => 0.0,
+			'status'                => 0
 		];
 
 		$post_info = $this->request->post + $required;
 
-		if (!oc_validate_length($post_info['title'], 3, 32)) {
-			$json['error']['title'] = $this->language->get('error_title');
+		foreach ($post_info['currency_description'] as $language_id => $value) {
+			if (!oc_validate_length($value['title'] ?? '', 3, 32)) {
+				$json['error']['title_' . $language_id] = $this->language->get('error_title');
+			}
 		}
 
 		if (oc_strlen($post_info['code']) != 3) {
@@ -331,6 +337,22 @@ class Currency extends \MDcart\System\Engine\Controller {
 		}
 
 		if (!$json) {
+			// `oc_currency.title` stays populated as a legacy fallback (see
+			// the model's class docblock) - prefer the English/us
+			// description (language_id 1), since that's the language every
+			// installed store has, falling back to whichever language was
+			// actually filled in if English was left blank.
+			$post_info['title'] = (string)($post_info['currency_description'][1]['title'] ?? '');
+
+			if ($post_info['title'] === '') {
+				foreach ($post_info['currency_description'] as $currency_description) {
+					if (!empty($currency_description['title'])) {
+						$post_info['title'] = (string)$currency_description['title'];
+						break;
+					}
+				}
+			}
+
 			if (!$post_info['currency_id']) {
 				$json['currency_id'] = $this->model_localisation_currency->addCurrency($post_info);
 			} else {

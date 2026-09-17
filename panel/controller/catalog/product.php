@@ -738,6 +738,12 @@ class Product extends \MDcart\System\Engine\Controller {
 		}
 
 		if (!empty($product_info)) {
+			$data['max_customer_quantity'] = $product_info['max_customer_quantity'];
+		} else {
+			$data['max_customer_quantity'] = 0;
+		}
+
+		if (!empty($product_info)) {
 			$data['subtract'] = $product_info['subtract'];
 		} else {
 			$data['subtract'] = 1;
@@ -1213,6 +1219,7 @@ class Product extends \MDcart\System\Engine\Controller {
 			'override'            => [],
 			'quantity'            => 0,
 			'minimum'             => 0,
+			'max_customer_quantity' => 0,
 			'subtract'            => 0,
 			'stock_status_id'     => 0,
 			'preorder_status'     => 0,

@@ -278,6 +278,46 @@ class Cart extends \MDcart\System\Engine\Controller {
 			if ($subscriptions && (!$subscription_plan_id || !in_array($subscription_plan_id, array_column($subscriptions, 'subscription_plan_id')))) {
 				$json['error']['subscription'] = $this->language->get('error_subscription');
 			}
+
+			// Admin-configurable per-customer order limit (Catalog > Products
+			// > Data > "Max Quantity Per Customer"). 0 = unlimited, the
+			// default, so this is a no-op for every product that hasn't
+			// opted in. Counts this customer's own already-CONFIRMED orders
+			// (order_status_id > 0 - an abandoned/incomplete checkout never
+			// reached that state, so it doesn't count against the limit)
+			// plus whatever of this product is already sitting in their
+			// cart, so repeatedly adding a few at a time can't bypass it.
+			// A guest (not logged in) has no trackable order history, so
+			// only their current cart is checked for them.
+			if (!empty($product_info['max_customer_quantity'])) {
+				$limit = (int)$product_info['max_customer_quantity'];
+
+				$already_ordered = 0;
+
+				if ($this->customer->isLogged()) {
+					$order_query = $this->db->query(
+						"SELECT COALESCE(SUM(`op`.`quantity`), 0) AS `total` FROM `" . DB_PREFIX . "order_product` `op`"
+						. " LEFT JOIN `" . DB_PREFIX . "order` `o` ON (`o`.`order_id` = `op`.`order_id`)"
+						. " WHERE `o`.`customer_id` = '" . (int)$this->customer->getId() . "' AND `op`.`product_id` = '" . (int)$product_info['product_id'] . "' AND `o`.`order_status_id` > '0'"
+					);
+
+					$already_ordered = (int)$order_query->row['total'];
+				}
+
+				$already_in_cart = 0;
+
+				foreach ($this->cart->getProducts() as $cart_product) {
+					if ($cart_product['product_id'] == $product_info['product_id']) {
+						$already_in_cart += $cart_product['quantity'];
+					}
+				}
+
+				$remaining = max(0, $limit - $already_ordered - $already_in_cart);
+
+				if ($quantity > $remaining) {
+					$json['error']['warning'] = sprintf($this->language->get('error_customer_quantity'), $limit, $remaining);
+				}
+			}
 		} else {
 			$json['error']['warning'] = $this->language->get('error_product');
 		}

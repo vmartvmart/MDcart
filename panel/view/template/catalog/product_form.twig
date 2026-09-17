@@ -278,6 +278,13 @@
                   </div>
                 </div>
                 <div class="row mb-3">
+                  <label for="input-max-customer-quantity" class="col-sm-2 col-form-label">{{ entry_max_customer_quantity }}</label>
+                  <div class="col-sm-10">
+                    <input type="text" name="max_customer_quantity" value="{{ max_customer_quantity }}" placeholder="{{ entry_max_customer_quantity }}" id="input-max-customer-quantity" class="form-control"/>
+                    <div class="form-text">{{ help_max_customer_quantity }}</div>
+                  </div>
+                </div>
+                <div class="row mb-3">
                   <label class="col-sm-2 col-form-label">{{ entry_subtract }}</label>
                   <div class="col-sm-10">
                     <div class="input-group">

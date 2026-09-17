@@ -1,0 +1,123 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index cf6a00e..aa19d23 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -93,5 +93,10 @@
+     "version": "5.6.4",
+     "fa": "رفع یک اشکال دیگر که مستقیماً توسط کاربر گزارش شد: بعد از تعیین درهم به‌عنوان ارز قیمت‌گذاری، دکمه‌ی «Refresh» در Localisation > Currencies (که نرخ‌های بین‌المللی رو از بانک مرکزی اروپا/ECB می‌گیره) چون اصلاً درهم/ریال/تومان رو نمی‌شناسه، مقدار همه‌ی ارزها رو بر اساس یورو (نه درهم) بازمحاسبه می‌کرد و مقدار ریال/تومان را دست‌نخورده رها می‌کرد - نتیجه این بود که قیمت یک محصول به‌درستی به درهم و ریال و تومان یکسان (مثلاً همه «۱۰۰») نمایش داده می‌شد و فقط دلار عدد نامربوط نشون می‌داد. این ابزار حالا وقتی ارز مبنا یکی از ارزهایی نیست که ECB می‌شناسد (مثل درهم)، از طریق دلار (که همیشه هم توسط ECB و هم توسط ابزار نرخ ارز داخلی پشتیبانی می‌شه) نرخ‌ها رو به‌درستی به همون ارز مبنا تبدیل می‌کنه.",
+     "en": "Fixed another bug reported directly by the user: after setting AED as the pricing currency, the \"Refresh\" button on Localisation > Currencies (which pulls international rates from the European Central Bank/ECB) recalculated every currency's value relative to Euro instead of AED - since ECB doesn't track AED/Rial/Toman at all - and left Rial/Toman untouched. The result was a product priced correctly showing the same number (e.g. all \"100\") across AED, Rial and Toman, while only USD showed an unrelated figure. This tool now bridges through USD (which both ECB and the internal Exchange Rate tool always support) whenever the base currency is one ECB doesn't recognize, so rates come out correctly relative to whatever the actual base currency is."
++  },
++  {
++    "version": "5.6.5",
++    "fa": "ابزار Accounting > Exchange Rate حالا با همان یک کلیک (چه «دریافت خودکار» چه «ذخیره دستی»)، علاوه بر درهم/ریال/تومان، بقیه‌ی ارزها (دلار، یورو، پوند، یوان و غیره) را هم همزمان از منبع بین‌المللی رسمی‌شان (بانک مرکزی اروپا) بروزرسانی می‌کند - قبلاً باید جداگانه به مسیر Localisation > Currencies هم می‌رفتید و دکمه‌ی «Refresh» آنجا را هم می‌زدید، وگرنه آن ارزها بدون هشدار قدیمی می‌ماندند.",
++    "en": "The Accounting > Exchange Rate tool now, with that same single click (either \"Fetch\" or \"Save Manually\"), also refreshes every other currency (Dollar, Euro, Pound, Yuan, etc.) from its own official international source (the European Central Bank) at the same time as AED/Rial/Toman - previously you had to separately visit Localisation > Currencies and press its own \"Refresh\" button too, or those currencies would silently go stale."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 1f8428b..bf787a3 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.4
++5.6.5
+diff --git a/panel/controller/accounting/exchange_rate.php b/panel/controller/accounting/exchange_rate.php
+index 6e9e2f4..82be0cd 100644
+--- a/panel/controller/accounting/exchange_rate.php
++++ b/panel/controller/accounting/exchange_rate.php
+@@ -87,6 +87,8 @@ class ExchangeRate extends \MDcart\System\Engine\Controller {
+ 			$this->load->model('accounting/exchange_rate');
+ 			$this->model_accounting_exchange_rate->applyRialPerAed($rial_per_aed);
+ 
++			$this->refreshOtherCurrencies();
++
+ 			$json['success'] = $this->language->get('text_success');
+ 			$json['rial_per_aed'] = $rial_per_aed;
+ 		}
+@@ -126,6 +128,8 @@ class ExchangeRate extends \MDcart\System\Engine\Controller {
+ 				$this->load->model('accounting/exchange_rate');
+ 				$this->model_accounting_exchange_rate->applyRialPerAed($rial_per_aed);
+ 
++				$this->refreshOtherCurrencies();
++
+ 				$json['success'] = $this->language->get('text_success_fetch');
+ 				$json['rial_per_aed'] = $rial_per_aed;
+ 			}
+@@ -135,6 +139,42 @@ class ExchangeRate extends \MDcart\System\Engine\Controller {
+ 		$this->response->setOutput(json_encode($json));
+ 	}
+ 
++	/**
++	 * After AED/IRR/IRT are updated above, also refreshes every OTHER
++	 * currency (USD, EUR, GBP, CNY, ...) from its own real international
++	 * source (currently the ECB daily feed - see extension/opencart/admin/
++	 * controller/currency/ecb.php) in the same click, instead of making the
++	 * admin separately visit Localisation > Currencies and press its own
++	 * "Refresh" button.
++	 *
++	 * This mirrors exactly what already happens automatically whenever the
++	 * admin saves Settings > General (see panel/controller/event/
++	 * currency.php) - that event only fires on a settings-page save, and
++	 * this screen updates currencies without going through Settings, so
++	 * without this call the ECB-tracked currencies would silently go stale
++	 * until the admin remembered to refresh them separately.
++	 *
++	 * Uses whichever currency extension is actually configured in Settings
++	 * > General > Currency Engine (normally ECB) rather than hardcoding
++	 * "ecb", so this keeps working if that's ever changed. Safe to call
++	 * even if AED/IRR/IRT was just re-pegged to a non-ECB-tracked anchor:
++	 * the ECB extension bridges through the currency table's own (freshly
++	 * updated) USD value in that case - see the comment in ecb.php.
++	 *
++	 * @return void
++	 */
++	private function refreshOtherCurrencies(): void {
++		$this->load->model('setting/extension');
++
++		$extension_info = $this->model_setting_extension->getExtensionByCode('currency', $this->config->get('config_currency_engine'));
++
++		if ($extension_info) {
++			$this->load->controller('extension/' . $extension_info['extension'] . '/currency/' . $extension_info['code'] . '.currency', (string)$this->config->get('config_currency'));
++		}
++
++		$this->cache->delete('currency');
++	}
++
+ 	/**
+ 	 * Fetches https://www.tgju.org/profile/price_aed and extracts today's
+ 	 * "1 AED = X Rial" rate from it.
+diff --git a/panel/language/fa/accounting/exchange_rate.php b/panel/language/fa/accounting/exchange_rate.php
+index c79b631..e188ff0 100644
+--- a/panel/language/fa/accounting/exchange_rate.php
++++ b/panel/language/fa/accounting/exchange_rate.php
+@@ -14,6 +14,7 @@ $_['text_how_it_works'] = 'این صفحه چگونه کار می‌کند';
+ $_['text_explanation_1'] = 'درهم امارات (AED) با نرخی ثابت و رسمی به دلار آمریکا وصل است، بنابراین تقریباً هیچ‌وقت خودش نیاز به بروزرسانی ندارد. آنچه واقعاً روز به روز تغییر می‌کند ریال است - پس این صفحه فقط یک عدد واقعی بازار را می‌پرسد: هر ۱ درهم امارات الان معادل چند ریال معامله می‌شود.';
+ $_['text_explanation_2'] = 'از همین یک عدد، فروشگاه نرخ فعلی ریال به دلار را خودش محاسبه می‌کند (با استفاده از نرخ ثابت %s درهم به‌ازای هر دلار)، و هر دو ارز ریال (IRR) و تومان (IRT = ریال ÷ ۱۰) را متناسب با آن بروزرسانی می‌کند - بنابراین قیمت‌هایی که به مشتریان به تومان نشان داده می‌شود همیشه با بازار واقعی امروز همخوانی دارد، در حالی‌که فقط نرخ درهم دریافت یا وارد می‌شود.';
+ $_['text_explanation_3'] = 'بروزرسانی خودکار دو بار در روز هنوز زمان‌بندی نشده، چون این فروشگاه هنوز روی یک سرور آزمایشی محلی است و به Cron سطح هاست دسترسی ندارد. وقتی به هاست واقعی منتقل شد، یک وظیفه Cron که این صفحه را طبق زمان‌بندی فراخوانی کند آن را فعال می‌کند - تا آن زمان، هر وقت نرخ جدید لازم بود از دکمه بروزرسانی استفاده کنید.';
++$_['text_explanation_4'] = 'همین یک دکمه، بقیه‌ی ارزها (دلار، یورو، پوند، یوان و ...) را هم همزمان از منبع بین‌المللی رسمی‌شان (بانک مرکزی اروپا) بروزرسانی می‌کند - دیگر لازم نیست جداگانه به مسیر موقعیت‌سنجی > ارزها بروید و دکمه‌ی «بروزرسانی» آنجا را هم بزنید.';
+ $_['text_success'] = 'موفق: نرخ ارز بروزرسانی شد!';
+ $_['text_success_fetch'] = 'موفق: نرخ فعلی از tgju.org دریافت و بروزرسانی شد!';
+ 
+diff --git a/panel/language/us/accounting/exchange_rate.php b/panel/language/us/accounting/exchange_rate.php
+index 7663849..a9786d7 100644
+--- a/panel/language/us/accounting/exchange_rate.php
++++ b/panel/language/us/accounting/exchange_rate.php
+@@ -14,6 +14,7 @@ $_['text_how_it_works'] = 'How This Works';
+ $_['text_explanation_1'] = 'The UAE Dirham (AED) is fixed to the US Dollar at a stable, official peg, so it almost never needs updating on its own. What actually moves day to day is the Rial - so this page only ever asks for one real market number: how many Rial does 1 AED currently trade for.';
+ $_['text_explanation_2'] = 'From that one number, the store works out the current Rial/Dollar rate itself (using the fixed %s AED-per-Dollar peg), and updates both the Rial (IRR) and Toman (IRT = Rial / 10) currencies to match - so prices shown to customers in Toman always track today\'s real market, even though only the Dirham rate is ever fetched or entered.';
+ $_['text_explanation_3'] = 'Automatic twice-daily fetching is not scheduled yet, since this store is still on a local test server without host-level cron access. Once it moves to real hosting, a cron job calling this page\'s fetch action on a schedule will turn it on - for now, use the Update button whenever a fresh rate is needed.';
++$_['text_explanation_4'] = 'This same button also refreshes every other currency (Dollar, Euro, Pound, Yuan, ...) at the same time from its own official international source (the European Central Bank) - you no longer need to separately visit Localisation > Currencies and press its own "Refresh" button too.';
+ $_['text_success'] = 'Success: exchange rate updated!';
+ $_['text_success_fetch'] = 'Success: fetched the current rate from tgju.org and updated it!';
+ 
+diff --git a/panel/view/template/accounting/exchange_rate.twig b/panel/view/template/accounting/exchange_rate.twig
+index c7166fa..6df6b8e 100644
+--- a/panel/view/template/accounting/exchange_rate.twig
++++ b/panel/view/template/accounting/exchange_rate.twig
+@@ -53,6 +53,7 @@
+ 				<div class="card-body">
+ 					<p>{{ text_explanation_1 }}</p>
+ 					<p>{{ text_explanation_2|replace({'%s': aed_usd_peg}) }}</p>
++					<p>{{ text_explanation_4 }}</p>
+ 					<p class="mb-0 text-muted">{{ text_explanation_3 }}</p>
+ 				</div>
+ 			</div>

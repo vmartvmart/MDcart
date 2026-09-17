@@ -1253,9 +1253,39 @@ INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbo
 INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('6', 'Russian Ruble', 'RUB', '', '₽', '2', '56.40360000', '0', '2018-02-16 12:00:00');
 INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('7', 'Chinese Yuan Renminbi', 'CNY', '¥', '', '2', '6.70824707', '0', '2026-09-12 09:55:44');
 INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('8', 'Australian Dollar', 'AUD', '$', '', '2', '1.39415114', '0', '2026-09-12 09:55:44');
-INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('9', 'ریال ایران', 'IRR', '', '﷼', '0', '2341365.65000000', '1', '2026-09-10 08:03:53');
-INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('10', 'تومان ایران', 'IRT', '', 'تومان', '0', '234136.56500000', '1', '2026-09-10 08:03:53');
-INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('11', 'درهم امارات', 'AED', '', 'د.إ', '2', '3.67250000', '1', '2026-09-10 08:03:53');
+INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('9', 'Iranian Rial', 'IRR', '', '﷼', '0', '2341365.65000000', '1', '2026-09-10 08:03:53');
+INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('10', 'Iranian Toman', 'IRT', '', 'تومان', '0', '234136.56500000', '1', '2026-09-10 08:03:53');
+INSERT INTO `oc_currency` (`currency_id`, `title`, `code`, `symbol_left`, `symbol_right`, `decimal_place`, `value`, `status`, `date_modified`) VALUES ('11', 'United Arab Emirates Dirham', 'AED', '', 'د.إ', '2', '3.67250000', '1', '2026-09-10 08:03:53');
+
+DROP TABLE IF EXISTS `oc_currency_description`;
+CREATE TABLE `oc_currency_description` (
+  `currency_id` int(11) NOT NULL,
+  `language_id` int(11) NOT NULL,
+  `title` varchar(32) DEFAULT NULL,
+  PRIMARY KEY (`currency_id`,`language_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('1', '1', 'Pound Sterling');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('1', '2', 'پوند بریتانیا');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('2', '1', 'US Dollar');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('2', '2', 'دلار آمریکا');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('3', '1', 'Euro');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('3', '2', 'یورو');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('4', '1', 'Hong Kong Dollar');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('4', '2', 'دلار هنگ‌کنگ');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('5', '1', 'Indian Rupee');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('5', '2', 'روپیه هند');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('6', '1', 'Russian Ruble');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('6', '2', 'روبل روسیه');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('7', '1', 'Chinese Yuan Renminbi');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('7', '2', 'یوان چین');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('8', '1', 'Australian Dollar');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('8', '2', 'دلار استرالیا');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('9', '1', 'Iranian Rial');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('9', '2', 'ریال ایران');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('10', '1', 'Iranian Toman');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('10', '2', 'تومان ایران');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('11', '1', 'United Arab Emirates Dirham');
+INSERT INTO `oc_currency_description` (`currency_id`, `language_id`, `title`) VALUES ('11', '2', 'درهم امارات');
 
 DROP TABLE IF EXISTS `oc_custom_field`;
 CREATE TABLE `oc_custom_field` (
@@ -106923,6 +106953,7 @@ CREATE TABLE `oc_product` (
   `length_class_id` int(11) DEFAULT 0,
   `subtract` tinyint(1) DEFAULT 1,
   `minimum` int(11) DEFAULT 1,
+  `max_customer_quantity` int(11) DEFAULT 0,
   `rating` int(1) DEFAULT 0,
   `sort_order` int(11) DEFAULT 0,
   `status` tinyint(1) DEFAULT 0,

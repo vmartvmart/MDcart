@@ -92,6 +92,7 @@ $_['entry_date_added']           = 'Date Added';
 $_['entry_date_available']       = 'Date Available';
 $_['entry_quantity']             = 'Quantity';
 $_['entry_minimum']              = 'Minimum Quantity';
+$_['entry_max_customer_quantity'] = 'Max Quantity Per Customer';
 $_['entry_stock_status']         = 'Out Of Stock Status';
 $_['entry_preorder_status']      = 'Allow Pre-Order When Out Of Stock';
 $_['entry_preorder_lead_days']   = 'Pre-Order Lead Time (Days)';
@@ -134,6 +135,7 @@ $_['entry_subscription']         = 'Subscription Plan';
 // Help
 $_['help_tag']                   = 'Comma separated';
 $_['help_minimum']               = 'Force a minimum ordered amount';
+$_['help_max_customer_quantity'] = 'The most a single customer (their own account) can ever order of this product, in total - their already-confirmed past orders plus whatever is currently in their cart. 0 means unlimited. For a guest (not logged in), only their current cart is checked, since a guest\'s past orders can\'t be tracked.';
 $_['help_stock_status']          = 'Status shown when a product is out of stock';
 $_['help_preorder_status']       = 'If enabled, customers on the storefront can still order this product once it is out of stock, as a pre-order. Point of Sale can always offer a pre-order on any product regardless of this setting, since a cashier already represents admin approval.';
 $_['help_preorder_lead_days']    = 'Used to auto-suggest a delivery date (storefront pre-orders, and the default shown on the POS date picker). Leave blank for no default - a date will still need to be picked at sale time.';

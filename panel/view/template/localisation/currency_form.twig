@@ -20,10 +20,16 @@
       <div class="card-body">
         <form id="form-currency" action="{{ save }}" method="post" data-oc-toggle="ajax">
           <div class="row mb-3 required">
-            <label for="input-title" class="col-sm-2 col-form-label">{{ entry_title }}</label>
+            <label class="col-sm-2 col-form-label">{{ entry_title }}</label>
             <div class="col-sm-10">
-              <input type="text" name="title" value="{{ title }}" placeholder="{{ entry_title }}" id="input-title" class="form-control"/>
-              <div id="error-title" class="invalid-feedback"></div>
+              {% for language in languages %}
+                <div class="input-group{% if not loop.last %} mb-2{% endif %}">
+                  <div class="input-group-text"><img src="{{ language.image }}" title="{{ language.name }}" alt="{{ language.name }}"/></div>
+                  <input type="text" name="currency_description[{{ language.language_id }}][title]" value="{{ currency_description[language.language_id] ? currency_description[language.language_id].title }}" placeholder="{{ entry_title }}" id="input-title-{{ language.language_id }}" class="form-control"/>
+                </div>
+                <div id="error-title-{{ language.language_id }}" class="invalid-feedback"></div>
+              {% endfor %}
+              <div class="form-text">{{ help_title }}</div>
             </div>
           </div>
           <div class="row mb-3 required">

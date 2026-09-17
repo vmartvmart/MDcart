@@ -87,6 +87,8 @@ class ExchangeRate extends \MDcart\System\Engine\Controller {
 			$this->load->model('accounting/exchange_rate');
 			$this->model_accounting_exchange_rate->applyRialPerAed($rial_per_aed);
 
+			$this->refreshOtherCurrencies();
+
 			$json['success'] = $this->language->get('text_success');
 			$json['rial_per_aed'] = $rial_per_aed;
 		}
@@ -126,6 +128,8 @@ class ExchangeRate extends \MDcart\System\Engine\Controller {
 				$this->load->model('accounting/exchange_rate');
 				$this->model_accounting_exchange_rate->applyRialPerAed($rial_per_aed);
 
+				$this->refreshOtherCurrencies();
+
 				$json['success'] = $this->language->get('text_success_fetch');
 				$json['rial_per_aed'] = $rial_per_aed;
 			}
@@ -133,6 +137,42 @@ class ExchangeRate extends \MDcart\System\Engine\Controller {
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
+	}
+
+	/**
+	 * After AED/IRR/IRT are updated above, also refreshes every OTHER
+	 * currency (USD, EUR, GBP, CNY, ...) from its own real international
+	 * source (currently the ECB daily feed - see extension/opencart/admin/
+	 * controller/currency/ecb.php) in the same click, instead of making the
+	 * admin separately visit Localisation > Currencies and press its own
+	 * "Refresh" button.
+	 *
+	 * This mirrors exactly what already happens automatically whenever the
+	 * admin saves Settings > General (see panel/controller/event/
+	 * currency.php) - that event only fires on a settings-page save, and
+	 * this screen updates currencies without going through Settings, so
+	 * without this call the ECB-tracked currencies would silently go stale
+	 * until the admin remembered to refresh them separately.
+	 *
+	 * Uses whichever currency extension is actually configured in Settings
+	 * > General > Currency Engine (normally ECB) rather than hardcoding
+	 * "ecb", so this keeps working if that's ever changed. Safe to call
+	 * even if AED/IRR/IRT was just re-pegged to a non-ECB-tracked anchor:
+	 * the ECB extension bridges through the currency table's own (freshly
+	 * updated) USD value in that case - see the comment in ecb.php.
+	 *
+	 * @return void
+	 */
+	private function refreshOtherCurrencies(): void {
+		$this->load->model('setting/extension');
+
+		$extension_info = $this->model_setting_extension->getExtensionByCode('currency', $this->config->get('config_currency_engine'));
+
+		if ($extension_info) {
+			$this->load->controller('extension/' . $extension_info['extension'] . '/currency/' . $extension_info['code'] . '.currency', (string)$this->config->get('config_currency'));
+		}
+
+		$this->cache->delete('currency');
 	}
 
 	/**

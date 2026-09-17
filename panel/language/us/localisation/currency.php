@@ -29,6 +29,7 @@ $_['entry_status']         = 'Status';
 // Help
 $_['help_code']            = 'Do not change if this is your default currency.';
 $_['help_value']           = 'The value of your default currency in the current currency unit. Set to 1 for your default currency.';
+$_['help_title']           = 'Enter a separate title for each language - e.g. "United Arab Emirates Dirham" in English and "درهم امارات" in Persian. Each language sees whatever title you enter for it here, both in the storefront and in this admin panel.';
 
 // Error
 $_['error_permission']     = 'Warning: You do not have permission to modify currencies!';

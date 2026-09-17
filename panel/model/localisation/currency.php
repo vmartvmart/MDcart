@@ -3,6 +3,18 @@ namespace MDcart\Admin\Model\Localisation;
 /**
  * Class Currency
  *
+ * `oc_currency.title` is kept as a legacy fallback (mirrored from the
+ * English/us description on every save), but the title actually shown to
+ * an admin now comes from `oc_currency_description` - one row per
+ * (currency_id, language_id) - so it can read "United Arab Emirates
+ * Dirham" under the English admin UI and "درهم امارات" under the Persian
+ * one, instead of the same text everywhere regardless of active language.
+ * getCurrency()/getCurrencyByCode()/getCurrencies() all LEFT JOIN that
+ * table on the admin's own active config_language_id and COALESCE back to
+ * the legacy column when a language has no translation yet, so this is
+ * fully backward compatible with any code still reading `$result['title']`
+ * directly.
+ *
  * Can be loaded using $this->load->model('localisation/currency');
  *
  * @package MDcart\Admin\Model\Localisation
@@ -20,7 +32,8 @@ class Currency extends \MDcart\System\Engine\Model {
 	 * @example
 	 *
 	 * $currency_data = [
-	 *     'title'         => 'Currency Title',
+	 *     'title'                 => 'Currency Title (legacy fallback, kept in sync with the English description)',
+	 *     'currency_description'  => [1 => ['title' => 'US Dollar'], 2 => ['title' => 'دلار آمریکا']],
 	 *     'code'          => 'Currency Code',
 	 *     'symbol_left'   => '$',
 	 *     'symbol_right'  => '',
@@ -36,9 +49,17 @@ class Currency extends \MDcart\System\Engine\Model {
 	public function addCurrency(array $data): int {
 		$this->db->query("INSERT INTO `" . DB_PREFIX . "currency` SET `title` = '" . $this->db->escape((string)$data['title']) . "', `code` = '" . $this->db->escape((string)$data['code']) . "', `symbol_left` = '" . $this->db->escape((string)$data['symbol_left']) . "', `symbol_right` = '" . $this->db->escape((string)$data['symbol_right']) . "', `decimal_place` = '" . (int)$data['decimal_place'] . "', `value` = '" . (float)$data['value'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `date_modified` = NOW()");
 
+		$currency_id = $this->db->getLastId();
+
+		if (!empty($data['currency_description'])) {
+			foreach ($data['currency_description'] as $language_id => $currency_description) {
+				$this->addDescription($currency_id, (int)$language_id, $currency_description);
+			}
+		}
+
 		$this->cache->delete('currency');
 
-		return $this->db->getLastId();
+		return $currency_id;
 	}
 
 	/**
@@ -70,7 +91,62 @@ class Currency extends \MDcart\System\Engine\Model {
 	public function editCurrency(int $currency_id, array $data): void {
 		$this->db->query("UPDATE `" . DB_PREFIX . "currency` SET `title` = '" . $this->db->escape((string)$data['title']) . "', `code` = '" . $this->db->escape((string)$data['code']) . "', `symbol_left` = '" . $this->db->escape((string)$data['symbol_left']) . "', `symbol_right` = '" . $this->db->escape((string)$data['symbol_right']) . "', `decimal_place` = '" . (int)$data['decimal_place'] . "', `value` = '" . (float)$data['value'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `date_modified` = NOW() WHERE `currency_id` = '" . (int)$currency_id . "'");
 
+		if (!empty($data['currency_description'])) {
+			$this->deleteDescriptions($currency_id);
+
+			foreach ($data['currency_description'] as $language_id => $currency_description) {
+				$this->addDescription($currency_id, (int)$language_id, $currency_description);
+			}
+		}
+
 		$this->cache->delete('currency');
+	}
+
+	/**
+	 * Add Description
+	 *
+	 * Per-language currency title - see the class docblock note above
+	 * getCurrencies() for why this exists alongside the legacy `title`
+	 * column.
+	 *
+	 * @param int                  $currency_id
+	 * @param int                  $language_id
+	 * @param array<string, mixed> $data
+	 *
+	 * @return void
+	 */
+	public function addDescription(int $currency_id, int $language_id, array $data): void {
+		$this->db->query("INSERT INTO `" . DB_PREFIX . "currency_description` SET `currency_id` = '" . (int)$currency_id . "', `language_id` = '" . (int)$language_id . "', `title` = '" . $this->db->escape((string)$data['title']) . "'");
+	}
+
+	/**
+	 * Delete Descriptions
+	 *
+	 * @param int $currency_id
+	 *
+	 * @return void
+	 */
+	public function deleteDescriptions(int $currency_id): void {
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "currency_description` WHERE `currency_id` = '" . (int)$currency_id . "'");
+	}
+
+	/**
+	 * Get Descriptions
+	 *
+	 * @param int $currency_id
+	 *
+	 * @return array<int, array<string, mixed>> keyed by language_id
+	 */
+	public function getDescriptions(int $currency_id): array {
+		$currency_description_data = [];
+
+		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "currency_description` WHERE `currency_id` = '" . (int)$currency_id . "'");
+
+		foreach ($query->rows as $result) {
+			$currency_description_data[(int)$result['language_id']] = ['title' => $result['title']];
+		}
+
+		return $currency_description_data;
 	}
 
 	/**
@@ -130,7 +206,7 @@ class Currency extends \MDcart\System\Engine\Model {
 	 * $currency_info = $this->model_localisation_currency->getCurrency($currency_id);
 	 */
 	public function getCurrency(int $currency_id): array {
-		$query = $this->db->query("SELECT DISTINCT * FROM `" . DB_PREFIX . "currency` WHERE `currency_id` = '" . (int)$currency_id . "'");
+		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`currency_id` = '" . (int)$currency_id . "'");
 
 		return $query->row;
 	}
@@ -149,7 +225,7 @@ class Currency extends \MDcart\System\Engine\Model {
 	 * $currency_info = $this->model_localisation_currency->getCurrencyByCode($currency);
 	 */
 	public function getCurrencyByCode(string $currency): array {
-		$query = $this->db->query("SELECT DISTINCT * FROM `" . DB_PREFIX . "currency` WHERE `code` = '" . $this->db->escape($currency) . "'");
+		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`code` = '" . $this->db->escape($currency) . "'");
 
 		return $query->row;
 	}
@@ -177,19 +253,24 @@ class Currency extends \MDcart\System\Engine\Model {
 	 * $results = $this->model_localisation_currency->getCurrencies($filter_data);
 	 */
 	public function getCurrencies(array $data = []): array {
-		$sql = "SELECT * FROM `" . DB_PREFIX . "currency`";
+		$sql = "SELECT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "')";
 
+		// Column names below are qualified (rather than passed through
+		// directly from $data['sort']) both to avoid SQL injection via the
+		// sort parameter and to sidestep any ambiguity now that `title`
+		// exists on both the base table and in the SELECT list's COALESCE
+		// alias.
 		$sort_data = [
-			'title',
-			'code',
-			'value',
-			'date_modified'
+			'title'         => 'COALESCE(`cd`.`title`, `c`.`title`)',
+			'code'          => '`c`.`code`',
+			'value'         => '`c`.`value`',
+			'date_modified' => '`c`.`date_modified`'
 		];
 
-		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
-			$sql .= " ORDER BY " . $data['sort'];
+		if (isset($data['sort']) && isset($sort_data[$data['sort']])) {
+			$sql .= " ORDER BY " . $sort_data[$data['sort']];
 		} else {
-			$sql .= " ORDER BY `title`";
+			$sql .= " ORDER BY " . $sort_data['title'];
 		}
 
 		if (isset($data['order']) && ($data['order'] == 'DESC')) {
