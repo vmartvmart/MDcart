@@ -1,0 +1,34 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 1b96052..3dbc395 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -128,5 +128,10 @@
+     "version": "5.6.11",
+     "fa": "وقتی موجودی یک کالا کافی نباشد ولی «پیش‌خرید» یا «تحویل از محموله در راه» برایش فعال باشد، دیگر کل تعداد درخواستی به‌عنوان تاخیردار ثبت نمی‌شود: مقدار موجود همین الان به‌صورت یک ردیف عادی و بقیه (فقط مقدار اضافه) به‌صورت یک ردیف جداگانه با تاریخ تحویل مشخص، در سبد خرید (هم صفحه سبد، هم سبد کوچک بالای سایت) نمایش داده می‌شود - مثلاً «۳ عدد الان، ۲ عدد پیش‌سفارش - تحویل تقریبی ۱۴۰۵/۰۷/۱۰». یادآوری: پیش‌خرید فقط وقتی به مشتری پیشنهاد می‌شود که ادمین از قبل برای آن کالا فعالش کرده باشد؛ و «تحویل از محموله در راه» فقط وقتی پیشنهاد می‌شود که ادمین یک حواله انبار واقعی با تعداد و تاریخ تحویل مشخص ثبت کرده و آن را برای پیش‌فروش آنلاین علامت زده باشد (بخش انبار > حواله‌های انبار) - این دو مورد از قبل در سیستم وجود داشتند، این بروزرسانی فقط نحوه نمایش و تفکیک تعداد را بهتر کرد. همچنین یک باگ ظریف در پچ قبلی (5.6.10) برطرف شد: سقف تعداد در صفحه سبد خرید اشتباه محاسبه می‌شد و اصلاً اجازه افزایش تعداد را نمی‌داد؛ الان درست کار می‌کند. و چند رشته متنی انگلیسی که در فایل زبان فارسی سبد کوچک جا مانده بودند (مثلاً «اشتراک»، روزهای هفته) به فارسی برگردانده شدند.",
+     "en": "When a product doesn't have enough stock but \"pre-order\" or \"sellable while in transit\" is enabled for it, the whole requested quantity is no longer recorded as delayed: the quantity available right now becomes a normal cart line, and only the actual shortfall becomes a separate line with its own delivery date, shown in both the cart page and the header mini-cart - e.g. \"3 now, 2 pre-order - estimated delivery 2026-09-28\". Reminder: pre-order is only ever offered when an admin has enabled it for that specific product, and \"sellable while in transit\" is only ever offered when an admin has recorded a real warehouse transfer with a quantity and delivery date and marked it for online pre-sale (Catalog > Warehouse Transfers) - both already existed; this update only improved how the split is shown. Also fixed a subtle bug from the previous patch (5.6.10): the cart page's quantity cap was computed wrong and didn't allow increasing quantity at all; it works correctly now. And a few leftover English strings in the mini-cart's Persian language file (e.g. \"Subscription\", days of the week) were translated."
++  },
++  {
++    "version": "5.6.12",
++    "fa": "رفع واقعی و کامل باگ بسته شدن کشوی سبد خرید کوچک: علت اصلی چیزی نبود که در 5.6.10 تصور می‌شد (از دست رفتن وضعیت هنگام بارگذاری مجدد)، بلکه رفتار پیش‌فرض خود Bootstrap بود - به‌صورت پیش‌فرض، کشو با کلیک روی هر چیزی، حتی خود دکمه‌های + و - که داخل همان کشو هستند، فوراً بسته می‌شود. این روی سایت زنده مستقیماً تست و تایید شد. راه‌حل: به دکمه سبد کوچک یک ویژگی اضافه شد که می‌گوید کشو فقط با کلیک بیرون از آن بسته شود، نه با کلیک روی محتوای داخلش (مثل دکمه‌های تعداد یا حذف).",
++    "en": "Actually and fully fixed the mini-cart dropdown closing bug: the real cause wasn't what 5.6.10 assumed (losing state on reload) - it was Bootstrap's own default behavior, which closes a dropdown on any click, including clicks on the +/- buttons that live inside that same dropdown. Verified directly on the live site before and after the fix. Fix: the mini-cart's toggle button now tells Bootstrap to only close on clicks outside the dropdown, not on clicks inside it (like the quantity or remove buttons)."
+   }
+ ]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index 723bfc6..b8a773e 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.11
++5.6.12
+diff --git a/catalog/view/template/common/cart.twig b/catalog/view/template/common/cart.twig
+index f96ed7e..fd375a8 100644
+--- a/catalog/view/template/common/cart.twig
++++ b/catalog/view/template/common/cart.twig
+@@ -1,5 +1,5 @@
+ <div class="dropdown d-grid">
+-  <button type="button" data-bs-toggle="dropdown" class="btn btn-lg btn-dark d-block dropdown-toggle"><i class="fa-solid fa-cart-shopping"></i> {{ text_items }}</button>
++  <button type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" class="btn btn-lg btn-dark d-block dropdown-toggle"><i class="fa-solid fa-cart-shopping"></i> {{ text_items }}</button>
+   <ul class="dropdown-menu dropdown-menu-end p-2">
+     {% if products %}
+       <li>
