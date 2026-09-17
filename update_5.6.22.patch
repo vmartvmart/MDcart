@@ -1,0 +1,112 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index c00b04c..4eb791b 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -178,5 +178,10 @@
+     "version": "5.6.21",
+     "fa": "یک جایگاه جدید در فوتر (پایین سایت) اضافه شد که مدیر می‌تونه توش تصویر مجوزها و نمادهای اعتماد (مثل اینماد، مجوز کسب‌وکارهای مجازی، لوگوی درگاه‌های پرداخت و...) رو بذاره. این یک موقعیت جدید برای ماژول‌ها به نام «فوتر» است که از همون سیستم موجود «بنر» و «چیدمان‌ها» استفاده می‌کنه، بدون نیاز به بخش مدیریتی جدید. نحوه‌ی استفاده بعد از اعمال این پچ: ۱) از منوی «طراحی > بنرها» یک بنر جدید بساز و تصویر مجوز/نماد رو (با لینک دلخواه، اختیاری) بهش اضافه کن. ۲) از منوی «طراحی > چیدمان‌ها» چیدمان مربوطه (مثلاً چیدمان پیش‌فرض) رو باز کن، پایین صفحه بخش جدید «فوتر (پایین سایت)» رو می‌بینی، ماژول بنری که ساختی رو از اونجا اضافه کن و ذخیره کن. این تغییر نیاز به اجرای «اصلاحات معلق دیتابیس» نداره، چون فقط یک موقعیت جدید برای ماژول‌هاست، نه تغییر در ساختار دیتابیس.",
+     "en": "Added a new footer (bottom-of-site) module position where the admin can place trust-seal/license images (Enamad, business-license badges, payment-gateway logos, etc.). This reuses the existing Banner and Layouts system rather than adding new admin screens. To use it after applying this patch: 1) Go to Design > Banners and create a banner holding the license/trust images (each can have its own optional link). 2) Go to Design > Layouts, open the relevant layout (e.g. the default layout), and add that banner module to the new \"Footer (bottom of site)\" section at the bottom of the page, then save. No database fix run is needed for this change, since it only adds a new module position, not a schema change."
++  },
++  {
++    "version": "5.6.22",
++    "fa": "رفع یک قطعی کامل سایت: بعد از اینکه کد نسخه‌ی ۵.۶.۲۰ روی سایت زنده رفت ولی قبل از زدن دکمه‌ی «اجرای اصلاحات معلق دیتابیس»، هم فروشگاه و هم پنل ادمین کاملاً از کار افتادند (خطای «ستون ناشناخته») چون کدی که ستون‌های جدید ارز رو می‌خوند روی هر صفحه از سایت اجرا می‌شد ولی اون ستون‌ها هنوز توی دیتابیس ساخته نشده بودند. از این به بعد، اگه این حالت پیش بیاد (یعنی کد جدید قبل از اصلاحات دیتابیسیش deploy بشه)، سایت به‌جای از کار افتادن کامل، به‌صورت خودکار به حالت قبلی (بدون ترجمه‌ی نماد ارز) برمی‌گرده تا وقتی دکمه زده بشه — یعنی این کلاس خطا دیگه نباید بتونه کل سایت رو بخوابونه.",
++    "en": "Fixed a full-site outage: after 5.6.20's code went live but before \"Run Pending Database Fixes\" was clicked, both the storefront and the admin panel went down entirely with an \"unknown column\" error, because the new currency-symbol code ran on every single page but the database columns it needed hadn't been created yet. Going forward, if this situation happens again (new code deployed before its matching database fix has been run), the site now automatically falls back to the previous behavior (no per-language symbol override) instead of going down - this whole class of error should no longer be able to take down the entire site."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 273ffb6..46dce32 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.21
++5.6.22
+diff --git a/catalog/model/localisation/currency.php b/catalog/model/localisation/currency.php
+index 27ce7f9..104748b 100644
+--- a/catalog/model/localisation/currency.php
++++ b/catalog/model/localisation/currency.php
+@@ -44,7 +44,16 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * $currency_info = $this->model_localisation_currency->getCurrency($currency_id);
+ 	 */
+ 	public function getCurrency(int $currency_id): array {
+-		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title`, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`currency_id` = '" . (int)$currency_id . "'");
++		try {
++			// Falls back to the pre-5.6.20 query (below) if the
++			// currency_symbol_per_language migration hasn't run yet on
++			// this install - see the matching catch block in
++			// system/library/cart/currency.php for why this must degrade
++			// gracefully rather than fatal-error.
++			$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title`, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`currency_id` = '" . (int)$currency_id . "'");
++		} catch (\Exception $e) {
++			$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`currency_id` = '" . (int)$currency_id . "'");
++		}
+ 
+ 		return $query->row;
+ 	}
+@@ -63,7 +72,14 @@ class Currency extends \MDcart\System\Engine\Model {
+ 	 * $currency_info = $this->model_localisation_currency->getCurrencyByCode($currency);
+ 	 */
+ 	public function getCurrencyByCode(string $currency): array {
+-		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title`, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`code` = '" . $this->db->escape($currency) . "' AND `c`.`status` = '1'");
++		try {
++			// See getCurrency() above for why this degrades instead of
++			// fatal-erroring when the symbol-per-language migration
++			// hasn't run yet.
++			$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title`, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`code` = '" . $this->db->escape($currency) . "' AND `c`.`status` = '1'");
++		} catch (\Exception $e) {
++			$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`code` = '" . $this->db->escape($currency) . "' AND `c`.`status` = '1'");
++		}
+ 
+ 		return $query->row;
+ 	}
+@@ -89,7 +105,14 @@ class Currency extends \MDcart\System\Engine\Model {
+ 		if (!$currency_data) {
+ 			$currency_data = [];
+ 
+-			$query = $this->db->query($sql);
++			try {
++				// See getCurrency() above for why this degrades instead of
++				// fatal-erroring when the symbol-per-language migration
++				// hasn't run yet.
++				$query = $this->db->query($sql);
++			} catch (\Exception $e) {
++				$query = $this->db->query("SELECT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`status` = '1' ORDER BY COALESCE(`cd`.`title`, `c`.`title`) ASC");
++			}
+ 
+ 			foreach ($query->rows as $result) {
+ 				$currency_data[$result['code']] = $result;
+diff --git a/system/library/cart/currency.php b/system/library/cart/currency.php
+index 83c1290..335696f 100644
+--- a/system/library/cart/currency.php
++++ b/system/library/cart/currency.php
+@@ -42,11 +42,26 @@ class Currency {
+ 		$language_id = $config ? (int)$config->get('config_language_id') : 0;
+ 
+ 		if ($language_id) {
+-			$query = $this->db->query(
+-				"SELECT `c`.*, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right`"
+-				. " FROM `" . DB_PREFIX . "currency` `c`"
+-				. " LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . $language_id . "')"
+-			);
++			try {
++				// This will fail with "Unknown column" if the
++				// currency_symbol_per_language migration (5.6.20) hasn't
++				// been run yet on this install ("Run Pending Database
++				// Fixes" not clicked after deploying that patch). Since
++				// this class is constructed unconditionally on EVERY
++				// request, both storefront and admin (see
++				// catalog/controller/startup/currency.php and
++				// panel/controller/startup/application.php), letting that
++				// error propagate takes down the entire site - confirmed
++				// live, 2026-09-17. Degrade to the pre-5.6.20 query
++				// instead.
++				$query = $this->db->query(
++					"SELECT `c`.*, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right`"
++					. " FROM `" . DB_PREFIX . "currency` `c`"
++					. " LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . $language_id . "')"
++				);
++			} catch (\Exception $e) {
++				$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "currency`");
++			}
+ 		} else {
+ 			$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "currency`");
+ 		}

@@ -44,7 +44,16 @@ class Currency extends \MDcart\System\Engine\Model {
 	 * $currency_info = $this->model_localisation_currency->getCurrency($currency_id);
 	 */
 	public function getCurrency(int $currency_id): array {
-		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title`, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`currency_id` = '" . (int)$currency_id . "'");
+		try {
+			// Falls back to the pre-5.6.20 query (below) if the
+			// currency_symbol_per_language migration hasn't run yet on
+			// this install - see the matching catch block in
+			// system/library/cart/currency.php for why this must degrade
+			// gracefully rather than fatal-error.
+			$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title`, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`currency_id` = '" . (int)$currency_id . "'");
+		} catch (\Exception $e) {
+			$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`currency_id` = '" . (int)$currency_id . "'");
+		}
 
 		return $query->row;
 	}
@@ -63,7 +72,14 @@ class Currency extends \MDcart\System\Engine\Model {
 	 * $currency_info = $this->model_localisation_currency->getCurrencyByCode($currency);
 	 */
 	public function getCurrencyByCode(string $currency): array {
-		$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title`, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`code` = '" . $this->db->escape($currency) . "' AND `c`.`status` = '1'");
+		try {
+			// See getCurrency() above for why this degrades instead of
+			// fatal-erroring when the symbol-per-language migration
+			// hasn't run yet.
+			$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title`, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`code` = '" . $this->db->escape($currency) . "' AND `c`.`status` = '1'");
+		} catch (\Exception $e) {
+			$query = $this->db->query("SELECT DISTINCT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`code` = '" . $this->db->escape($currency) . "' AND `c`.`status` = '1'");
+		}
 
 		return $query->row;
 	}
@@ -89,7 +105,14 @@ class Currency extends \MDcart\System\Engine\Model {
 		if (!$currency_data) {
 			$currency_data = [];
 
-			$query = $this->db->query($sql);
+			try {
+				// See getCurrency() above for why this degrades instead of
+				// fatal-erroring when the symbol-per-language migration
+				// hasn't run yet.
+				$query = $this->db->query($sql);
+			} catch (\Exception $e) {
+				$query = $this->db->query("SELECT `c`.*, COALESCE(`cd`.`title`, `c`.`title`) AS `title` FROM `" . DB_PREFIX . "currency` `c` LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . (int)$this->config->get('config_language_id') . "') WHERE `c`.`status` = '1' ORDER BY COALESCE(`cd`.`title`, `c`.`title`) ASC");
+			}
 
 			foreach ($query->rows as $result) {
 				$currency_data[$result['code']] = $result;

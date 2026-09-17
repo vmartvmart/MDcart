@@ -42,11 +42,26 @@ class Currency {
 		$language_id = $config ? (int)$config->get('config_language_id') : 0;
 
 		if ($language_id) {
-			$query = $this->db->query(
-				"SELECT `c`.*, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right`"
-				. " FROM `" . DB_PREFIX . "currency` `c`"
-				. " LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . $language_id . "')"
-			);
+			try {
+				// This will fail with "Unknown column" if the
+				// currency_symbol_per_language migration (5.6.20) hasn't
+				// been run yet on this install ("Run Pending Database
+				// Fixes" not clicked after deploying that patch). Since
+				// this class is constructed unconditionally on EVERY
+				// request, both storefront and admin (see
+				// catalog/controller/startup/currency.php and
+				// panel/controller/startup/application.php), letting that
+				// error propagate takes down the entire site - confirmed
+				// live, 2026-09-17. Degrade to the pre-5.6.20 query
+				// instead.
+				$query = $this->db->query(
+					"SELECT `c`.*, COALESCE(NULLIF(`cd`.`symbol_left`, ''), `c`.`symbol_left`) AS `symbol_left`, COALESCE(NULLIF(`cd`.`symbol_right`, ''), `c`.`symbol_right`) AS `symbol_right`"
+					. " FROM `" . DB_PREFIX . "currency` `c`"
+					. " LEFT JOIN `" . DB_PREFIX . "currency_description` `cd` ON (`c`.`currency_id` = `cd`.`currency_id` AND `cd`.`language_id` = '" . $language_id . "')"
+				);
+			} catch (\Exception $e) {
+				$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "currency`");
+			}
 		} else {
 			$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "currency`");
 		}
