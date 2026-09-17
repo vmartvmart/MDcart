@@ -13,7 +13,7 @@
           <div class="col-sm">
             <div class="image magnific-popup">
               {% if thumb %}
-                <a href="{{ popup }}" title="{{ heading_title }}"><img src="{{ thumb }}" title="{{ heading_title }}" alt="{{ heading_title }}" class="img-thumbnail mb-3"/></a>
+                <a href="{{ popup }}" title="{{ heading_title }}" id="product-zoom-target" class="product-zoom-target"><img src="{{ thumb }}" title="{{ heading_title }}" alt="{{ heading_title }}" class="img-thumbnail mb-3"/></a>
               {% endif %}
               {% if images %}
                 <div>
@@ -367,6 +367,121 @@ $(document).ready(function() {
         gallery: {
             enabled: true
         }
+    });
+});
+
+// Amazon-style hover-to-zoom (magnifier) on the main product image: a small
+// "lens" rectangle follows the cursor over the (small) displayed image, and
+// a separate pane beside it shows that region using the full-size "popup"
+// image (already generated for the click-to-open lightbox above, reused
+// here as the zoom source with no extra image upload/config needed). Only
+// runs on devices that report a real mouse (hover + fine pointer) — on
+// touch devices this does nothing and the image keeps its normal
+// tap-to-open-lightbox behavior, unchanged.
+$(document).ready(function() {
+    var $target = $('#product-zoom-target');
+
+    if (!$target.length || !window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        return;
+    }
+
+    var $img = $target.find('img').first();
+    var zoomSrc = $target.attr('href');
+
+    if (!$img.length || !zoomSrc) {
+        return;
+    }
+
+    // Preload the full-size image so its true pixel dimensions are known
+    // (needed to zoom at native resolution instead of blurrily upscaling a
+    // guessed ratio) and so there's no flash of an empty pane on first
+    // hover while it's still downloading.
+    var naturalWidth = 0;
+    var naturalHeight = 0;
+    var preload = new Image();
+
+    preload.onload = function() {
+        naturalWidth = preload.naturalWidth;
+        naturalHeight = preload.naturalHeight;
+    };
+
+    preload.src = zoomSrc;
+
+    var $wrap = $target.closest('.image');
+    var $lens = $('<div class="product-zoom-lens"></div>');
+    var $pane = $('<div class="product-zoom-pane"></div>').css('background-image', 'url(' + zoomSrc + ')');
+
+    $wrap.append($lens).append($pane);
+
+    var zoomFactorX = 0;
+    var zoomFactorY = 0;
+    var imgRect = null;
+
+    // Flip the pane to whichever side of the image actually has room, so
+    // it's never partly cut off the edge of the screen — recomputed every
+    // time hovering starts, since the viewport/layout can change between
+    // hovers (window resize, orientation change, etc.).
+    function positionPane() {
+        var wrapRect = $wrap[0].getBoundingClientRect();
+        var paneWidth = imgRect.width;
+        var spaceEnd = window.innerWidth - wrapRect.right;
+        var spaceStart = wrapRect.left;
+        var showAtEnd = spaceEnd >= paneWidth + 16 || spaceEnd >= spaceStart;
+
+        $pane.css({
+            width: imgRect.width + 'px',
+            height: imgRect.height + 'px',
+            insetInlineStart: showAtEnd ? '100%' : 'auto',
+            insetInlineEnd: showAtEnd ? 'auto' : '100%',
+            marginInlineStart: showAtEnd ? '12px' : 0,
+            marginInlineEnd: showAtEnd ? 0 : '12px'
+        });
+    }
+
+    $target.on('mouseenter', function() {
+        if (!naturalWidth || !naturalHeight) {
+            // Full-size image hasn't finished loading yet - skip this
+            // hover rather than show a broken/empty zoom pane.
+            return;
+        }
+
+        imgRect = $img[0].getBoundingClientRect();
+        zoomFactorX = naturalWidth / imgRect.width;
+        zoomFactorY = naturalHeight / imgRect.height;
+
+        positionPane();
+
+        $pane.css('background-size', naturalWidth + 'px ' + naturalHeight + 'px');
+        $lens.css({
+            width: (imgRect.width / zoomFactorX) + 'px',
+            height: (imgRect.height / zoomFactorY) + 'px'
+        });
+
+        $lens.add($pane).show();
+    });
+
+    $target.on('mousemove', function(e) {
+        if (!imgRect) {
+            return;
+        }
+
+        var lensWidth = $lens.outerWidth();
+        var lensHeight = $lens.outerHeight();
+
+        var x = Math.max(0, Math.min(e.clientX - imgRect.left, imgRect.width));
+        var y = Math.max(0, Math.min(e.clientY - imgRect.top, imgRect.height));
+
+        var lensX = Math.max(0, Math.min(x - lensWidth / 2, imgRect.width - lensWidth));
+        var lensY = Math.max(0, Math.min(y - lensHeight / 2, imgRect.height - lensHeight));
+
+        $lens.css({ left: lensX + 'px', top: lensY + 'px' });
+
+        $pane.css('background-position', (-(lensX * zoomFactorX)) + 'px ' + (-(lensY * zoomFactorY)) + 'px');
+    });
+
+    $target.on('mouseleave', function() {
+        $lens.add($pane).hide();
+        imgRect = null;
     });
 });
 //--></script>

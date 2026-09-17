@@ -48,6 +48,7 @@ class SystemUpdate extends \MDcart\System\Engine\Controller {
 		// still callable, just no longer wired to a form here.
 		$data['check'] = $this->url->link('tool/system_update.check', 'user_token=' . $this->session->data['user_token'], true);
 		$data['baseline'] = $this->url->link('tool/system_update.baseline', 'user_token=' . $this->session->data['user_token'], true);
+		$data['migrate'] = $this->url->link('tool/system_update.migrate', 'user_token=' . $this->session->data['user_token'], true);
 		$data['apply'] = $this->url->link('tool/system_update.apply', 'user_token=' . $this->session->data['user_token'], true);
 		$data['progress'] = $this->url->link('tool/system_update.progress', 'user_token=' . $this->session->data['user_token'], true);
 		$data['backups'] = $this->url->link('tool/system_update.backups', 'user_token=' . $this->session->data['user_token'], true);
@@ -200,6 +201,56 @@ class SystemUpdate extends \MDcart\System\Engine\Controller {
 				$json['current_commit'] = $result['latest_commit'];
 				$json['current_version'] = $this->model_tool_system_update->getLocalVersion();
 			}
+		}
+
+		$this->discardStrayOutput();
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+	/**
+	 * Migrate
+	 *
+	 * Runs any pending one-time database fixes (see the model's
+	 * getMigrations()) on their own, without downloading or copying any
+	 * code. Normally these run automatically as the last step of apply()
+	 * below, but an install that receives its code changes some other way
+	 * (e.g. a patch file applied directly on the server by whoever
+	 * maintains this install, bypassing this page's own download-and-
+	 * apply flow entirely) never triggers that step — so a schema or
+	 * permission fix a patch depended on could sit pending indefinitely
+	 * with no visible symptom until something using it breaks. This
+	 * button is the manual escape hatch for exactly that situation.
+	 *
+	 * @return void
+	 */
+	public function migrate(): void {
+		ob_start();
+
+		$this->load->language('tool/system_update');
+
+		$json = [];
+
+		if (!$this->user->hasPermission('modify', 'tool/system_update')) {
+			$json['error'] = $this->language->get('error_permission');
+		}
+
+		if (!$json) {
+			$this->load->model('tool/system_update');
+
+			$result = $this->model_tool_system_update->runMigrations();
+
+			if ($result['failed']) {
+				$json['warning'] = sprintf($this->language->get('text_migrate_partial'), count($result['applied']), count($result['failed']));
+			} elseif ($result['applied']) {
+				$json['success'] = sprintf($this->language->get('text_migrate_success'), count($result['applied']));
+			} else {
+				$json['success'] = $this->language->get('text_migrate_none');
+			}
+
+			$json['applied'] = $result['applied'];
+			$json['failed'] = $result['failed'];
 		}
 
 		$this->discardStrayOutput();

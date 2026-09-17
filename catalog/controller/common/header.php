@@ -109,6 +109,14 @@ class Header extends \MDcart\System\Engine\Controller {
 		$data['contact'] = $this->url->link('information/contact', 'language=' . $this->config->get('config_language'));
 		$data['telephone'] = $this->config->get('config_telephone');
 
+		// A "tel:" link needs just the dialable digits (plus a leading "+"
+		// for an international number) - the store's configured phone
+		// number is free text meant for display (dashes, spaces, parens),
+		// so it can't be used as the href as-is. Used by the header's
+		// phone icon to start a call directly instead of opening the
+		// Contact page - see header.twig.
+		$data['telephone_tel'] = preg_replace('/[^0-9+]/', '', (string)$data['telephone']);
+
 		$data['language'] = $this->load->controller('common/language');
 		$data['currency'] = $this->load->controller('common/currency');
 		$data['search'] = $this->load->controller('common/search');

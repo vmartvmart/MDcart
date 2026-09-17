@@ -817,9 +817,19 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 	 * rather than get stuck retrying a data fix), but it's also not
 	 * recorded as applied, so it's retried on the very next update.
 	 *
-	 * @return void
+	 * Public (not just called at the end of applyUpdate()) so an install
+	 * that receives code changes some other way than this page's own
+	 * "download and apply" flow — e.g. a patch file applied directly on
+	 * the server, which never runs applyUpdate() or its migrations at all
+	 * — has a way to run any pending migrations on demand instead of
+	 * silently carrying a schema/permission mismatch until the next full
+	 * update happens to go through this page. See tool/system_update.
+	 * migrate() (the controller action this backs) and its confirm-dialog
+	 * text for why this exists as its own button.
+	 *
+	 * @return array{applied: string[], failed: array<string, string>}
 	 */
-	private function runMigrations(): void {
+	public function runMigrations(): array {
 		$this->db->query(
 			"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "migration` ("
 			. "`migration_id` int(11) NOT NULL AUTO_INCREMENT,"
@@ -829,6 +839,9 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 			. "UNIQUE KEY `key` (`key`)"
 			. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
 		);
+
+		$applied = [];
+		$failed = [];
 
 		foreach ($this->getMigrations() as $key => $callback) {
 			$query = $this->db->query("SELECT `migration_id` FROM `" . DB_PREFIX . "migration` WHERE `key` = '" . $this->db->escape($key) . "'");
@@ -840,11 +853,20 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 			try {
 				$callback();
 			} catch (\Throwable $e) {
+				$failed[$key] = $e->getMessage();
+
 				continue;
 			}
 
 			$this->db->query("INSERT INTO `" . DB_PREFIX . "migration` SET `key` = '" . $this->db->escape($key) . "', `applied_at` = NOW()");
+
+			$applied[] = $key;
 		}
+
+		return [
+			'applied' => $applied,
+			'failed'  => $failed,
+		];
 	}
 
 	/**

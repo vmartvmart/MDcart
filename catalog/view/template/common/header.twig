@@ -53,10 +53,12 @@
         </div>
         <div class="col text-end">
           <ul class="list-inline">
-            <li class="list-inline-item"><a href="{{ contact }}"><i class="fa-solid fa-phone"></i> <span class="d-none d-lg-inline">{{ telephone }}</span></a></li>
+            {% if telephone %}
+              <li class="list-inline-item"><a href="tel:{{ telephone_tel }}" title="{{ telephone }}"><i class="fa-solid fa-phone"></i></a></li>
+            {% endif %}
             <li class="list-inline-item">
               <div class="dropdown">
-                <span role="button" class="dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-solid fa-user"></i> <span class="d-none d-lg-inline">{{ text_account }}</span> <i class="fa-solid fa-caret-down"></i></span>
+                <span role="button" class="dropdown-toggle" data-bs-toggle="dropdown" title="{{ text_account }}"><i class="fa-solid fa-user"></i> <i class="fa-solid fa-caret-down"></i></span>
                 <ul class="dropdown-menu dropdown-menu-right">
                   {% if not logged %}
                     <li><a href="{{ register }}" class="dropdown-item">{{ text_register }}</a></li>
@@ -71,9 +73,9 @@
                 </ul>
               </div>
             </li>
-            <li class="list-inline-item"><a href="{{ wishlist }}" id="wishlist-total" title="{{ text_wishlist }}"><i class="fa-solid fa-heart"></i> <span class="d-none d-lg-inline">{{ text_wishlist }}</span></a></li>
-            <li class="list-inline-item"><a href="{{ shopping_cart }}" title="{{ text_shopping_cart }}"><i class="fa-solid fa-cart-shopping"></i> <span class="d-none d-lg-inline">{{ text_shopping_cart }}</span></a></li>
-            <li class="list-inline-item"><a href="{{ checkout }}" title="{{ text_checkout }}"><i class="fa-solid fa-share"></i> <span class="d-none d-lg-inline">{{ text_checkout }}</span></a></li>
+            <li class="list-inline-item"><a href="{{ wishlist }}" id="wishlist-total" title="{{ text_wishlist }}"><i class="fa-solid fa-heart"></i></a></li>
+            <li class="list-inline-item"><a href="{{ shopping_cart }}" title="{{ text_shopping_cart }}"><i class="fa-solid fa-cart-shopping"></i></a></li>
+            <li class="list-inline-item"><a href="{{ checkout }}" title="{{ text_checkout }}"><i class="fa-solid fa-share"></i></a></li>
           </ul>
         </div>
       </div>

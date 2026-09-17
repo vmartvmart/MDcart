@@ -37,6 +37,11 @@ $_['text_backup_created_prefix']   = 'An automatic backup was taken before this 
 $_['text_confirm_restore']         = 'Are you sure? The site\'s files and database will be reverted to the state of this backup. This cannot be undone except from another backup.';
 $_['text_restoring']               = 'Restoring from backup... do not close this page.';
 $_['text_restore_success']         = 'Restore completed successfully.';
+$_['text_migrating']               = 'Checking for and running pending database fixes...';
+$_['text_migrate_success']         = '%d pending database fix(es) applied successfully.';
+$_['text_migrate_partial']         = '%d fix(es) applied successfully, but %d failed (see the browser console for details). Those will be retried automatically next time.';
+$_['text_migrate_none']            = 'No pending database fixes were found; everything was already up to date.';
+$_['text_help_migrate']            = 'If code changes were applied to this site some other way than the "Get & Apply Update" button above (e.g. a patch file), a database fix that update needed (a new column, a new permission, ...) may not have run on this site yet. This button checks for and runs only those pending database fixes, without downloading or changing any files; it\'s safe to run more than once.';
 
 // Progress steps (shown live above the progress bar while "Get & Apply Update" is running)
 $_['text_step_start']              = 'Starting...';
@@ -67,6 +72,7 @@ $_['button_check']                 = 'Check for Update';
 $_['button_apply']                 = 'Get &amp; Apply Update';
 $_['button_baseline']              = 'Record Current as Baseline (no download)';
 $_['button_restore']               = 'Restore';
+$_['button_migrate']               = 'Run Pending Database Fixes';
 
 // Error
 $_['error_permission']             = 'Warning: You do not have permission to access this!';
