@@ -51,8 +51,10 @@
             </td>
             <td>
               <form method="post" data-oc-target="#shopping-cart">
-                <div class="input-group">
-                  <input type="text" name="quantity" value="{{ product.quantity }}" size="1" class="form-control{% if product.minimum %} is-invalid{% endif %}"/>
+                <div class="input-group qty-stepper">
+                  <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
+                  <input type="text" name="quantity" value="{{ product.quantity }}" min="1" size="1" inputmode="numeric" class="form-control text-center{% if product.minimum %} is-invalid{% endif %}"/>
+                  <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
                   <input type="hidden" name="key" value="{{ product.cart_id }}"/>
                   <button type="submit" formaction="{{ edit }}" data-bs-toggle="tooltip" title="{{ button_update }}" class="btn btn-primary"><i class="fa-solid fa-rotate"></i></button>
                   <a href="{{ product.remove }}" data-bs-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger"><i class="fa-solid fa-circle-xmark"></i></a>

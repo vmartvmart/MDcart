@@ -426,6 +426,43 @@ footer h5 {
   border-left: 1px solid var(--bs-border-color);
 }
 
+.product-thumb .button .qty-stepper {
+  flex: 0 0 auto;
+  width: 92px;
+  margin: 0;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.product-thumb .button .qty-stepper + button {
+  border-left: 1px solid var(--bs-border-color);
+}
+
+.product-thumb .button .qty-stepper button {
+  width: auto;
+  flex: 1 1 auto;
+  border: none;
+  line-height: 1;
+  padding: 0;
+}
+
+.product-thumb .button .qty-stepper input {
+  width: auto;
+  flex: 1 1 32px;
+  min-width: 0;
+  border: none;
+  border-radius: 0;
+  padding: 0 2px;
+  font-size: 12px;
+  height: 38px;
+}
+
+.product-thumb .button .product-thumb-btn-cart,
+.product-thumb .button .product-thumb-btn-wishlist,
+.product-thumb .button .product-thumb-btn-compare {
+  width: auto;
+  flex: 1 1 0;
+}
+
 @media (min-width: 960px) {
   .product-list .product-thumb {
     display: flex;

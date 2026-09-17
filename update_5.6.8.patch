@@ -1,0 +1,184 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 6aeeb3e..ad3a4ea 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -108,5 +108,10 @@
+     "version": "5.6.7",
+     "fa": "کارت محصول (در لیست دسته‌بندی و صفحه محصول) حالا به‌جای وارد کردن دستی تعداد، دکمه‌های + و - برای افزایش/کاهش تعداد دارد. همچنین یک محدودیت جدید و اختیاری به هر محصول اضافه شد: «حداکثر تعداد سفارش برای هر مشتری» (در فرم محصول، کنار «حداقل تعداد سفارش») - وقتی روی عددی بیشتر از صفر تنظیم شود، فروشگاه جمع سفارش‌های قبلی تایید‌شده‌ی آن مشتری به‌علاوه‌ی آنچه در سبد خرید اوست را حساب می‌کند و اگر از حد مجاز بیشتر شود اجازه‌ی افزودن به سبد را نمی‌دهد. عدد صفر (پیش‌فرض) یعنی بدون محدودیت - هیچ محصول موجودی رفتارش تغییر نمی‌کند مگر اینکه ادمین عمداً این عدد را برایش تنظیم کند.",
+     "en": "The product card (in category listings and the product page) now has +/- buttons to adjust quantity instead of only typing it in. Also added a new, optional per-product limit: \"Max Quantity Per Customer\" (in the product form, next to \"Minimum Quantity\") - when set above zero, the store totals that customer's own already-confirmed past orders plus whatever is already in their cart, and blocks adding more once the limit would be exceeded. Zero (the default) means unlimited - no existing product's behavior changes unless an admin deliberately sets this."
++  },
++  {
++    "version": "5.6.8",
++    "fa": "رفع باگ دکمه‌های + و - روی کارت محصول: در ۵.۶.۷ این دکمه‌ها به‌صورت یک ردیف جدا بالای دکمه «افزودن به سبد» اضافه شده بودند که با چیدمان قالب (چه قالب پیش‌فرض و چه قالب‌های سفارشی) تداخل داشت و باعث می‌شد روی برخی محصولات (بسته به طول توضیحات/اسم) دیده نشود یا روی دکمه افزودن به سبد بیفتد. حالا دکمه‌های + و - و عدد، دقیقاً کنار دکمه «افزودن به سبد» و داخل همان ردیف قرار گرفته‌اند (طبق درخواست) و این تداخل کاملاً برطرف شد. همچنین همین امکان + و - به خود صفحه سبد خرید هم اضافه شد تا بشود تعداد هر کالا را مستقیماً از آنجا هم تغییر داد. (یادآوری: افزایش تعداد با کلیک‌های پی‌درپی «افزودن به سبد» از قبل هم به‌درستی در سبد جمع می‌شد؛ این تغییر فقط نمایش/دسترسی آن را بهتر کرد.)",
++    "en": "Fixed the product-card +/- quantity buttons: in 5.6.7 they were added as a separate row above the \"Add to Cart\" button, which clashed with the theme's layout (both the default theme and the custom ones) and could make them invisible or overlapping on some products depending on name/description length. They now sit directly beside the \"Add to Cart\" button, inside the same row, as requested - this fully resolves the layout conflict. The same +/- controls were also added to the cart page itself so quantities can be adjusted there too. (Note: quantity already correctly accumulated in the cart on repeated \"Add to Cart\" clicks before this fix - that part of the underlying logic was never broken, only the button's visibility/placement was.)"
+   }
+-]
++]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index b3ae5c7..349e9d0 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.7
++5.6.8
+diff --git a/catalog/view/stylesheet/stylesheet.css b/catalog/view/stylesheet/stylesheet.css
+index 96d14ee..c599feb 100644
+--- a/catalog/view/stylesheet/stylesheet.css
++++ b/catalog/view/stylesheet/stylesheet.css
+@@ -426,6 +426,43 @@ footer h5 {
+   border-left: 1px solid var(--bs-border-color);
+ }
+ 
++.product-thumb .button .qty-stepper {
++  flex: 0 0 auto;
++  width: 92px;
++  margin: 0;
++  border-top: 1px solid var(--bs-border-color);
++}
++
++.product-thumb .button .qty-stepper + button {
++  border-left: 1px solid var(--bs-border-color);
++}
++
++.product-thumb .button .qty-stepper button {
++  width: auto;
++  flex: 1 1 auto;
++  border: none;
++  line-height: 1;
++  padding: 0;
++}
++
++.product-thumb .button .qty-stepper input {
++  width: auto;
++  flex: 1 1 32px;
++  min-width: 0;
++  border: none;
++  border-radius: 0;
++  padding: 0 2px;
++  font-size: 12px;
++  height: 38px;
++}
++
++.product-thumb .button .product-thumb-btn-cart,
++.product-thumb .button .product-thumb-btn-wishlist,
++.product-thumb .button .product-thumb-btn-compare {
++  width: auto;
++  flex: 1 1 0;
++}
++
+ @media (min-width: 960px) {
+   .product-list .product-thumb {
+     display: flex;
+diff --git a/catalog/view/stylesheet/theme-modern-base.css b/catalog/view/stylesheet/theme-modern-base.css
+index accaf31..afacc76 100644
+--- a/catalog/view/stylesheet/theme-modern-base.css
++++ b/catalog/view/stylesheet/theme-modern-base.css
+@@ -160,18 +160,18 @@ body[class*=" theme-"] .product-thumb .button button {
+   line-height: 1;
+ }
+ 
+-body[class^="theme-"] .product-thumb .button button:nth-child(1),
+-body[class*=" theme-"] .product-thumb .button button:nth-child(1) {
++body[class^="theme-"] .product-thumb .button .product-thumb-btn-cart,
++body[class*=" theme-"] .product-thumb .button .product-thumb-btn-cart {
+   flex: 1 1 auto;
+   background: var(--mb-accent);
+   color: var(--mb-accent-text);
+   font-weight: 700;
+ }
+ 
+-body[class^="theme-"] .product-thumb .button button:nth-child(2),
+-body[class*=" theme-"] .product-thumb .button button:nth-child(2),
+-body[class^="theme-"] .product-thumb .button button:nth-child(3),
+-body[class*=" theme-"] .product-thumb .button button:nth-child(3) {
++body[class^="theme-"] .product-thumb .button .product-thumb-btn-wishlist,
++body[class*=" theme-"] .product-thumb .button .product-thumb-btn-wishlist,
++body[class^="theme-"] .product-thumb .button .product-thumb-btn-compare,
++body[class*=" theme-"] .product-thumb .button .product-thumb-btn-compare {
+   flex: 0 0 2.6rem;
+   background: var(--mb-surface-2);
+   color: var(--mb-muted);
+@@ -182,6 +182,37 @@ body[class*=" theme-"] .product-thumb .button button + button {
+   border-left: none !important;
+ }
+ 
++body[class^="theme-"] .product-thumb .button .qty-stepper,
++body[class*=" theme-"] .product-thumb .button .qty-stepper {
++  flex: 0 0 auto;
++  width: 5.6rem;
++  height: 2.6rem;
++  overflow: hidden;
++  border-radius: var(--mb-radius-sm);
++  background: var(--mb-surface-2);
++}
++
++body[class^="theme-"] .product-thumb .button .qty-stepper button,
++body[class*=" theme-"] .product-thumb .button .qty-stepper button {
++  height: 2.6rem;
++  border-radius: 0 !important;
++  background: transparent;
++  color: var(--mb-muted);
++  flex: 1 1 auto;
++  padding: 0;
++}
++
++body[class^="theme-"] .product-thumb .button .qty-stepper input,
++body[class*=" theme-"] .product-thumb .button .qty-stepper input {
++  border: none;
++  background: transparent;
++  height: 2.6rem;
++  flex: 1 1 28px;
++  min-width: 0;
++  padding: 0 2px;
++  font-size: .75rem;
++}
++
+ /* Mobile nav safety net — shared by every custom theme's header, regardless of layout.
+    Prevents the logo image (whatever size the store owner uploaded) and OpenCart's built-in
+    mobile category toggle from blowing out narrow viewports. */
+diff --git a/catalog/view/template/checkout/cart_list.twig b/catalog/view/template/checkout/cart_list.twig
+index b1961d9..4feabdb 100644
+--- a/catalog/view/template/checkout/cart_list.twig
++++ b/catalog/view/template/checkout/cart_list.twig
+@@ -51,8 +51,10 @@
+             </td>
+             <td>
+               <form method="post" data-oc-target="#shopping-cart">
+-                <div class="input-group">
+-                  <input type="text" name="quantity" value="{{ product.quantity }}" size="1" class="form-control{% if product.minimum %} is-invalid{% endif %}"/>
++                <div class="input-group qty-stepper">
++                  <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
++                  <input type="text" name="quantity" value="{{ product.quantity }}" min="1" size="1" inputmode="numeric" class="form-control text-center{% if product.minimum %} is-invalid{% endif %}"/>
++                  <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
+                   <input type="hidden" name="key" value="{{ product.cart_id }}"/>
+                   <button type="submit" formaction="{{ edit }}" data-bs-toggle="tooltip" title="{{ button_update }}" class="btn btn-primary"><i class="fa-solid fa-rotate"></i></button>
+                   <a href="{{ product.remove }}" data-bs-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger"><i class="fa-solid fa-circle-xmark"></i></a>
+diff --git a/catalog/view/template/product/thumb.twig b/catalog/view/template/product/thumb.twig
+index fb5d50d..c16fef5 100644
+--- a/catalog/view/template/product/thumb.twig
++++ b/catalog/view/template/product/thumb.twig
+@@ -29,15 +29,15 @@
+       {% endif %}
+     </div>
+     <form method="post" data-oc-toggle="ajax" data-oc-load="{{ cart }}" data-oc-target="#cart">
+-      <div class="input-group input-group-sm qty-stepper mb-2">
+-        <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
+-        <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}" inputmode="numeric" class="form-control text-center"/>
+-        <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
+-      </div>
+       <div class="button">
+-        <button type="submit" formaction="{{ cart_add }}" data-bs-toggle="tooltip" title="{{ button_cart }}"><i class="fa-solid fa-shopping-cart"></i></button>
+-        <button type="submit" formaction="{{ wishlist_add }}" data-bs-toggle="tooltip" title="{{ button_wishlist }}" ><i class="fa-solid fa-heart"></i></button>
+-        <button type="submit" formaction="{{ compare_add }}" data-bs-toggle="tooltip" title="{{ button_compare }}"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
++        <div class="input-group input-group-sm qty-stepper">
++          <button type="button" class="btn qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
++          <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}" inputmode="numeric" class="form-control text-center"/>
++          <button type="button" class="btn qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
++        </div>
++        <button type="submit" class="product-thumb-btn-cart" formaction="{{ cart_add }}" data-bs-toggle="tooltip" title="{{ button_cart }}"><i class="fa-solid fa-shopping-cart"></i></button>
++        <button type="submit" class="product-thumb-btn-wishlist" formaction="{{ wishlist_add }}" data-bs-toggle="tooltip" title="{{ button_wishlist }}" ><i class="fa-solid fa-heart"></i></button>
++        <button type="submit" class="product-thumb-btn-compare" formaction="{{ compare_add }}" data-bs-toggle="tooltip" title="{{ button_compare }}"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
+       </div>
+       <input type="hidden" name="product_id" value="{{ product_id }}"/>
+     </form>
