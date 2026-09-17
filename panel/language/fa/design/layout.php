@@ -15,6 +15,7 @@ $_['text_content_top']    = 'بالای محتوا';
 $_['text_content_bottom'] = 'پایین محتوا';
 $_['text_column_left']    = 'ستون چپ';
 $_['text_column_right']   = 'ستون راست';
+$_['text_footer']         = 'فوتر (پایین سایت)';
 
 // Column
 $_['column_name']         = 'نام چیدمان';

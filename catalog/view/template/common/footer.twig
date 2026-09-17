@@ -46,6 +46,14 @@
         </ul>
       </div>
     </div>
+    {% if modules %}
+      <hr>
+      <div class="row justify-content-center text-center">
+        {% for module in modules %}
+          {{ module }}
+        {% endfor %}
+      </div>
+    {% endif %}
     <hr>
     <p>{{ powered }}</p>
   </div>

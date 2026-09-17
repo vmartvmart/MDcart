@@ -1,0 +1,230 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index ad5f776..c00b04c 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -173,5 +173,10 @@
+     "version": "5.6.20",
+     "fa": "سه اصلاح: (۱) نام واحد پول (مثل «تومان») توی انتخاب ارز و همه‌جای سایت (قیمت محصولات، سبد خرید و...) وقتی سایت انگلیسی بود، همچنان فارسی نشون داده می‌شد - چون این متن فقط توی جدول اصلی ارزها ذخیره شده بود، نه به تفکیک زبان. حالا مثل اسم ارز، این متن هم می‌تونه به تفکیک زبان تنظیم بشه؛ برای تومان مقدار انگلیسی «Toman» به‌صورت خودکار تنظیم شد. توجه: این تغییر بعد از اعمال پچ، نیاز به زدن دکمه‌ی «اجرای اصلاحات معلق دیتابیس» از صفحه‌ی «بروزرسانی سیستم» داره تا واقعاً فعال بشه. (۲) ذره‌بین عکس محصول کمی بزرگ‌تر شد. (۳) یک اصلاح فنی پیش‌گیرانه: دو تا از اصلاحات دیتابیسی قبلی (مربوط به فاکتور خرید و محدودیت تعداد محصول) از یک دستور SQL استفاده می‌کردن که روی نسخه‌ی MySQL سرور شما خطای نحوی می‌داد؛ حالا با روش دیگه‌ای نوشته شدن که روی همه نسخه‌های MySQL درست کار می‌کنه.",
+     "en": "Three fixes: (1) The currency name (like \"Toman\") in the currency selector, and everywhere a price is shown across the site (product pages, cart, etc.), kept displaying in Persian even when the site was in English - because that text was only stored once, not per language. It can now be set per language just like the currency's title; the Toman's English value was automatically set to \"Toman\". Note: this needs the \"Run Pending Database Fixes\" button (System Update page) clicked once after applying, to actually take effect. (2) The product-image magnifier is a bit bigger now. (3) A preventive technical fix: two earlier database fixes (for purchase invoices and the per-product quantity limit) used a SQL clause that causes a syntax error on your server's MySQL version; they're now written a different way that works on every MySQL version."
++  },
++  {
++    "version": "5.6.21",
++    "fa": "یک جایگاه جدید در فوتر (پایین سایت) اضافه شد که مدیر می‌تونه توش تصویر مجوزها و نمادهای اعتماد (مثل اینماد، مجوز کسب‌وکارهای مجازی، لوگوی درگاه‌های پرداخت و...) رو بذاره. این یک موقعیت جدید برای ماژول‌ها به نام «فوتر» است که از همون سیستم موجود «بنر» و «چیدمان‌ها» استفاده می‌کنه، بدون نیاز به بخش مدیریتی جدید. نحوه‌ی استفاده بعد از اعمال این پچ: ۱) از منوی «طراحی > بنرها» یک بنر جدید بساز و تصویر مجوز/نماد رو (با لینک دلخواه، اختیاری) بهش اضافه کن. ۲) از منوی «طراحی > چیدمان‌ها» چیدمان مربوطه (مثلاً چیدمان پیش‌فرض) رو باز کن، پایین صفحه بخش جدید «فوتر (پایین سایت)» رو می‌بینی، ماژول بنری که ساختی رو از اونجا اضافه کن و ذخیره کن. این تغییر نیاز به اجرای «اصلاحات معلق دیتابیس» نداره، چون فقط یک موقعیت جدید برای ماژول‌هاست، نه تغییر در ساختار دیتابیس.",
++    "en": "Added a new footer (bottom-of-site) module position where the admin can place trust-seal/license images (Enamad, business-license badges, payment-gateway logos, etc.). This reuses the existing Banner and Layouts system rather than adding new admin screens. To use it after applying this patch: 1) Go to Design > Banners and create a banner holding the license/trust images (each can have its own optional link). 2) Go to Design > Layouts, open the relevant layout (e.g. the default layout), and add that banner module to the new \"Footer (bottom of site)\" section at the bottom of the page, then save. No database fix run is needed for this change, since it only adds a new module position, not a schema change."
+   }
+-]
+\ No newline at end of file
++]
+diff --git a/VERSION b/VERSION
+index 6fed251..273ffb6 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.20
++5.6.21
+diff --git a/catalog/controller/common/footer.php b/catalog/controller/common/footer.php
+index 80b80e8..e7aee63 100644
+--- a/catalog/controller/common/footer.php
++++ b/catalog/controller/common/footer.php
+@@ -87,6 +87,94 @@ class Footer extends \MDcart\System\Engine\Controller {
+ 		$data['scripts'] = $this->document->getScripts('footer');
+ 		$data['cookie'] = $this->load->controller('common/cookie');
+ 
++		// Footer modules (e.g. a Banner module holding trust seals like
++		// Enamad, business licenses, or payment gateway logos - the admin
++		// adds these under Design > Banners, then assigns that banner to
++		// the "Footer" position on a layout under Design > Layouts, same
++		// as any other module position). Layout resolution mirrors
++		// common/content_top.php exactly, since footer.twig needs the same
++		// per-page (product/category/manufacturer/etc.) layout as the rest
++		// of the page, not just the store-wide default.
++		$this->load->model('design/layout');
++
++		if (isset($this->request->get['route'])) {
++			$route = (string)$this->request->get['route'];
++		} else {
++			$route = 'common/home';
++		}
++
++		$layout_id = 0;
++
++		if ($route == 'product/category' && isset($this->request->get['path'])) {
++			$this->load->model('catalog/category');
++
++			$path = explode('_', (string)$this->request->get['path']);
++
++			$layout_id = $this->model_catalog_category->getLayoutId((int)end($path));
++		}
++
++		if ($route == 'product/product' && isset($this->request->get['product_id'])) {
++			$this->load->model('catalog/product');
++
++			$layout_id = $this->model_catalog_product->getLayoutId((int)$this->request->get['product_id']);
++		}
++
++		if ($route == 'product/manufacturer.info' && isset($this->request->get['manufacturer_id'])) {
++			$this->load->model('catalog/manufacturer');
++
++			$layout_id = $this->model_catalog_manufacturer->getLayoutId((int)$this->request->get['manufacturer_id']);
++		}
++
++		if ($route == 'information/information' && isset($this->request->get['information_id'])) {
++			$this->load->model('catalog/information');
++
++			$layout_id = $this->model_catalog_information->getLayoutId((int)$this->request->get['information_id']);
++		}
++
++		if ($route == 'cms/blog.info' && isset($this->request->get['article_id'])) {
++			$this->load->model('cms/article');
++
++			$layout_id = $this->model_cms_article->getLayoutId((int)$this->request->get['article_id']);
++		}
++
++		if (!$layout_id) {
++			$layout_id = $this->model_design_layout->getLayout($route);
++		}
++
++		if (!$layout_id) {
++			$layout_id = $this->config->get('config_layout_id');
++		}
++
++		$this->load->model('setting/module');
++
++		$data['modules'] = [];
++
++		$modules = $this->model_design_layout->getModules($layout_id, 'footer');
++
++		foreach ($modules as $module) {
++			$part = explode('.', $module['code']);
++
++			if (isset($part[1]) && $this->config->get('module_' . $part[1] . '_status')) {
++				$module_data = $this->load->controller('extension/' . $part[0] . '/module/' . $part[1]);
++
++				if ($module_data) {
++					$data['modules'][] = $module_data;
++				}
++			}
++
++			if (isset($part[2])) {
++				$setting_info = $this->model_setting_module->getModule((int)$part[2]);
++
++				if ($setting_info && $setting_info['status']) {
++					$output = $this->load->controller('extension/' . $part[0] . '/module/' . $part[1], $setting_info);
++
++					if ($output) {
++						$data['modules'][] = $output;
++					}
++				}
++			}
++		}
++
+ 		return $this->load->view('common/footer', $data);
+ 	}
+ }
+diff --git a/catalog/view/template/common/footer.twig b/catalog/view/template/common/footer.twig
+index 148060c..fa9951d 100644
+--- a/catalog/view/template/common/footer.twig
++++ b/catalog/view/template/common/footer.twig
+@@ -46,6 +46,14 @@
+         </ul>
+       </div>
+     </div>
++    {% if modules %}
++      <hr>
++      <div class="row justify-content-center text-center">
++        {% for module in modules %}
++          {{ module }}
++        {% endfor %}
++      </div>
++    {% endif %}
+     <hr>
+     <p>{{ powered }}</p>
+   </div>
+diff --git a/panel/language/fa/design/layout.php b/panel/language/fa/design/layout.php
+index bd2be2b..ff4223c 100644
+--- a/panel/language/fa/design/layout.php
++++ b/panel/language/fa/design/layout.php
+@@ -15,6 +15,7 @@ $_['text_content_top']    = 'بالای محتوا';
+ $_['text_content_bottom'] = 'پایین محتوا';
+ $_['text_column_left']    = 'ستون چپ';
+ $_['text_column_right']   = 'ستون راست';
++$_['text_footer']         = 'فوتر (پایین سایت)';
+ 
+ // Column
+ $_['column_name']         = 'نام چیدمان';
+diff --git a/panel/language/us/design/layout.php b/panel/language/us/design/layout.php
+index 63914dc..eabe66f 100644
+--- a/panel/language/us/design/layout.php
++++ b/panel/language/us/design/layout.php
+@@ -15,6 +15,7 @@ $_['text_content_top']    = 'Content Top';
+ $_['text_content_bottom'] = 'Content Bottom';
+ $_['text_column_left']    = 'Column Left';
+ $_['text_column_right']   = 'Column Right';
++$_['text_footer']         = 'Footer (bottom of site)';
+ 
+ // Column
+ $_['column_name']         = 'Layout Name';
+diff --git a/panel/view/template/design/layout_form.twig b/panel/view/template/design/layout_form.twig
+index 5d93ab2..583c06b 100644
+--- a/panel/view/template/design/layout_form.twig
++++ b/panel/view/template/design/layout_form.twig
+@@ -230,6 +230,50 @@
+                 </table>
+               </div>
+             </div>
++            <div class="row mt-3">
++              <div class="col-12">
++                <table id="module-footer" class="table table-bordered table-hover">
++                  <thead>
++                    <tr>
++                      <th class="text-center">{{ text_footer }}</th>
++                    </tr>
++                  </thead>
++                  <tbody>
++                    {% for layout_module in layout_modules %}
++                      {% if layout_module.position == 'footer' %}
++                        <tr id="module-row-{{ module_row }}">
++                          <td>
++                            <div class="input-group input-group-sm">
++                              <select name="layout_module[{{ module_row }}][code]" class="form-select input-sm">
++                                {% for extension in extensions %}
++                                  <optgroup label="{{ extension.name }}">
++                                    {% if not extension.module %}
++                                      <option value="{{ extension.code }}"{% if extension.code == layout_module.code %} selected{% endif %}>{{ extension.name }}</option>
++                                    {% else %}
++                                      {% for module in extension.module %}
++                                        <option value="{{ module.code }}"{% if module.code == layout_module.code %} selected{% endif %}>{{ module.name }}</option>
++                                      {% endfor %}
++                                    {% endif %}
++                                  </optgroup>
++                                {% endfor %}
++                              </select>
++                              <input type="hidden" name="layout_module[{{ module_row }}][position]" value="{{ layout_module.position }}"/> <input type="hidden" name="layout_module[{{ module_row }}][sort_order]" value="{{ layout_module.sort_order }}"/> <a href="{{ layout_module.edit }}" data-bs-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-pencil fa-fw"></i></a>
++                              <button type="button" onclick="$('#module-row-{{ module_row }}').remove();" data-bs-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger btn-sm"><i class="fa-solid fa-minus-circle fa-fw"></i></button>
++                            </div>
++                          </td>
++                        </tr>
++                        {% set module_row = module_row + 1 %}
++                      {% endif %}
++                    {% endfor %}
++                  </tbody>
++                  <tfoot>
++                    <tr>
++                      <td class="text-end"><button type="button" onclick="addModule('footer');" data-bs-toggle="tooltip" title="{{ button_module_add }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus-circle fa-fw"></i></button></td>
++                    </tr>
++                  </tfoot>
++                </table>
++              </div>
++            </div>
+           </fieldset>
+           <input type="hidden" name="layout_id" value="{{ layout_id }}" id="input-layout-id"/>
+         </form>
+@@ -292,7 +336,7 @@ function addModule(type) {
+     module_row++;
+ }
+ 
+-$('#module-column-left, #module-column-right, #module-content-top, #module-content-bottom').on('change', 'select[name*=\'code\']', function() {
++$('#module-column-left, #module-column-right, #module-content-top, #module-content-bottom, #module-footer').on('change', 'select[name*=\'code\']', function() {
+     var part = this.value.split('.');
+ 
+     if (typeof part[2] == 'undefined') {
