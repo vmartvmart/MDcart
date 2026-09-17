@@ -40,6 +40,15 @@ class Cart extends \MDcart\System\Engine\Controller {
 
 		$data['text_items'] = sprintf($this->language->get('text_items'), $this->cart->countProducts(), $this->currency->format($total, $this->session->data['currency']));
 
+		// Carried separately (not parsed back out of text_items, which is a
+		// full localized sentence) so the header's cart icon badge - see
+		// header.twig and common.js's ocSyncCartBadge() - has a plain
+		// number to read. This partial is what #cart (both the header's
+		// black mini-cart bar and, via ocReloadPreservingDropdown(), every
+		// other page's post-change refresh) always reloads into, so the
+		// badge stays in sync with zero extra requests.
+		$data['cart_total'] = $this->cart->countProducts();
+
 		// Products
 		$data['products'] = [];
 

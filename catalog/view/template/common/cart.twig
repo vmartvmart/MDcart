@@ -1,4 +1,5 @@
 <div class="dropdown d-grid">
+  <span id="cart-total-count" style="display: none;">{{ cart_total }}</span>
   <button type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" class="btn btn-lg btn-dark d-block dropdown-toggle"><i class="fa-solid fa-cart-shopping"></i> {{ text_items }}</button>
   <ul class="dropdown-menu dropdown-menu-end p-2">
     {% if products %}

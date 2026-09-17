@@ -1,0 +1,177 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index c67135f..f754a09 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -148,5 +148,10 @@
+     "version": "5.6.15",
+     "fa": "نوار بالای سایت (ارز، زبان، تلفن، حساب کاربری، علاقه‌مندی‌ها، سبد خرید، تسویه‌حساب) شلوغ‌تر از حد لازم بود: کنار هر آیکون یک برچسب متنی تکراری هم نشون داده می‌شد (مثلاً «ارز» کنار خود واحد پول، یا «حساب کاربری» کنار آیکون کاربر). این متن‌های تکراری حذف شدن و به‌جاش با نگه‌داشتن ماوس روی هر آیکون، یک راهنمای کوچک (tooltip) نشون می‌ده که چیه - دقیقاً همون چیزی که خواسته شده بود. آیکون تلفن هم به‌جای بردن به صفحه «تماس با ما» (که فقط یک فرم داشت)، حالا با نگه‌داشتن ماوس شماره تلفن فروشگاه رو نشون می‌ده و با کلیک روش (روی موبایل) مستقیم شماره رو می‌گیره - صفحه «تماس با ما» هنوز از پایین سایت (فوتر) در دسترسه، فقط از این آیکون بالا حذف شد. نکته: شماره تلفن فروشگاه فعلاً در تنظیمات خالیه، برای همین فعلاً این آیکون اصلاً نمایش داده نمی‌شه؛ کافیه از پنل مدیریت بخش «تنظیمات > عمومی» فیلد «تلفن» رو پر کنید تا آیکون ظاهر بشه.",
+     "en": "The top bar (currency, language, phone, account, wishlist, cart, checkout) was more cluttered than it needed to be: each icon also showed a redundant text label next to it (e.g. \"Currency\" next to the currency symbol itself, or \"My Account\" next to the user icon). Those redundant labels were removed; hovering over any icon now shows a small tooltip explaining what it is instead, exactly as requested. The phone icon no longer links to the \"Contact Us\" page (which just had a form) - hovering now shows the store's phone number, and clicking it (on mobile) dials it directly. The Contact Us page is still reachable from the footer, it was only removed from this top icon. Note: the store's phone number is currently blank in settings, so this icon won't show at all until one is entered - just fill in the \"Telephone\" field under Settings > General in the admin panel."
++  },
++  {
++    "version": "5.6.16",
++    "fa": "سه اصلاح دیگه روی نوار بالای سایت: (۱) عارضه‌ی «دبل شدن» ارز/زبان/حساب کاربری که گزارش شده بود پیدا شد - هر سه‌تا از قبل (حتی قبل از پچ ۵.۶.۱۵) دو تا فلش رو به پایین کنار هم داشتن (یکی عکس، یکی خودکار از قالب سایت)، و چون تو ۵.۶.۱۵ متن کنارشون حذف شد، این دو فلش که قبلاً بین متن‌ها گم بودن حالا کاملاً کنار هم و زشت به چشم می‌اومدن؛ فلش تکراری (عکس) حذف شد و فقط فلش اصلی (که تو خود سبد خرید بالای سایت هم همینجوریه) باقی موند. (۲) آیکون «تسویه حساب» طبق درخواست حذف شد. (۳) آیکون سبد خرید بالای سایت حالا یک نشان کوچک قرمز با تعداد کالاهای توی سبد نشون می‌ده (مثل خیلی از سایت‌های خرید)؛ این عدد با هر تغییری تو سبد (افزودن، تغییر تعداد، حذف - از هر جای سایت) خودکار به‌روز می‌شه، بدون درخواست اضافه از سرور.",
++    "en": "Three more top-bar fixes: (1) found the \"doubling\" reported on currency/language/account - all three already had two down-arrows side by side (one an icon, one automatic from Bootstrap's own dropdown styling) even before 5.6.15; removing the text next to them in that patch just made the two arrows, previously lost between the words, sit right next to each other and stand out. The redundant (icon) arrow was removed, keeping only the automatic one - the same one the mini-cart dropdown already used. (2) Removed the \"Checkout\" icon as requested. (3) The header's cart icon now shows a small red badge with the number of items in the cart, like most shopping sites; it updates automatically on any cart change (add, quantity change, remove - from anywhere on the site) with no extra request to the server."
+   }
+ ]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index 3cbd7ab..682a70f 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.15
++5.6.16
+diff --git a/catalog/controller/common/cart.php b/catalog/controller/common/cart.php
+index 3028911..d905523 100644
+--- a/catalog/controller/common/cart.php
++++ b/catalog/controller/common/cart.php
+@@ -40,6 +40,15 @@ class Cart extends \MDcart\System\Engine\Controller {
+ 
+ 		$data['text_items'] = sprintf($this->language->get('text_items'), $this->cart->countProducts(), $this->currency->format($total, $this->session->data['currency']));
+ 
++		// Carried separately (not parsed back out of text_items, which is a
++		// full localized sentence) so the header's cart icon badge - see
++		// header.twig and common.js's ocSyncCartBadge() - has a plain
++		// number to read. This partial is what #cart (both the header's
++		// black mini-cart bar and, via ocReloadPreservingDropdown(), every
++		// other page's post-change refresh) always reloads into, so the
++		// badge stays in sync with zero extra requests.
++		$data['cart_total'] = $this->cart->countProducts();
++
+ 		// Products
+ 		$data['products'] = [];
+ 
+diff --git a/catalog/view/javascript/common.js b/catalog/view/javascript/common.js
+index 7d134a7..4ed23e3 100644
+--- a/catalog/view/javascript/common.js
++++ b/catalog/view/javascript/common.js
+@@ -561,8 +561,38 @@ function ocReloadPreservingDropdown(target, url, callback) {
+             }
+         }
+ 
++        // Every page that changes the cart (product page, mini-cart,
++        // cart page) ends up reloading #cart through this same helper
++        // (see common/cart.twig and checkout/cart.twig) - so this is the
++        // one place that's guaranteed to run after any cart change,
++        // regardless of which specific target was reloaded. A no-op
++        // whenever the freshly-loaded content doesn't contain the cart's
++        // own hidden count (i.e. this reload wasn't #cart).
++        ocSyncCartBadge();
++
+         if (typeof callback === 'function') {
+             callback();
+         }
+     });
+ }
++
++// Mirrors the item count from #cart's own hidden "#cart-total-count" (see
++// common/cart.twig) onto the small badge on the header's cart icon (see
++// header.twig). Reads from that element rather than parsing it out of
++// "text_items" (a full localized sentence, e.g. "3 items - 100,000") since
++// that string's format can vary by language and isn't meant to be parsed.
++function ocSyncCartBadge() {
++    var countEl = document.getElementById('cart-total-count');
++    var count = countEl ? (parseInt(countEl.textContent, 10) || 0) : 0;
++    var $badge = $('#cart-count-badge');
++
++    if (count > 0) {
++        $badge.text(count > 99 ? '99+' : count).show();
++    } else {
++        $badge.hide();
++    }
++}
++
++$(document).ready(function() {
++    ocSyncCartBadge();
++});
+diff --git a/catalog/view/stylesheet/stylesheet.css b/catalog/view/stylesheet/stylesheet.css
+index bc52eb4..6d09544 100644
+--- a/catalog/view/stylesheet/stylesheet.css
++++ b/catalog/view/stylesheet/stylesheet.css
+@@ -578,6 +578,29 @@ footer h5 {
+   box-sizing: border-box;
+ }
+ 
++/* Small item-count badge on the header's cart icon (#top), see header.twig
++   and common.js's ocSyncCartBadge(). Anchored to the icon's own <a>
++   (given "position-relative" in the template) rather than the <li>, so it
++   sits right at the icon's corner regardless of the list item's padding. */
++#cart-count-badge {
++  /* Positioned relative to its <li> (see header.twig), not the <a> inside
++     it - the icon font's own line-height makes the <a> render a few
++     pixels taller than the <li> and shifted upward, which threw this off
++     when anchored there instead (confirmed live). The <li>'s own box
++     lines up cleanly with #top's top edge.
++     top stays >= 0, never a small negative offset: #top sits flush
++     against the very top of the page (no margin/padding above it), so
++     anything pulled above its own box is pulled off the top of the page
++     itself and gets clipped by the viewport, not just by a container. */
++  position: absolute;
++  top: 0;
++  inset-inline-end: -6px;
++  font-size: .625rem;
++  line-height: 1;
++  padding: .25em .4em;
++  pointer-events: none;
++}
++
+ #product-info .product-zoom-pane {
+   display: none;
+   position: absolute;
+diff --git a/catalog/view/template/common/cart.twig b/catalog/view/template/common/cart.twig
+index fd375a8..1a2ac05 100644
+--- a/catalog/view/template/common/cart.twig
++++ b/catalog/view/template/common/cart.twig
+@@ -1,4 +1,5 @@
+ <div class="dropdown d-grid">
++  <span id="cart-total-count" style="display: none;">{{ cart_total }}</span>
+   <button type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" class="btn btn-lg btn-dark d-block dropdown-toggle"><i class="fa-solid fa-cart-shopping"></i> {{ text_items }}</button>
+   <ul class="dropdown-menu dropdown-menu-end p-2">
+     {% if products %}
+diff --git a/catalog/view/template/common/currency.twig b/catalog/view/template/common/currency.twig
+index fa0a5e7..cb7b976 100644
+--- a/catalog/view/template/common/currency.twig
++++ b/catalog/view/template/common/currency.twig
+@@ -1,6 +1,6 @@
+ {% if currencies|length > 1 %}
+   <form id="form-currency" action="{{ action }}" method="post" data-oc-toggle="ajax">
+-    <div class="dropdown"><span role="button" data-bs-toggle="dropdown" class="dropdown-toggle" title="{{ text_currency }}">{% if symbol_left %}<strong>{{ symbol_left }}</strong>{% elseif symbol_right %}<strong>{{ symbol_right }}</strong>{% endif %} <i class="fa-solid fa-caret-down"></i></span>
++    <div class="dropdown"><span role="button" data-bs-toggle="dropdown" class="dropdown-toggle" title="{{ text_currency }}">{% if symbol_left %}<strong>{{ symbol_left }}</strong>{% elseif symbol_right %}<strong>{{ symbol_right }}</strong>{% endif %}</span>
+       <ul class="dropdown-menu">
+         {% for currency in currencies %}
+           {% if currency.symbol_left %}
+diff --git a/catalog/view/template/common/header.twig b/catalog/view/template/common/header.twig
+index 8566f38..292b405 100644
+--- a/catalog/view/template/common/header.twig
++++ b/catalog/view/template/common/header.twig
+@@ -58,7 +58,7 @@
+             {% endif %}
+             <li class="list-inline-item">
+               <div class="dropdown">
+-                <span role="button" class="dropdown-toggle" data-bs-toggle="dropdown" title="{{ text_account }}"><i class="fa-solid fa-user"></i> <i class="fa-solid fa-caret-down"></i></span>
++                <span role="button" class="dropdown-toggle" data-bs-toggle="dropdown" title="{{ text_account }}"><i class="fa-solid fa-user"></i></span>
+                 <ul class="dropdown-menu dropdown-menu-right">
+                   {% if not logged %}
+                     <li><a href="{{ register }}" class="dropdown-item">{{ text_register }}</a></li>
+@@ -74,8 +74,7 @@
+               </div>
+             </li>
+             <li class="list-inline-item"><a href="{{ wishlist }}" id="wishlist-total" title="{{ text_wishlist }}"><i class="fa-solid fa-heart"></i></a></li>
+-            <li class="list-inline-item"><a href="{{ shopping_cart }}" title="{{ text_shopping_cart }}"><i class="fa-solid fa-cart-shopping"></i></a></li>
+-            <li class="list-inline-item"><a href="{{ checkout }}" title="{{ text_checkout }}"><i class="fa-solid fa-share"></i></a></li>
++            <li class="list-inline-item position-relative"><a href="{{ shopping_cart }}" title="{{ text_shopping_cart }}"><i class="fa-solid fa-cart-shopping"></i></a><span id="cart-count-badge" class="badge rounded-pill bg-danger" style="display: none;">0</span></li>
+           </ul>
+         </div>
+       </div>
+diff --git a/catalog/view/template/common/language.twig b/catalog/view/template/common/language.twig
+index 31564e2..b762dc4 100644
+--- a/catalog/view/template/common/language.twig
++++ b/catalog/view/template/common/language.twig
+@@ -1,6 +1,6 @@
+ {% if languages|length > 1 %}
+   <form id="form-language" action="{{ action }}" method="post" data-oc-toggle="ajax">
+-    <div class="dropdown"><span role="button" data-bs-toggle="dropdown" class="dropdown-toggle" title="{{ text_language }}"><img src="{{ image }}" alt="{{ name }}" title="{{ name }}"> <i class="fa-solid fa-caret-down"></i></span>
++    <div class="dropdown"><span role="button" data-bs-toggle="dropdown" class="dropdown-toggle" title="{{ text_language }}"><img src="{{ image }}" alt="{{ name }}" title="{{ name }}"></span>
+       <ul class="dropdown-menu">
+         {% for language in languages %}
+           <li><span role="button" data-code="{{ language.code }}" class="dropdown-item"><img src="{{ language.image }}" alt="{{ language.name }}" title="{{ language.name }}"/> {{ language.name }}</span></li>

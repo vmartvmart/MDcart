@@ -561,8 +561,38 @@ function ocReloadPreservingDropdown(target, url, callback) {
             }
         }
 
+        // Every page that changes the cart (product page, mini-cart,
+        // cart page) ends up reloading #cart through this same helper
+        // (see common/cart.twig and checkout/cart.twig) - so this is the
+        // one place that's guaranteed to run after any cart change,
+        // regardless of which specific target was reloaded. A no-op
+        // whenever the freshly-loaded content doesn't contain the cart's
+        // own hidden count (i.e. this reload wasn't #cart).
+        ocSyncCartBadge();
+
         if (typeof callback === 'function') {
             callback();
         }
     });
 }
+
+// Mirrors the item count from #cart's own hidden "#cart-total-count" (see
+// common/cart.twig) onto the small badge on the header's cart icon (see
+// header.twig). Reads from that element rather than parsing it out of
+// "text_items" (a full localized sentence, e.g. "3 items - 100,000") since
+// that string's format can vary by language and isn't meant to be parsed.
+function ocSyncCartBadge() {
+    var countEl = document.getElementById('cart-total-count');
+    var count = countEl ? (parseInt(countEl.textContent, 10) || 0) : 0;
+    var $badge = $('#cart-count-badge');
+
+    if (count > 0) {
+        $badge.text(count > 99 ? '99+' : count).show();
+    } else {
+        $badge.hide();
+    }
+}
+
+$(document).ready(function() {
+    ocSyncCartBadge();
+});

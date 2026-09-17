@@ -578,6 +578,29 @@ footer h5 {
   box-sizing: border-box;
 }
 
+/* Small item-count badge on the header's cart icon (#top), see header.twig
+   and common.js's ocSyncCartBadge(). Anchored to the icon's own <a>
+   (given "position-relative" in the template) rather than the <li>, so it
+   sits right at the icon's corner regardless of the list item's padding. */
+#cart-count-badge {
+  /* Positioned relative to its <li> (see header.twig), not the <a> inside
+     it - the icon font's own line-height makes the <a> render a few
+     pixels taller than the <li> and shifted upward, which threw this off
+     when anchored there instead (confirmed live). The <li>'s own box
+     lines up cleanly with #top's top edge.
+     top stays >= 0, never a small negative offset: #top sits flush
+     against the very top of the page (no margin/padding above it), so
+     anything pulled above its own box is pulled off the top of the page
+     itself and gets clipped by the viewport, not just by a container. */
+  position: absolute;
+  top: 0;
+  inset-inline-end: -6px;
+  font-size: .625rem;
+  line-height: 1;
+  padding: .25em .4em;
+  pointer-events: none;
+}
+
 #product-info .product-zoom-pane {
   display: none;
   position: absolute;

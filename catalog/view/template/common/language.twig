@@ -1,6 +1,6 @@
 {% if languages|length > 1 %}
   <form id="form-language" action="{{ action }}" method="post" data-oc-toggle="ajax">
-    <div class="dropdown"><span role="button" data-bs-toggle="dropdown" class="dropdown-toggle" title="{{ text_language }}"><img src="{{ image }}" alt="{{ name }}" title="{{ name }}"> <i class="fa-solid fa-caret-down"></i></span>
+    <div class="dropdown"><span role="button" data-bs-toggle="dropdown" class="dropdown-toggle" title="{{ text_language }}"><img src="{{ image }}" alt="{{ name }}" title="{{ name }}"></span>
       <ul class="dropdown-menu">
         {% for language in languages %}
           <li><span role="button" data-code="{{ language.code }}" class="dropdown-item"><img src="{{ language.image }}" alt="{{ language.name }}" title="{{ language.name }}"/> {{ language.name }}</span></li>

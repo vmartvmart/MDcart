@@ -1,0 +1,202 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index f754a09..35245ae 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -153,5 +153,10 @@
+     "version": "5.6.16",
+     "fa": "سه اصلاح دیگه روی نوار بالای سایت: (۱) عارضه‌ی «دبل شدن» ارز/زبان/حساب کاربری که گزارش شده بود پیدا شد - هر سه‌تا از قبل (حتی قبل از پچ ۵.۶.۱۵) دو تا فلش رو به پایین کنار هم داشتن (یکی عکس، یکی خودکار از قالب سایت)، و چون تو ۵.۶.۱۵ متن کنارشون حذف شد، این دو فلش که قبلاً بین متن‌ها گم بودن حالا کاملاً کنار هم و زشت به چشم می‌اومدن؛ فلش تکراری (عکس) حذف شد و فقط فلش اصلی (که تو خود سبد خرید بالای سایت هم همینجوریه) باقی موند. (۲) آیکون «تسویه حساب» طبق درخواست حذف شد. (۳) آیکون سبد خرید بالای سایت حالا یک نشان کوچک قرمز با تعداد کالاهای توی سبد نشون می‌ده (مثل خیلی از سایت‌های خرید)؛ این عدد با هر تغییری تو سبد (افزودن، تغییر تعداد، حذف - از هر جای سایت) خودکار به‌روز می‌شه، بدون درخواست اضافه از سرور.",
+     "en": "Three more top-bar fixes: (1) found the \"doubling\" reported on currency/language/account - all three already had two down-arrows side by side (one an icon, one automatic from Bootstrap's own dropdown styling) even before 5.6.15; removing the text next to them in that patch just made the two arrows, previously lost between the words, sit right next to each other and stand out. The redundant (icon) arrow was removed, keeping only the automatic one - the same one the mini-cart dropdown already used. (2) Removed the \"Checkout\" icon as requested. (3) The header's cart icon now shows a small red badge with the number of items in the cart, like most shopping sites; it updates automatically on any cart change (add, quantity change, remove - from anywhere on the site) with no extra request to the server."
++  },
++  {
++    "version": "5.6.17",
++    "fa": "حالت «ذره‌بینی» که تو نسخه‌ی قبل اضافه شده بود، طبق گزارش شما اصلاح شد: قبلاً یک پنجره‌ی جدا کنار عکس باز می‌شد که ممکن بود از عرض صفحه بیرون بزنه و دیده نشه. حالا به‌جای اون، خودِ ذره‌بین دقیقاً روی عکس و دور نشونگر ماوس می‌شینه و همون‌جا بخش زیر ماوس رو با کیفیت کامل بزرگ نشون می‌ده - درست مثل یک ذره‌بین واقعی که روی عکس می‌گیرید، بدون هیچ پنجره‌ی اضافه‌ای بیرون از عکس.",
++    "en": "The hover-magnifier added in the previous version was fixed per your report: it used to open a separate panel beside the image that could run off the edge of the screen and go unseen. Now the magnifier itself sits right on the image around the cursor and enlarges whatever is under it there, in full quality - like holding a real magnifying glass over the photo, with no separate window outside the image."
+   }
+ ]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index 682a70f..379b69a 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.16
++5.6.17
+diff --git a/catalog/view/stylesheet/stylesheet.css b/catalog/view/stylesheet/stylesheet.css
+index 6d09544..c0ff61b 100644
+--- a/catalog/view/stylesheet/stylesheet.css
++++ b/catalog/view/stylesheet/stylesheet.css
+@@ -573,8 +573,11 @@ footer h5 {
+   position: absolute;
+   z-index: 20;
+   pointer-events: none;
+-  background-color: rgba(255, 255, 255, 0.35);
+-  border: 1px solid rgba(0, 0, 0, 0.35);
++  border-radius: 50%;
++  border: 3px solid rgba(255, 255, 255, 0.9);
++  box-shadow: 0 0 0 1px rgba(0, 0, 0, .25), 0 .5rem 1.5rem rgba(0, 0, 0, .35);
++  background-repeat: no-repeat;
++  background-color: #fff;
+   box-sizing: border-box;
+ }
+ 
+@@ -601,16 +604,3 @@ footer h5 {
+   pointer-events: none;
+ }
+ 
+-#product-info .product-zoom-pane {
+-  display: none;
+-  position: absolute;
+-  top: 0;
+-  z-index: 1000;
+-  pointer-events: none;
+-  background-repeat: no-repeat;
+-  background-color: #fff;
+-  border: 1px solid #dee2e6;
+-  border-radius: .375rem;
+-  box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .175);
+-  overflow: hidden;
+-}
+diff --git a/catalog/view/template/product/product.twig b/catalog/view/template/product/product.twig
+index fa74f38..506d05b 100644
+--- a/catalog/view/template/product/product.twig
++++ b/catalog/view/template/product/product.twig
+@@ -370,14 +370,16 @@ $(document).ready(function() {
+     });
+ });
+ 
+-// Amazon-style hover-to-zoom (magnifier) on the main product image: a small
+-// "lens" rectangle follows the cursor over the (small) displayed image, and
+-// a separate pane beside it shows that region using the full-size "popup"
+-// image (already generated for the click-to-open lightbox above, reused
+-// here as the zoom source with no extra image upload/config needed). Only
+-// runs on devices that report a real mouse (hover + fine pointer) — on
+-// touch devices this does nothing and the image keeps its normal
+-// tap-to-open-lightbox behavior, unchanged.
++// Amazon-style hover-to-zoom (magnifier) on the main product image: while
++// hovering, a round "loupe" follows the cursor and shows, directly on top
++// of the image right where the cursor is, a zoomed-in view of whatever is
++// under it — using the full-size "popup" image (already generated for the
++// click-to-open lightbox above, reused here as the zoom source with no
++// extra image upload/config needed) so it stays sharp at native resolution
++// instead of blurrily upscaling a guessed ratio. Only runs on devices that
++// report a real mouse (hover + fine pointer) — on touch devices this does
++// nothing and the image keeps its normal tap-to-open-lightbox behavior,
++// unchanged.
+ $(document).ready(function() {
+     var $target = $('#product-zoom-target');
+ 
+@@ -394,7 +396,7 @@ $(document).ready(function() {
+ 
+     // Preload the full-size image so its true pixel dimensions are known
+     // (needed to zoom at native resolution instead of blurrily upscaling a
+-    // guessed ratio) and so there's no flash of an empty pane on first
++    // guessed ratio) and so there's no flash of an empty loupe on first
+     // hover while it's still downloading.
+     var naturalWidth = 0;
+     var naturalHeight = 0;
+@@ -408,40 +410,19 @@ $(document).ready(function() {
+     preload.src = zoomSrc;
+ 
+     var $wrap = $target.closest('.image');
+-    var $lens = $('<div class="product-zoom-lens"></div>');
+-    var $pane = $('<div class="product-zoom-pane"></div>').css('background-image', 'url(' + zoomSrc + ')');
++    var $lens = $('<div class="product-zoom-lens"></div>').css('background-image', 'url(' + zoomSrc + ')');
+ 
+-    $wrap.append($lens).append($pane);
++    $wrap.append($lens);
+ 
+     var zoomFactorX = 0;
+     var zoomFactorY = 0;
+     var imgRect = null;
+-
+-    // Flip the pane to whichever side of the image actually has room, so
+-    // it's never partly cut off the edge of the screen — recomputed every
+-    // time hovering starts, since the viewport/layout can change between
+-    // hovers (window resize, orientation change, etc.).
+-    function positionPane() {
+-        var wrapRect = $wrap[0].getBoundingClientRect();
+-        var paneWidth = imgRect.width;
+-        var spaceEnd = window.innerWidth - wrapRect.right;
+-        var spaceStart = wrapRect.left;
+-        var showAtEnd = spaceEnd >= paneWidth + 16 || spaceEnd >= spaceStart;
+-
+-        $pane.css({
+-            width: imgRect.width + 'px',
+-            height: imgRect.height + 'px',
+-            insetInlineStart: showAtEnd ? '100%' : 'auto',
+-            insetInlineEnd: showAtEnd ? 'auto' : '100%',
+-            marginInlineStart: showAtEnd ? '12px' : 0,
+-            marginInlineEnd: showAtEnd ? 0 : '12px'
+-        });
+-    }
++    var lensSize = 0;
+ 
+     $target.on('mouseenter', function() {
+         if (!naturalWidth || !naturalHeight) {
+             // Full-size image hasn't finished loading yet - skip this
+-            // hover rather than show a broken/empty zoom pane.
++            // hover rather than show a broken/empty loupe.
+             return;
+         }
+ 
+@@ -449,39 +430,45 @@ $(document).ready(function() {
+         zoomFactorX = naturalWidth / imgRect.width;
+         zoomFactorY = naturalHeight / imgRect.height;
+ 
+-        positionPane();
++        // Loupe diameter: a comfortable fraction of the image's own size,
++        // kept within sane bounds (and never bigger than the image itself)
++        // so it looks right on both small and large product photos.
++        lensSize = Math.max(90, Math.min(220, Math.min(imgRect.width, imgRect.height) * 0.4));
++        lensSize = Math.min(lensSize, imgRect.width, imgRect.height);
+ 
+-        $pane.css('background-size', naturalWidth + 'px ' + naturalHeight + 'px');
+         $lens.css({
+-            width: (imgRect.width / zoomFactorX) + 'px',
+-            height: (imgRect.height / zoomFactorY) + 'px'
++            width: lensSize + 'px',
++            height: lensSize + 'px',
++            backgroundSize: naturalWidth + 'px ' + naturalHeight + 'px'
+         });
+ 
+-        $lens.add($pane).show();
++        $lens.show();
++        $target.css('cursor', 'none');
+     });
+ 
+     $target.on('mousemove', function(e) {
+-        if (!imgRect) {
++        if (!imgRect || !lensSize) {
+             return;
+         }
+ 
+-        var lensWidth = $lens.outerWidth();
+-        var lensHeight = $lens.outerHeight();
+-
+         var x = Math.max(0, Math.min(e.clientX - imgRect.left, imgRect.width));
+         var y = Math.max(0, Math.min(e.clientY - imgRect.top, imgRect.height));
+ 
+-        var lensX = Math.max(0, Math.min(x - lensWidth / 2, imgRect.width - lensWidth));
+-        var lensY = Math.max(0, Math.min(y - lensHeight / 2, imgRect.height - lensHeight));
++        var lensX = Math.max(0, Math.min(x - lensSize / 2, imgRect.width - lensSize));
++        var lensY = Math.max(0, Math.min(y - lensSize / 2, imgRect.height - lensSize));
+ 
+-        $lens.css({ left: lensX + 'px', top: lensY + 'px' });
+-
+-        $pane.css('background-position', (-(lensX * zoomFactorX)) + 'px ' + (-(lensY * zoomFactorY)) + 'px');
++        $lens.css({
++            left: lensX + 'px',
++            top: lensY + 'px',
++            backgroundPosition: (-(lensX * zoomFactorX)) + 'px ' + (-(lensY * zoomFactorY)) + 'px'
++        });
+     });
+ 
+     $target.on('mouseleave', function() {
+-        $lens.add($pane).hide();
++        $lens.hide();
++        $target.css('cursor', '');
+         imgRect = null;
++        lensSize = 0;
+     });
+ });
+ //--></script>

@@ -58,7 +58,7 @@
             {% endif %}
             <li class="list-inline-item">
               <div class="dropdown">
-                <span role="button" class="dropdown-toggle" data-bs-toggle="dropdown" title="{{ text_account }}"><i class="fa-solid fa-user"></i> <i class="fa-solid fa-caret-down"></i></span>
+                <span role="button" class="dropdown-toggle" data-bs-toggle="dropdown" title="{{ text_account }}"><i class="fa-solid fa-user"></i></span>
                 <ul class="dropdown-menu dropdown-menu-right">
                   {% if not logged %}
                     <li><a href="{{ register }}" class="dropdown-item">{{ text_register }}</a></li>
@@ -74,8 +74,7 @@
               </div>
             </li>
             <li class="list-inline-item"><a href="{{ wishlist }}" id="wishlist-total" title="{{ text_wishlist }}"><i class="fa-solid fa-heart"></i></a></li>
-            <li class="list-inline-item"><a href="{{ shopping_cart }}" title="{{ text_shopping_cart }}"><i class="fa-solid fa-cart-shopping"></i></a></li>
-            <li class="list-inline-item"><a href="{{ checkout }}" title="{{ text_checkout }}"><i class="fa-solid fa-share"></i></a></li>
+            <li class="list-inline-item position-relative"><a href="{{ shopping_cart }}" title="{{ text_shopping_cart }}"><i class="fa-solid fa-cart-shopping"></i></a><span id="cart-count-badge" class="badge rounded-pill bg-danger" style="display: none;">0</span></li>
           </ul>
         </div>
       </div>
