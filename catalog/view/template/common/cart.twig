@@ -9,6 +9,11 @@
               <td class="text-center w-25">{% if product.thumb %}<a href="{{ product.href }}"><img src="{{ product.thumb }}" alt="{{ product.name }}" title="{{ product.name }}" class="img-thumbnail"/></a>{% endif %}</td>
               <td><a href="{{ product.href }}">{{ product.name }}</a>
                 <ul class="list-unstyled mb-0">
+                  {% if product.delivery_label %}
+                    <li>
+                      <small class="text-info"> - {{ product.delivery_label }}</small>
+                    </li>
+                  {% endif %}
                   <li>
                     <small> - {{ text_model }}: {{ product.model }}</small>
                   </li>
@@ -33,7 +38,7 @@
                 <form action="{{ edit }}" method="post" data-oc-toggle="ajax" data-oc-load="{{ list }}" data-oc-target="#cart">
                   <div class="input-group input-group-sm qty-stepper qty-stepper-auto">
                     <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
-                    <input type="text" name="quantity" value="{{ product.quantity }}" min="1" size="1" inputmode="numeric" class="form-control text-center"/>
+                    <input type="text" name="quantity" value="{{ product.quantity }}" min="1"{% if not (product.is_preorder or product.is_transit_order) %} max="{{ product.stock > product.quantity ? product.stock : product.quantity }}"{% endif %} size="1" inputmode="numeric" class="form-control text-center"/>
                     <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
                   </div>
                   <input type="hidden" name="key" value="{{ product.cart_id }}">

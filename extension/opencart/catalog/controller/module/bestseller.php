@@ -63,6 +63,7 @@ class BestSeller extends \MDcart\System\Engine\Controller {
 					'special'     => $special,
 					'tax'         => $tax,
 					'minimum'     => $result['minimum'] > 0 ? $result['minimum'] : 1,
+					'quantity'    => $result['quantity'],
 					'rating'      => $result['rating'],
 					'href'        => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $result['product_id'])
 				];

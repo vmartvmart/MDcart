@@ -1,0 +1,374 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 517e862..1b96052 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -123,5 +123,10 @@
+     "version": "5.6.10",
+     "fa": "رفع یک باگ: در سبد خرید کوچک بالای سایت، وقتی تعداد کالا با + یا - تغییر می‌کرد، کشوی سبد بسته می‌شد و بعد دوباره با اطلاعات جدید باز می‌شد - این دیگر اتفاق نمی‌افتد، کشو باز می‌ماند. همچنین حالا همه‌جا (کارت محصول، صفحه محصول، سبد خرید کوچک، صفحه سبد خرید) دکمه‌ی + و کیبورد اجازه نمی‌دهند عددی بیشتر از موجودی واقعی کالا انتخاب شود - مگر برای ردیف‌هایی از سبد که «پیش‌خرید» یا «تحویل از محموله در راه» هستند، که همچنان محدودیتی ندارند (چون این‌ها از همان ابتدا برای بیشتر از موجودی فعلی طراحی شده‌اند). این فقط یک کمک بصری است؛ بررسی نهایی موجودی همیشه توسط سرور هم انجام می‌شود.",
+     "en": "Fixed a bug: in the header mini-cart, changing quantity with +/- closed the dropdown and reopened it with fresh data - it now stays open. Also, everywhere a quantity stepper appears (product card, product page, mini-cart, cart page), the +/- buttons and direct typing no longer let you pick more than the product's actual available stock - except for cart rows that are pre-order or transit-delivery lines, which are intentionally unrestricted since those exist specifically to exceed current stock. This is a UI-level convenience only; the server still does the authoritative stock check."
++  },
++  {
++    "version": "5.6.11",
++    "fa": "وقتی موجودی یک کالا کافی نباشد ولی «پیش‌خرید» یا «تحویل از محموله در راه» برایش فعال باشد، دیگر کل تعداد درخواستی به‌عنوان تاخیردار ثبت نمی‌شود: مقدار موجود همین الان به‌صورت یک ردیف عادی و بقیه (فقط مقدار اضافه) به‌صورت یک ردیف جداگانه با تاریخ تحویل مشخص، در سبد خرید (هم صفحه سبد، هم سبد کوچک بالای سایت) نمایش داده می‌شود - مثلاً «۳ عدد الان، ۲ عدد پیش‌سفارش - تحویل تقریبی ۱۴۰۵/۰۷/۱۰». یادآوری: پیش‌خرید فقط وقتی به مشتری پیشنهاد می‌شود که ادمین از قبل برای آن کالا فعالش کرده باشد؛ و «تحویل از محموله در راه» فقط وقتی پیشنهاد می‌شود که ادمین یک حواله انبار واقعی با تعداد و تاریخ تحویل مشخص ثبت کرده و آن را برای پیش‌فروش آنلاین علامت زده باشد (بخش انبار > حواله‌های انبار) - این دو مورد از قبل در سیستم وجود داشتند، این بروزرسانی فقط نحوه نمایش و تفکیک تعداد را بهتر کرد. همچنین یک باگ ظریف در پچ قبلی (5.6.10) برطرف شد: سقف تعداد در صفحه سبد خرید اشتباه محاسبه می‌شد و اصلاً اجازه افزایش تعداد را نمی‌داد؛ الان درست کار می‌کند. و چند رشته متنی انگلیسی که در فایل زبان فارسی سبد کوچک جا مانده بودند (مثلاً «اشتراک»، روزهای هفته) به فارسی برگردانده شدند.",
++    "en": "When a product doesn't have enough stock but \"pre-order\" or \"sellable while in transit\" is enabled for it, the whole requested quantity is no longer recorded as delayed: the quantity available right now becomes a normal cart line, and only the actual shortfall becomes a separate line with its own delivery date, shown in both the cart page and the header mini-cart - e.g. \"3 now, 2 pre-order - estimated delivery 2026-09-28\". Reminder: pre-order is only ever offered when an admin has enabled it for that specific product, and \"sellable while in transit\" is only ever offered when an admin has recorded a real warehouse transfer with a quantity and delivery date and marked it for online pre-sale (Catalog > Warehouse Transfers) - both already existed; this update only improved how the split is shown. Also fixed a subtle bug from the previous patch (5.6.10): the cart page's quantity cap was computed wrong and didn't allow increasing quantity at all; it works correctly now. And a few leftover English strings in the mini-cart's Persian language file (e.g. \"Subscription\", days of the week) were translated."
+   }
+ ]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index 4794f16..723bfc6 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.10
++5.6.11
+diff --git a/catalog/controller/checkout/cart.php b/catalog/controller/checkout/cart.php
+index 209f9c6..7895ded 100644
+--- a/catalog/controller/checkout/cart.php
++++ b/catalog/controller/checkout/cart.php
+@@ -150,15 +150,35 @@ class Cart extends \MDcart\System\Engine\Controller {
+ 				}
+ 			}
+ 
++			// Delivery-timing label for split-off pre-order/transit lines (see
++			// checkout/cart.php's add(), which can split a single request
++			// into a normal line plus a separate delayed-delivery line for
++			// whatever exceeded current stock).
++			if (!empty($product['is_transit_order']) && !empty($product['transit_delivery_date'])) {
++				$delivery_date = new \DateTime($product['transit_delivery_date']);
++
++				$delivery_label = sprintf($this->language->get('text_transit_line'), $delivery_date->format($this->language->get('date_format_short')));
++			} elseif (!empty($product['is_preorder']) && !empty($product['preorder_delivery_date'])) {
++				$delivery_date = new \DateTime($product['preorder_delivery_date']);
++
++				$delivery_label = sprintf($this->language->get('text_preorder_line'), $delivery_date->format($this->language->get('date_format_short')));
++			} else {
++				$delivery_label = '';
++			}
++
+ 			$data['products'][] = [
+-				'thumb'        => $this->model_tool_image->resize($product['image'], $this->config->get('config_image_cart_width'), $this->config->get('config_image_cart_height')),
+-				'subscription' => $subscription,
+-				'stock'        => $product['stock_status'] ? true : !(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')),
+-				'minimum'      => !$product['minimum_status'] ? sprintf($this->language->get('error_minimum'), $product['minimum']) : 0,
+-				'price'        => $price_status ? $product['price_text'] : '',
+-				'total'        => $price_status ? $product['total_text'] : '',
+-				'href'         => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product['product_id']),
+-				'remove'       => $this->url->link('checkout/cart.remove', 'language=' . $this->config->get('config_language') . '&key=' . $product['cart_id'])
++				'thumb'          => $this->model_tool_image->resize($product['image'], $this->config->get('config_image_cart_width'), $this->config->get('config_image_cart_height')),
++				'subscription'   => $subscription,
++				'stock'          => $product['stock_status'] ? true : !(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')),
++				// Raw available-stock number, separate from the boolean
++				// 'stock' above - used as the quantity stepper's "max".
++				'stock_quantity' => (int)$product['stock'],
++				'delivery_label' => $delivery_label,
++				'minimum'        => !$product['minimum_status'] ? sprintf($this->language->get('error_minimum'), $product['minimum']) : 0,
++				'price'          => $price_status ? $product['price_text'] : '',
++				'total'          => $price_status ? $product['total_text'] : '',
++				'href'           => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product['product_id']),
++				'remove'         => $this->url->link('checkout/cart.remove', 'language=' . $this->config->get('config_language') . '&key=' . $product['cart_id'])
+ 			] + $product;
+ 		}
+ 
+@@ -323,26 +343,41 @@ class Cart extends \MDcart\System\Engine\Controller {
+ 		}
+ 
+ 		if (!$json) {
+-			$override = [];
+-
+ 			// Sellable while in transit (task #13) / Pre-order-backorder: only
+ 			// ever offered client-side when the product is actually out of
+ 			// stock - re-checked here rather than trusted from the client.
+-			$out_of_stock = (!$product_info['quantity'] || ($product_info['quantity'] < $quantity));
++			//
++			// When only *some* of the requested quantity is covered by
++			// current stock, the request is split into two cart lines
++			// instead of tagging the whole quantity as delayed: up to
++			// $available units go in as a normal line (ships now), and only
++			// the actual shortfall ($overage_quantity) becomes a separate
++			// pre-order/transit line with its own delivery date. This way a
++			// customer asking for more than is on hand can still see - and
++			// pay for/receive - the part that's genuinely available right
++			// away. Cart::add() keeps these as two distinct rows because it
++			// now also matches on `override` (see its docblock).
++			$available = max(0, (int)$product_info['quantity']);
++			$normal_quantity = min($quantity, $available);
++			$overage_quantity = $quantity - $normal_quantity;
++
+ 			$want_transit = !empty($this->request->post['transit']);
+ 			$want_preorder = !empty($this->request->post['preorder']);
+ 
+-			if ($out_of_stock && $want_transit) {
++			$override = [];
++
++			if ($overage_quantity > 0 && $want_transit) {
+ 				$transit_options = $this->model_catalog_product->getTransitAvailability($product_info['product_id']);
+ 
+ 				// Each order line allocates against exactly ONE transfer (see
+ 				// Model\Catalog\Product::getTransitAvailability() docblock) -
+ 				// find the soonest-arriving transfer that alone has enough
+-				// spare quantity for this whole line.
++				// spare quantity for the overage (the part not covered by
++				// current stock).
+ 				$matched_transfer = null;
+ 
+ 				foreach ($transit_options as $option) {
+-					if ($option['available'] >= $quantity) {
++					if ($option['available'] >= $overage_quantity) {
+ 						$matched_transfer = $option;
+ 						break;
+ 					}
+@@ -359,7 +394,7 @@ class Cart extends \MDcart\System\Engine\Controller {
+ 				}
+ 			}
+ 
+-			if ($out_of_stock && empty($override) && $want_preorder && !empty($product_info['preorder_status'])) {
++			if ($overage_quantity > 0 && empty($override) && $want_preorder && !empty($product_info['preorder_status'])) {
+ 				$preorder_lead_days = !empty($product_info['preorder_lead_days']) ? (int)$product_info['preorder_lead_days'] : 7;
+ 
+ 				// Force stock_status true so Cart::hasStock() (which otherwise
+@@ -369,7 +404,25 @@ class Cart extends \MDcart\System\Engine\Controller {
+ 				$override['preorder_delivery_date'] = date('Y-m-d', strtotime('+' . $preorder_lead_days . ' days'));
+ 			}
+ 
+-			$this->cart->add($product_info['product_id'], $quantity, $option, $subscription_plan_id, $override);
++			if ($overage_quantity > 0 && empty($override)) {
++				// Neither transit nor pre-order could cover the shortfall
++				// (out of stock, no matching transfer, or pre-order not
++				// enabled/requested) - fall back to the original all-in-one
++				// behavior: the whole requested quantity goes in as a single
++				// ordinary line, same as before this split existed, so
++				// Cart::hasStock() still catches it at checkout the way it
++				// always has.
++				$normal_quantity = $quantity;
++				$overage_quantity = 0;
++			}
++
++			if ($normal_quantity > 0) {
++				$this->cart->add($product_info['product_id'], $normal_quantity, $option, $subscription_plan_id, []);
++			}
++
++			if ($overage_quantity > 0) {
++				$this->cart->add($product_info['product_id'], $overage_quantity, $option, $subscription_plan_id, $override);
++			}
+ 
+ 			$json['success'] = sprintf($this->language->get('text_success'), $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product_info['product_id']), $product_info['name'], $this->url->link('checkout/cart', 'language=' . $this->config->get('config_language')));
+ 
+diff --git a/catalog/controller/common/cart.php b/catalog/controller/common/cart.php
+index 26e4352..3028911 100644
+--- a/catalog/controller/common/cart.php
++++ b/catalog/controller/common/cart.php
+@@ -74,12 +74,29 @@ class Cart extends \MDcart\System\Engine\Controller {
+ 				}
+ 			}
+ 
++			// Delivery-timing label for split-off pre-order/transit lines (see
++			// checkout/cart.php's add(), which can split a single request
++			// into a normal line plus a separate delayed-delivery line for
++			// whatever exceeded current stock).
++			if (!empty($product['is_transit_order']) && !empty($product['transit_delivery_date'])) {
++				$delivery_date = new \DateTime($product['transit_delivery_date']);
++
++				$delivery_label = sprintf($this->language->get('text_transit_line'), $delivery_date->format($this->language->get('date_format_short')));
++			} elseif (!empty($product['is_preorder']) && !empty($product['preorder_delivery_date'])) {
++				$delivery_date = new \DateTime($product['preorder_delivery_date']);
++
++				$delivery_label = sprintf($this->language->get('text_preorder_line'), $delivery_date->format($this->language->get('date_format_short')));
++			} else {
++				$delivery_label = '';
++			}
++
+ 			$data['products'][] = [
+-				'thumb'        => $this->model_tool_image->resize($product['image'], $this->config->get('config_image_cart_width'), $this->config->get('config_image_cart_height')),
+-				'subscription' => $subscription,
+-				'price'        => $price_status ? $product['price_text'] : '',
+-				'total'        => $price_status ? $product['total_text'] : '',
+-				'href'         => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product['product_id'])
++				'thumb'          => $this->model_tool_image->resize($product['image'], $this->config->get('config_image_cart_width'), $this->config->get('config_image_cart_height')),
++				'subscription'   => $subscription,
++				'delivery_label' => $delivery_label,
++				'price'          => $price_status ? $product['price_text'] : '',
++				'total'          => $price_status ? $product['total_text'] : '',
++				'href'           => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product['product_id'])
+ 			] + $product;
+ 		}
+ 
+diff --git a/catalog/language/fa/checkout/cart.php b/catalog/language/fa/checkout/cart.php
+index ca5a140..1dc7a50 100644
+--- a/catalog/language/fa/checkout/cart.php
++++ b/catalog/language/fa/checkout/cart.php
+@@ -21,6 +21,8 @@ $_['text_year']                  = 'سال';
+ $_['text_points']                = 'امتیاز پاداش';
+ $_['text_next']                  = 'می‌خواهید بعد چه‌کار کنید؟';
+ $_['text_next_choice']           = 'اگر کد تخفیف یا امتیاز پاداشی دارید که می‌خواهید استفاده کنید یا می‌خواهید هزینه ارسال را تخمین بزنید، انتخاب کنید.';
++$_['text_preorder_line']         = 'پیش‌سفارش - تحویل تقریبی: %s';
++$_['text_transit_line']          = 'در راه - تحویل تقریبی: %s';
+ 
+ // Column
+ $_['column_image']               = 'تصویر';
+diff --git a/catalog/language/fa/common/cart.php b/catalog/language/fa/common/cart.php
+index f2934db..e5ef288 100644
+--- a/catalog/language/fa/common/cart.php
++++ b/catalog/language/fa/common/cart.php
+@@ -2,18 +2,20 @@
+ // Text
+ $_['text_items']                 = '%s کالا - %s';
+ $_['text_points']                = 'امتیازهای خرید';
+-$_['text_subscription']          = 'Subscription';
+-$_['text_subscription_duration'] = '%s every %d %s(s) for %d payment(s)';
+-$_['text_subscription_cancel']   = '%s every %d %s(s) until canceled';
+-$_['text_day']                   = 'day';
+-$_['text_week']                  = 'week';
+-$_['text_semi_month']            = 'half-month';
+-$_['text_month']                 = 'month';
+-$_['text_year']                  = 'year';
++$_['text_subscription']          = 'اشتراک';
++$_['text_subscription_duration'] = '%s هر %d %s برای %d پرداخت';
++$_['text_subscription_cancel']   = '%s هر %d %s تا زمان لغو';
++$_['text_day']                   = 'روز';
++$_['text_week']                  = 'هفته';
++$_['text_semi_month']            = 'نیم‌ماه';
++$_['text_month']                 = 'ماه';
++$_['text_year']                  = 'سال';
+ $_['text_no_results']            = 'سبد خرید شما خالی است!';
+ $_['text_model']                 = 'مدل';
+ $_['text_cart']                  = 'مشاهده سبد خرید';
+ $_['text_checkout']              = 'تسویه حساب';
++$_['text_preorder_line']         = 'پیش‌سفارش - تحویل تقریبی: %s';
++$_['text_transit_line']          = 'در راه - تحویل تقریبی: %s';
+ 
+ // Error
+-$_['error_product']              = 'Warning: Product could not be found!';
++$_['error_product']              = 'هشدار: محصول یافت نشد!';
+diff --git a/catalog/language/us/checkout/cart.php b/catalog/language/us/checkout/cart.php
+index 4fc53db..345aded 100644
+--- a/catalog/language/us/checkout/cart.php
++++ b/catalog/language/us/checkout/cart.php
+@@ -21,6 +21,8 @@ $_['text_year']                  = 'year';
+ $_['text_points']                = 'Reward Points';
+ $_['text_next']                  = 'What would you like to do next?';
+ $_['text_next_choice']           = 'Choose if you have a discount code or reward points you want to use or would like to estimate your delivery cost.';
++$_['text_preorder_line']         = 'Pre-order - estimated delivery: %s';
++$_['text_transit_line']          = 'On the way - estimated delivery: %s';
+ 
+ // Column
+ $_['column_image']               = 'Image';
+diff --git a/catalog/language/us/common/cart.php b/catalog/language/us/common/cart.php
+index b793753..ecf51ae 100644
+--- a/catalog/language/us/common/cart.php
++++ b/catalog/language/us/common/cart.php
+@@ -14,6 +14,8 @@ $_['text_no_results']            = 'Your shopping cart is empty!';
+ $_['text_model']                 = 'Model';
+ $_['text_cart']                  = 'View Cart';
+ $_['text_checkout']              = 'Checkout';
++$_['text_preorder_line']         = 'Pre-order - estimated delivery: %s';
++$_['text_transit_line']          = 'On the way - estimated delivery: %s';
+ 
+ // Error
+ $_['error_product']              = 'Warning: Product could not be found!';
+diff --git a/catalog/view/template/checkout/cart_list.twig b/catalog/view/template/checkout/cart_list.twig
+index c32a9ed..eab41d4 100644
+--- a/catalog/view/template/checkout/cart_list.twig
++++ b/catalog/view/template/checkout/cart_list.twig
+@@ -29,6 +29,11 @@
+             <td class="text-center">{% if product.thumb %}<a href="{{ product.href }}"><img src="{{ product.thumb }}" alt="{{ product.name }}" title="{{ product.name }}" class="img-thumbnail"/></a>{% endif %}</td>
+             <td class="text-start text-wrap"><a href="{{ product.href }}">{{ product.name }}</a>{% if not product.stock %} <span class="text-danger">***</span>{% endif %}
+               <ul class="list-unstyled mb-0">
++                {% if product.delivery_label %}
++                  <li>
++                    <small class="text-info"> - {{ product.delivery_label }}</small>
++                  </li>
++                {% endif %}
+                 <li>
+                   <small> - {{ text_model }}: {{ product.model }}</small>
+                 </li>
+@@ -53,7 +58,7 @@
+               <form method="post" action="{{ edit }}" data-oc-target="#shopping-cart">
+                 <div class="input-group qty-stepper qty-stepper-auto">
+                   <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
+-                  <input type="text" name="quantity" value="{{ product.quantity }}" min="1"{% if not (product.is_preorder or product.is_transit_order) %} max="{{ product.stock > product.quantity ? product.stock : product.quantity }}"{% endif %} size="1" inputmode="numeric" class="form-control text-center{% if product.minimum %} is-invalid{% endif %}"/>
++                  <input type="text" name="quantity" value="{{ product.quantity }}" min="1"{% if not (product.is_preorder or product.is_transit_order) %} max="{{ product.stock_quantity > product.quantity ? product.stock_quantity : product.quantity }}"{% endif %} size="1" inputmode="numeric" class="form-control text-center{% if product.minimum %} is-invalid{% endif %}"/>
+                   <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
+                   <input type="hidden" name="key" value="{{ product.cart_id }}"/>
+                   <a href="{{ product.remove }}" data-bs-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger"><i class="fa-solid fa-circle-xmark"></i></a>
+diff --git a/catalog/view/template/common/cart.twig b/catalog/view/template/common/cart.twig
+index 2a65ea4..f96ed7e 100644
+--- a/catalog/view/template/common/cart.twig
++++ b/catalog/view/template/common/cart.twig
+@@ -9,6 +9,11 @@
+               <td class="text-center w-25">{% if product.thumb %}<a href="{{ product.href }}"><img src="{{ product.thumb }}" alt="{{ product.name }}" title="{{ product.name }}" class="img-thumbnail"/></a>{% endif %}</td>
+               <td><a href="{{ product.href }}">{{ product.name }}</a>
+                 <ul class="list-unstyled mb-0">
++                  {% if product.delivery_label %}
++                    <li>
++                      <small class="text-info"> - {{ product.delivery_label }}</small>
++                    </li>
++                  {% endif %}
+                   <li>
+                     <small> - {{ text_model }}: {{ product.model }}</small>
+                   </li>
+diff --git a/system/library/cart/cart.php b/system/library/cart/cart.php
+index 9744911..a3d4bfb 100644
+--- a/system/library/cart/cart.php
++++ b/system/library/cart/cart.php
+@@ -209,6 +209,29 @@ class Cart {
+ 						}
+ 					}
+ 
++					// Same total, but excluding sibling rows that are pre-order/
++					// transit overrides (see checkout/cart.php's add(), which
++					// splits a partial-stock request into a normal row plus a
++					// separate pre-order/transit row for the overage). Those
++					// rows are explicitly meant to be fulfilled from something
++					// other than current on-hand stock, so they shouldn't count
++					// against how much of the *current* stock a sibling row is
++					// competing for below. $product_total above (which still
++					// includes them) is kept as-is for the quantity-discount
++					// lookup further down - a pre-ordered/transit unit still
++					// counts toward earning a bulk-quantity discount.
++					$product_stock_total = 0;
++
++					foreach ($cart_query->rows as $cart_2) {
++						if ($cart_2['product_id'] == $cart['product_id']) {
++							$cart_2_override = $cart_2['override'] ? json_decode($cart_2['override'], true) : [];
++
++							if (empty($cart_2_override['is_preorder']) && empty($cart_2_override['is_transit_order'])) {
++								$product_stock_total += $cart_2['quantity'];
++							}
++						}
++					}
++
+ 					$price = $product_query->row['price'] + $option_price;
+ 
+ 					$subscription_data = [];
+@@ -243,7 +266,7 @@ class Cart {
+ 					}
+ 
+ 					// Stock
+-					if (!$product_query->row['quantity'] || ($product_query->row['quantity'] < $product_total)) {
++					if (!$product_query->row['quantity'] || ($product_query->row['quantity'] < $product_stock_total)) {
+ 						$stock_status = false;
+ 					}
+ 
+@@ -323,12 +346,20 @@ class Cart {
+ 	 * $this->cart->add($product_id, $quantity, $option, $subscription_plan_id, $override);
+ 	 */
+ 	public function add(int $product_id, int $quantity = 1, array $option = [], int $subscription_plan_id = 0, array $override = []): void {
+-		$query = $this->db->query("SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "cart` WHERE `store_id` = '" . (int)$this->config->get('config_store_id') . "' AND `customer_id` = '" . (int)$this->customer->getId() . "' AND `session_id` = '" . $this->db->escape($this->session->getId()) . "' AND `product_id` = '" . (int)$product_id . "' AND `subscription_plan_id` = '" . (int)$subscription_plan_id . "' AND `option` = '" . $this->db->escape(json_encode($option)) . "'");
++		// Matching also on `override` (not just product/options/subscription)
++		// is deliberate: it lets two add() calls for the very same
++		// product+options land in two separate cart rows when their override
++		// differs - e.g. a partial-stock add() that splits into a normal
++		// line plus a pre-order/transit line for the overage (see
++		// checkout/cart.php's add()). A repeat call with the *same* override
++		// (the common case - clicking "Add to Cart" again) still correctly
++		// accumulates into the same row, since the override JSON matches.
++		$query = $this->db->query("SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "cart` WHERE `store_id` = '" . (int)$this->config->get('config_store_id') . "' AND `customer_id` = '" . (int)$this->customer->getId() . "' AND `session_id` = '" . $this->db->escape($this->session->getId()) . "' AND `product_id` = '" . (int)$product_id . "' AND `subscription_plan_id` = '" . (int)$subscription_plan_id . "' AND `option` = '" . $this->db->escape(json_encode($option)) . "' AND `override` = '" . $this->db->escape(json_encode($override)) . "'");
+ 
+ 		if (!$query->row['total']) {
+ 			$this->db->query("INSERT INTO `" . DB_PREFIX . "cart` SET `store_id` = '" . (int)$this->config->get('config_store_id') . "', `customer_id` = '" . (int)$this->customer->getId() . "', `session_id` = '" . $this->db->escape($this->session->getId()) . "', `product_id` = '" . (int)$product_id . "', `subscription_plan_id` = '" . (int)$subscription_plan_id . "', `option` = '" . $this->db->escape(json_encode($option)) . "', `quantity` = '" . (int)$quantity . "', `override` = '" . $this->db->escape(json_encode($override)) . "', `date_added` = NOW()");
+ 		} else {
+-			$this->db->query("UPDATE `" . DB_PREFIX . "cart` SET `quantity` = (`quantity` + " . (int)$quantity . ") WHERE `store_id` = '" . (int)$this->config->get('config_store_id') . "' AND `customer_id` = '" . (int)$this->customer->getId() . "' AND `session_id` = '" . $this->db->escape($this->session->getId()) . "' AND `product_id` = '" . (int)$product_id . "' AND `subscription_plan_id` = '" . (int)$subscription_plan_id . "' AND `option` = '" . $this->db->escape(json_encode($option)) . "'");
++			$this->db->query("UPDATE `" . DB_PREFIX . "cart` SET `quantity` = (`quantity` + " . (int)$quantity . ") WHERE `store_id` = '" . (int)$this->config->get('config_store_id') . "' AND `customer_id` = '" . (int)$this->customer->getId() . "' AND `session_id` = '" . $this->db->escape($this->session->getId()) . "' AND `product_id` = '" . (int)$product_id . "' AND `subscription_plan_id` = '" . (int)$subscription_plan_id . "' AND `option` = '" . $this->db->escape(json_encode($option)) . "' AND `override` = '" . $this->db->escape(json_encode($override)) . "'");
+ 		}
+ 
+ 		$this->data = [];

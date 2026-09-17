@@ -71,6 +71,7 @@ class Featured extends \MDcart\System\Engine\Controller {
 					'special'     => $special,
 					'tax'         => $tax,
 					'minimum'     => $product['minimum'] > 0 ? $product['minimum'] : 1,
+					'quantity'    => $product['quantity'],
 					'rating'      => $product['rating'],
 					'href'        => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product['product_id'])
 				];

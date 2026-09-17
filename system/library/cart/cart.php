@@ -209,6 +209,29 @@ class Cart {
 						}
 					}
 
+					// Same total, but excluding sibling rows that are pre-order/
+					// transit overrides (see checkout/cart.php's add(), which
+					// splits a partial-stock request into a normal row plus a
+					// separate pre-order/transit row for the overage). Those
+					// rows are explicitly meant to be fulfilled from something
+					// other than current on-hand stock, so they shouldn't count
+					// against how much of the *current* stock a sibling row is
+					// competing for below. $product_total above (which still
+					// includes them) is kept as-is for the quantity-discount
+					// lookup further down - a pre-ordered/transit unit still
+					// counts toward earning a bulk-quantity discount.
+					$product_stock_total = 0;
+
+					foreach ($cart_query->rows as $cart_2) {
+						if ($cart_2['product_id'] == $cart['product_id']) {
+							$cart_2_override = $cart_2['override'] ? json_decode($cart_2['override'], true) : [];
+
+							if (empty($cart_2_override['is_preorder']) && empty($cart_2_override['is_transit_order'])) {
+								$product_stock_total += $cart_2['quantity'];
+							}
+						}
+					}
+
 					$price = $product_query->row['price'] + $option_price;
 
 					$subscription_data = [];
@@ -243,7 +266,7 @@ class Cart {
 					}
 
 					// Stock
-					if (!$product_query->row['quantity'] || ($product_query->row['quantity'] < $product_total)) {
+					if (!$product_query->row['quantity'] || ($product_query->row['quantity'] < $product_stock_total)) {
 						$stock_status = false;
 					}
 
@@ -323,12 +346,20 @@ class Cart {
 	 * $this->cart->add($product_id, $quantity, $option, $subscription_plan_id, $override);
 	 */
 	public function add(int $product_id, int $quantity = 1, array $option = [], int $subscription_plan_id = 0, array $override = []): void {
-		$query = $this->db->query("SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "cart` WHERE `store_id` = '" . (int)$this->config->get('config_store_id') . "' AND `customer_id` = '" . (int)$this->customer->getId() . "' AND `session_id` = '" . $this->db->escape($this->session->getId()) . "' AND `product_id` = '" . (int)$product_id . "' AND `subscription_plan_id` = '" . (int)$subscription_plan_id . "' AND `option` = '" . $this->db->escape(json_encode($option)) . "'");
+		// Matching also on `override` (not just product/options/subscription)
+		// is deliberate: it lets two add() calls for the very same
+		// product+options land in two separate cart rows when their override
+		// differs - e.g. a partial-stock add() that splits into a normal
+		// line plus a pre-order/transit line for the overage (see
+		// checkout/cart.php's add()). A repeat call with the *same* override
+		// (the common case - clicking "Add to Cart" again) still correctly
+		// accumulates into the same row, since the override JSON matches.
+		$query = $this->db->query("SELECT COUNT(*) AS `total` FROM `" . DB_PREFIX . "cart` WHERE `store_id` = '" . (int)$this->config->get('config_store_id') . "' AND `customer_id` = '" . (int)$this->customer->getId() . "' AND `session_id` = '" . $this->db->escape($this->session->getId()) . "' AND `product_id` = '" . (int)$product_id . "' AND `subscription_plan_id` = '" . (int)$subscription_plan_id . "' AND `option` = '" . $this->db->escape(json_encode($option)) . "' AND `override` = '" . $this->db->escape(json_encode($override)) . "'");
 
 		if (!$query->row['total']) {
 			$this->db->query("INSERT INTO `" . DB_PREFIX . "cart` SET `store_id` = '" . (int)$this->config->get('config_store_id') . "', `customer_id` = '" . (int)$this->customer->getId() . "', `session_id` = '" . $this->db->escape($this->session->getId()) . "', `product_id` = '" . (int)$product_id . "', `subscription_plan_id` = '" . (int)$subscription_plan_id . "', `option` = '" . $this->db->escape(json_encode($option)) . "', `quantity` = '" . (int)$quantity . "', `override` = '" . $this->db->escape(json_encode($override)) . "', `date_added` = NOW()");
 		} else {
-			$this->db->query("UPDATE `" . DB_PREFIX . "cart` SET `quantity` = (`quantity` + " . (int)$quantity . ") WHERE `store_id` = '" . (int)$this->config->get('config_store_id') . "' AND `customer_id` = '" . (int)$this->customer->getId() . "' AND `session_id` = '" . $this->db->escape($this->session->getId()) . "' AND `product_id` = '" . (int)$product_id . "' AND `subscription_plan_id` = '" . (int)$subscription_plan_id . "' AND `option` = '" . $this->db->escape(json_encode($option)) . "'");
+			$this->db->query("UPDATE `" . DB_PREFIX . "cart` SET `quantity` = (`quantity` + " . (int)$quantity . ") WHERE `store_id` = '" . (int)$this->config->get('config_store_id') . "' AND `customer_id` = '" . (int)$this->customer->getId() . "' AND `session_id` = '" . $this->db->escape($this->session->getId()) . "' AND `product_id` = '" . (int)$product_id . "' AND `subscription_plan_id` = '" . (int)$subscription_plan_id . "' AND `option` = '" . $this->db->escape(json_encode($option)) . "' AND `override` = '" . $this->db->escape(json_encode($override)) . "'");
 		}
 
 		$this->data = [];

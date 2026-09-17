@@ -32,7 +32,7 @@
       <div class="button">
         <div class="input-group input-group-sm qty-stepper">
           <button type="button" class="btn qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
-          <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}" inputmode="numeric" class="form-control text-center"/>
+          <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}" max="{{ quantity > minimum ? quantity : minimum }}" inputmode="numeric" class="form-control text-center"/>
           <button type="button" class="btn qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
         </div>
         <button type="submit" class="product-thumb-btn-cart" formaction="{{ cart_add }}" data-bs-toggle="tooltip" title="{{ button_cart }}"><i class="fa-solid fa-shopping-cart"></i></button>

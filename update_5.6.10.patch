@@ -1,0 +1,307 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 4cdd2e7..517e862 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -118,5 +118,10 @@
+     "version": "5.6.9",
+     "fa": "امکان کم/زیاد کردن تعداد (+/-) به «سبد خرید کوچک» بالای سایت (که با کلیک روی آیکون سبد باز می‌شود) هم اضافه شد - قبلاً آنجا فقط عدد نمایش داده می‌شد و قابل تغییر نبود. همچنین در سبد خرید کوچک و در خود صفحه سبد خرید، تغییر تعداد (چه با دکمه‌های + و -، چه با تایپ مستقیم) دیگر نیاز به دکمه جداگانه «بروزرسانی» ندارد - دکمه‌ی رفرش/بروزرسانی حذف شد و به‌محض تغییر تعداد، مبلغ و جمع کل به‌صورت خودکار (با یک تاخیر کوتاه، برای اینکه چند کلیک پشت‌سرهم فقط یک درخواست بفرستد) به‌روز می‌شود.",
+     "en": "Added +/- quantity controls to the header mini-cart dropdown too - previously it only showed the quantity as plain text with no way to change it. Also, in both the mini-cart and the cart page itself, changing quantity (via +/- or by typing directly) no longer needs a separate \"update\" button - that refresh button was removed, and the total now updates on its own a moment after the change (debounced, so several quick +/- clicks only trigger one request)."
++  },
++  {
++    "version": "5.6.10",
++    "fa": "رفع یک باگ: در سبد خرید کوچک بالای سایت، وقتی تعداد کالا با + یا - تغییر می‌کرد، کشوی سبد بسته می‌شد و بعد دوباره با اطلاعات جدید باز می‌شد - این دیگر اتفاق نمی‌افتد، کشو باز می‌ماند. همچنین حالا همه‌جا (کارت محصول، صفحه محصول، سبد خرید کوچک، صفحه سبد خرید) دکمه‌ی + و کیبورد اجازه نمی‌دهند عددی بیشتر از موجودی واقعی کالا انتخاب شود - مگر برای ردیف‌هایی از سبد که «پیش‌خرید» یا «تحویل از محموله در راه» هستند، که همچنان محدودیتی ندارند (چون این‌ها از همان ابتدا برای بیشتر از موجودی فعلی طراحی شده‌اند). این فقط یک کمک بصری است؛ بررسی نهایی موجودی همیشه توسط سرور هم انجام می‌شود.",
++    "en": "Fixed a bug: in the header mini-cart, changing quantity with +/- closed the dropdown and reopened it with fresh data - it now stays open. Also, everywhere a quantity stepper appears (product card, product page, mini-cart, cart page), the +/- buttons and direct typing no longer let you pick more than the product's actual available stock - except for cart rows that are pre-order or transit-delivery lines, which are intentionally unrestricted since those exist specifically to exceed current stock. This is a UI-level convenience only; the server still does the authoritative stock check."
+   }
+ ]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index 1502747..4794f16 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.9
++5.6.10
+diff --git a/catalog/controller/product/product.php b/catalog/controller/product/product.php
+index bad71bf..1b00512 100644
+--- a/catalog/controller/product/product.php
++++ b/catalog/controller/product/product.php
+@@ -298,6 +298,11 @@ class Product extends \MDcart\System\Engine\Controller {
+ 
+ 			$data['stock_alert'] = ($product_info['quantity'] <= 0) ? $this->getStockAlertWidget($product_info['product_id']) : '';
+ 
++			// Raw available-stock number for the quantity stepper's "max"
++			// attribute - deliberately separate from $data['stock'] above,
++			// which can be a status label ("In Stock") rather than a number.
++			$data['stock_quantity'] = (int)$product_info['quantity'];
++
+ 			// Pre-order / backorder - only ever offered once the product is
+ 			// actually out of stock, and only for products the admin has
+ 			// explicitly opted in via Catalog > Products > (edit) > Data >
+diff --git a/catalog/view/javascript/common.js b/catalog/view/javascript/common.js
+index 194ac02..7d134a7 100644
+--- a/catalog/view/javascript/common.js
++++ b/catalog/view/javascript/common.js
+@@ -149,7 +149,7 @@ $(document).on('submit', 'form', function (e) {
+                     var target = $(form).attr('data-oc-target');
+ 
+                     if (url !== undefined && target !== undefined) {
+-                        $(target).load(url);
++                        ocReloadPreservingDropdown(target, url);
+                     }
+                 }
+ 
+@@ -465,24 +465,42 @@ $(document).ready(function() {
+     });
+ });
+ 
+-// Quantity +/- stepper - used on the product card (product/thumb.twig) and
+-// the single product page (product/product.twig). Delegated on document so
+-// it also works for cards loaded later via AJAX (category pagination,
+-// related-product modules, etc). The actual quantity limit (minimum, and
+-// any admin-set per-customer maximum) is still enforced server-side in
+-// checkout/cart.php's add() regardless of what this lets someone click to.
+-$(document).on('click', '.qty-stepper-plus', function(e) {
+-    e.preventDefault();
+-
+-    var input = $(this).closest('.qty-stepper').find('input[name=\'quantity\']');
+-    var min = parseInt(input.attr('min'), 10) || 1;
+-    var value = parseInt(input.val(), 10);
++// Quantity +/- stepper - used on the product card (product/thumb.twig), the
++// single product page (product/product.twig), the mini-cart dropdown and the
++// cart page. Delegated on document so it also works for cards loaded later
++// via AJAX (category pagination, related-product modules, etc). The actual
++// quantity limit is still enforced server-side (checkout/cart.php's add()/
++// edit()) regardless of what this lets someone click to - the "max"
++// attribute here (when present) just mirrors available stock so the UI
++// doesn't invite an order it would reject anyway. A missing/empty "max"
++// means no client-side ceiling (used for pre-order/transit quantities that
++// legitimately exceed on-hand stock).
++function ocQtyStepperClamp(input) {
++    var min = parseInt($(input).attr('min'), 10) || 1;
++    var maxAttr = $(input).attr('max');
++    var max = (maxAttr !== undefined && maxAttr !== '') ? parseInt(maxAttr, 10) : NaN;
++    var value = parseInt($(input).val(), 10);
+ 
+     if (isNaN(value) || value < min) {
+         value = min;
+     }
+ 
+-    input.val(value + 1).trigger('change');
++    if (!isNaN(max) && value > max) {
++        value = max;
++    }
++
++    $(input).val(value);
++
++    return value;
++}
++
++$(document).on('click', '.qty-stepper-plus', function(e) {
++    e.preventDefault();
++
++    var input = $(this).closest('.qty-stepper').find('input[name=\'quantity\']');
++    var value = ocQtyStepperClamp(input) + 1;
++
++    input.val(value).trigger('change');
+ });
+ 
+ $(document).on('click', '.qty-stepper-minus', function(e) {
+@@ -490,13 +508,7 @@ $(document).on('click', '.qty-stepper-minus', function(e) {
+ 
+     var input = $(this).closest('.qty-stepper').find('input[name=\'quantity\']');
+     var min = parseInt(input.attr('min'), 10) || 1;
+-    var value = parseInt(input.val(), 10);
+-
+-    if (isNaN(value)) {
+-        value = min;
+-    }
+-
+-    value -= 1;
++    var value = ocQtyStepperClamp(input) - 1;
+ 
+     if (value < min) {
+         value = min;
+@@ -505,20 +517,21 @@ $(document).on('click', '.qty-stepper-minus', function(e) {
+     input.val(value).trigger('change');
+ });
+ 
+-// Auto-submit quantity changes for steppers marked ".qty-stepper-auto"
+-// (the mini-cart dropdown and the cart page itself) so the total updates
+-// on its own -- no separate "update"/refresh button needed there. Debounced
+-// so a burst of +/- clicks collapses into one request. Relies on the form
+-// having a real action="..." attribute (not just a submit button's
+-// formaction), since there is no real submitter when triggered this way.
+-$(document).on('change', '.qty-stepper-auto input[name=\'quantity\']', function() {
++// Clamp on direct typing too (not just +/- clicks), for every stepper.
++// Auto-submitting steppers (".qty-stepper-auto" - the mini-cart dropdown and
++// the cart page) additionally debounce-submit their form so the total
++// updates on its own, no separate "update"/refresh button needed there.
++// Relies on the form having a real action="..." attribute (not just a
++// submit button's formaction), since there is no real submitter when
++// triggered this way.
++$(document).on('change', '.qty-stepper input[name=\'quantity\']', function() {
+     var input = this;
+-    var min = parseInt($(input).attr('min'), 10) || 1;
+-    var value = parseInt($(input).val(), 10);
++    var stepper = $(input).closest('.qty-stepper');
+ 
+-    if (isNaN(value) || value < min) {
+-        value = min;
+-        $(input).val(value);
++    ocQtyStepperClamp(input);
++
++    if (!stepper.hasClass('qty-stepper-auto')) {
++        return;
+     }
+ 
+     window.clearTimeout($(input).data('qtyStepperTimer'));
+@@ -529,3 +542,27 @@ $(document).on('change', '.qty-stepper-auto input[name=\'quantity\']', function(
+ 
+     $(input).data('qtyStepperTimer', timer);
+ });
++
++// Reload a target element via AJAX the way the generic ajax-form handler
++// (and the cart page's own inline script) already do, but if the target
++// currently contains an open Bootstrap dropdown menu (e.g. the header
++// mini-cart), keep it open across the reload instead of letting it snap
++// shut just because its DOM got replaced.
++function ocReloadPreservingDropdown(target, url, callback) {
++    var $target = $(target);
++    var wasOpen = $target.find('.dropdown-menu.show').length > 0;
++
++    $target.load(url, function() {
++        if (wasOpen && typeof bootstrap !== 'undefined') {
++            var toggleEl = $target.find('[data-bs-toggle=\'dropdown\']').get(0);
++
++            if (toggleEl) {
++                bootstrap.Dropdown.getOrCreateInstance(toggleEl).show();
++            }
++        }
++
++        if (typeof callback === 'function') {
++            callback();
++        }
++    });
++}
+diff --git a/catalog/view/template/checkout/cart.twig b/catalog/view/template/checkout/cart.twig
+index 14ed60f..953822b 100644
+--- a/catalog/view/template/checkout/cart.twig
++++ b/catalog/view/template/checkout/cart.twig
+@@ -51,7 +51,7 @@ $('#shopping-cart').on('submit', '#output-cart form', function(e) {
+                 $('#alert').prepend('<div class="alert alert-success alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + json['success'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
+ 
+                 $('#shopping-cart').load('index.php?route=checkout/cart.list&language={{ language }}', {}, function() {
+-                    $('#cart').load('index.php?route=common/cart.info&language={{ language }}');
++                    ocReloadPreservingDropdown('#cart', 'index.php?route=common/cart.info&language={{ language }}');
+                 });
+             }
+         },
+@@ -97,7 +97,7 @@ $('#shopping-cart').on('click', '.btn-danger', function(e) {
+ });
+ 
+ $('#shopping-cart').observe(function(e) {
+-    $('#cart').load('index.php?route=common/cart.info&language={{ language }}');
++    ocReloadPreservingDropdown('#cart', 'index.php?route=common/cart.info&language={{ language }}');
+ });
+ 
+ $('#cart').on('submit', 'form', function(e) {
+diff --git a/catalog/view/template/checkout/cart_list.twig b/catalog/view/template/checkout/cart_list.twig
+index a4a855b..c32a9ed 100644
+--- a/catalog/view/template/checkout/cart_list.twig
++++ b/catalog/view/template/checkout/cart_list.twig
+@@ -53,7 +53,7 @@
+               <form method="post" action="{{ edit }}" data-oc-target="#shopping-cart">
+                 <div class="input-group qty-stepper qty-stepper-auto">
+                   <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
+-                  <input type="text" name="quantity" value="{{ product.quantity }}" min="1" size="1" inputmode="numeric" class="form-control text-center{% if product.minimum %} is-invalid{% endif %}"/>
++                  <input type="text" name="quantity" value="{{ product.quantity }}" min="1"{% if not (product.is_preorder or product.is_transit_order) %} max="{{ product.stock > product.quantity ? product.stock : product.quantity }}"{% endif %} size="1" inputmode="numeric" class="form-control text-center{% if product.minimum %} is-invalid{% endif %}"/>
+                   <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
+                   <input type="hidden" name="key" value="{{ product.cart_id }}"/>
+                   <a href="{{ product.remove }}" data-bs-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger"><i class="fa-solid fa-circle-xmark"></i></a>
+diff --git a/catalog/view/template/common/cart.twig b/catalog/view/template/common/cart.twig
+index 9a9be89..2a65ea4 100644
+--- a/catalog/view/template/common/cart.twig
++++ b/catalog/view/template/common/cart.twig
+@@ -33,7 +33,7 @@
+                 <form action="{{ edit }}" method="post" data-oc-toggle="ajax" data-oc-load="{{ list }}" data-oc-target="#cart">
+                   <div class="input-group input-group-sm qty-stepper qty-stepper-auto">
+                     <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
+-                    <input type="text" name="quantity" value="{{ product.quantity }}" min="1" size="1" inputmode="numeric" class="form-control text-center"/>
++                    <input type="text" name="quantity" value="{{ product.quantity }}" min="1"{% if not (product.is_preorder or product.is_transit_order) %} max="{{ product.stock > product.quantity ? product.stock : product.quantity }}"{% endif %} size="1" inputmode="numeric" class="form-control text-center"/>
+                     <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
+                   </div>
+                   <input type="hidden" name="key" value="{{ product.cart_id }}">
+diff --git a/catalog/view/template/product/product.twig b/catalog/view/template/product/product.twig
+index 0d059e7..b1345b0 100644
+--- a/catalog/view/template/product/product.twig
++++ b/catalog/view/template/product/product.twig
+@@ -243,7 +243,7 @@
+                 <div class="input-group qty-stepper">
+                   <div class="input-group-text">{{ entry_qty }}</div>
+                   <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
+-                  <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}" size="2" inputmode="numeric" id="input-quantity" class="form-control text-center"/>
++                  <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}"{% if not (transit_available or (out_of_stock and preorder_status)) %} max="{{ stock_quantity > minimum ? stock_quantity : minimum }}"{% endif %} size="2" inputmode="numeric" id="input-quantity" class="form-control text-center"/>
+                   <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
+                   <button type="submit" id="button-cart" class="btn btn-primary btn-lg btn-block">{{ button_cart }}</button>
+                 </div>
+diff --git a/catalog/view/template/product/thumb.twig b/catalog/view/template/product/thumb.twig
+index c16fef5..dd20b37 100644
+--- a/catalog/view/template/product/thumb.twig
++++ b/catalog/view/template/product/thumb.twig
+@@ -32,7 +32,7 @@
+       <div class="button">
+         <div class="input-group input-group-sm qty-stepper">
+           <button type="button" class="btn qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
+-          <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}" inputmode="numeric" class="form-control text-center"/>
++          <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}" max="{{ quantity > minimum ? quantity : minimum }}" inputmode="numeric" class="form-control text-center"/>
+           <button type="button" class="btn qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
+         </div>
+         <button type="submit" class="product-thumb-btn-cart" formaction="{{ cart_add }}" data-bs-toggle="tooltip" title="{{ button_cart }}"><i class="fa-solid fa-shopping-cart"></i></button>
+diff --git a/extension/opencart/catalog/controller/module/bestseller.php b/extension/opencart/catalog/controller/module/bestseller.php
+index 6b78786..372bf1f 100644
+--- a/extension/opencart/catalog/controller/module/bestseller.php
++++ b/extension/opencart/catalog/controller/module/bestseller.php
+@@ -63,6 +63,7 @@ class BestSeller extends \MDcart\System\Engine\Controller {
+ 					'special'     => $special,
+ 					'tax'         => $tax,
+ 					'minimum'     => $result['minimum'] > 0 ? $result['minimum'] : 1,
++					'quantity'    => $result['quantity'],
+ 					'rating'      => $result['rating'],
+ 					'href'        => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $result['product_id'])
+ 				];
+diff --git a/extension/opencart/catalog/controller/module/featured.php b/extension/opencart/catalog/controller/module/featured.php
+index f7e0e8b..dbf3c06 100644
+--- a/extension/opencart/catalog/controller/module/featured.php
++++ b/extension/opencart/catalog/controller/module/featured.php
+@@ -71,6 +71,7 @@ class Featured extends \MDcart\System\Engine\Controller {
+ 					'special'     => $special,
+ 					'tax'         => $tax,
+ 					'minimum'     => $product['minimum'] > 0 ? $product['minimum'] : 1,
++					'quantity'    => $product['quantity'],
+ 					'rating'      => $product['rating'],
+ 					'href'        => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product['product_id'])
+ 				];
+diff --git a/extension/opencart/catalog/controller/module/latest.php b/extension/opencart/catalog/controller/module/latest.php
+index 3ed3765..6063d8a 100644
+--- a/extension/opencart/catalog/controller/module/latest.php
++++ b/extension/opencart/catalog/controller/module/latest.php
+@@ -63,6 +63,7 @@ class Latest extends \MDcart\System\Engine\Controller {
+ 					'special'     => $special,
+ 					'tax'         => $tax,
+ 					'minimum'     => $result['minimum'] > 0 ? $result['minimum'] : 1,
++					'quantity'    => $result['quantity'],
+ 					'rating'      => $result['rating'],
+ 					'href'        => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $result['product_id'])
+ 				];
+diff --git a/extension/opencart/catalog/controller/module/special.php b/extension/opencart/catalog/controller/module/special.php
+index ad578c5..6ea1150 100644
+--- a/extension/opencart/catalog/controller/module/special.php
++++ b/extension/opencart/catalog/controller/module/special.php
+@@ -70,6 +70,7 @@ class Special extends \MDcart\System\Engine\Controller {
+ 					'special'     => $special,
+ 					'tax'         => $tax,
+ 					'minimum'     => $result['minimum'] > 0 ? $result['minimum'] : 1,
++					'quantity'    => $result['quantity'],
+ 					'rating'      => $result['rating'],
+ 					'href'        => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $result['product_id'])
+ 				];

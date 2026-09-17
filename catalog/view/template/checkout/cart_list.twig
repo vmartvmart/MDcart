@@ -29,6 +29,11 @@
             <td class="text-center">{% if product.thumb %}<a href="{{ product.href }}"><img src="{{ product.thumb }}" alt="{{ product.name }}" title="{{ product.name }}" class="img-thumbnail"/></a>{% endif %}</td>
             <td class="text-start text-wrap"><a href="{{ product.href }}">{{ product.name }}</a>{% if not product.stock %} <span class="text-danger">***</span>{% endif %}
               <ul class="list-unstyled mb-0">
+                {% if product.delivery_label %}
+                  <li>
+                    <small class="text-info"> - {{ product.delivery_label }}</small>
+                  </li>
+                {% endif %}
                 <li>
                   <small> - {{ text_model }}: {{ product.model }}</small>
                 </li>
@@ -53,7 +58,7 @@
               <form method="post" action="{{ edit }}" data-oc-target="#shopping-cart">
                 <div class="input-group qty-stepper qty-stepper-auto">
                   <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
-                  <input type="text" name="quantity" value="{{ product.quantity }}" min="1" size="1" inputmode="numeric" class="form-control text-center{% if product.minimum %} is-invalid{% endif %}"/>
+                  <input type="text" name="quantity" value="{{ product.quantity }}" min="1"{% if not (product.is_preorder or product.is_transit_order) %} max="{{ product.stock_quantity > product.quantity ? product.stock_quantity : product.quantity }}"{% endif %} size="1" inputmode="numeric" class="form-control text-center{% if product.minimum %} is-invalid{% endif %}"/>
                   <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
                   <input type="hidden" name="key" value="{{ product.cart_id }}"/>
                   <a href="{{ product.remove }}" data-bs-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger"><i class="fa-solid fa-circle-xmark"></i></a>

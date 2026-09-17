@@ -298,6 +298,11 @@ class Product extends \MDcart\System\Engine\Controller {
 
 			$data['stock_alert'] = ($product_info['quantity'] <= 0) ? $this->getStockAlertWidget($product_info['product_id']) : '';
 
+			// Raw available-stock number for the quantity stepper's "max"
+			// attribute - deliberately separate from $data['stock'] above,
+			// which can be a status label ("In Stock") rather than a number.
+			$data['stock_quantity'] = (int)$product_info['quantity'];
+
 			// Pre-order / backorder - only ever offered once the product is
 			// actually out of stock, and only for products the admin has
 			// explicitly opted in via Catalog > Products > (edit) > Data >

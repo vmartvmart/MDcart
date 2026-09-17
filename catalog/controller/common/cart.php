@@ -74,12 +74,29 @@ class Cart extends \MDcart\System\Engine\Controller {
 				}
 			}
 
+			// Delivery-timing label for split-off pre-order/transit lines (see
+			// checkout/cart.php's add(), which can split a single request
+			// into a normal line plus a separate delayed-delivery line for
+			// whatever exceeded current stock).
+			if (!empty($product['is_transit_order']) && !empty($product['transit_delivery_date'])) {
+				$delivery_date = new \DateTime($product['transit_delivery_date']);
+
+				$delivery_label = sprintf($this->language->get('text_transit_line'), $delivery_date->format($this->language->get('date_format_short')));
+			} elseif (!empty($product['is_preorder']) && !empty($product['preorder_delivery_date'])) {
+				$delivery_date = new \DateTime($product['preorder_delivery_date']);
+
+				$delivery_label = sprintf($this->language->get('text_preorder_line'), $delivery_date->format($this->language->get('date_format_short')));
+			} else {
+				$delivery_label = '';
+			}
+
 			$data['products'][] = [
-				'thumb'        => $this->model_tool_image->resize($product['image'], $this->config->get('config_image_cart_width'), $this->config->get('config_image_cart_height')),
-				'subscription' => $subscription,
-				'price'        => $price_status ? $product['price_text'] : '',
-				'total'        => $price_status ? $product['total_text'] : '',
-				'href'         => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product['product_id'])
+				'thumb'          => $this->model_tool_image->resize($product['image'], $this->config->get('config_image_cart_width'), $this->config->get('config_image_cart_height')),
+				'subscription'   => $subscription,
+				'delivery_label' => $delivery_label,
+				'price'          => $price_status ? $product['price_text'] : '',
+				'total'          => $price_status ? $product['total_text'] : '',
+				'href'           => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product['product_id'])
 			] + $product;
 		}
 

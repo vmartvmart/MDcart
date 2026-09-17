@@ -243,7 +243,7 @@
                 <div class="input-group qty-stepper">
                   <div class="input-group-text">{{ entry_qty }}</div>
                   <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
-                  <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}" size="2" inputmode="numeric" id="input-quantity" class="form-control text-center"/>
+                  <input type="text" name="quantity" value="{{ minimum }}" min="{{ minimum }}"{% if not (transit_available or (out_of_stock and preorder_status)) %} max="{{ stock_quantity > minimum ? stock_quantity : minimum }}"{% endif %} size="2" inputmode="numeric" id="input-quantity" class="form-control text-center"/>
                   <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
                   <button type="submit" id="button-cart" class="btn btn-primary btn-lg btn-block">{{ button_cart }}</button>
                 </div>

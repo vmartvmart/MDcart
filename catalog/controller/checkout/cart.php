@@ -150,15 +150,35 @@ class Cart extends \MDcart\System\Engine\Controller {
 				}
 			}
 
+			// Delivery-timing label for split-off pre-order/transit lines (see
+			// checkout/cart.php's add(), which can split a single request
+			// into a normal line plus a separate delayed-delivery line for
+			// whatever exceeded current stock).
+			if (!empty($product['is_transit_order']) && !empty($product['transit_delivery_date'])) {
+				$delivery_date = new \DateTime($product['transit_delivery_date']);
+
+				$delivery_label = sprintf($this->language->get('text_transit_line'), $delivery_date->format($this->language->get('date_format_short')));
+			} elseif (!empty($product['is_preorder']) && !empty($product['preorder_delivery_date'])) {
+				$delivery_date = new \DateTime($product['preorder_delivery_date']);
+
+				$delivery_label = sprintf($this->language->get('text_preorder_line'), $delivery_date->format($this->language->get('date_format_short')));
+			} else {
+				$delivery_label = '';
+			}
+
 			$data['products'][] = [
-				'thumb'        => $this->model_tool_image->resize($product['image'], $this->config->get('config_image_cart_width'), $this->config->get('config_image_cart_height')),
-				'subscription' => $subscription,
-				'stock'        => $product['stock_status'] ? true : !(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')),
-				'minimum'      => !$product['minimum_status'] ? sprintf($this->language->get('error_minimum'), $product['minimum']) : 0,
-				'price'        => $price_status ? $product['price_text'] : '',
-				'total'        => $price_status ? $product['total_text'] : '',
-				'href'         => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product['product_id']),
-				'remove'       => $this->url->link('checkout/cart.remove', 'language=' . $this->config->get('config_language') . '&key=' . $product['cart_id'])
+				'thumb'          => $this->model_tool_image->resize($product['image'], $this->config->get('config_image_cart_width'), $this->config->get('config_image_cart_height')),
+				'subscription'   => $subscription,
+				'stock'          => $product['stock_status'] ? true : !(!$this->config->get('config_stock_checkout') || $this->config->get('config_stock_warning')),
+				// Raw available-stock number, separate from the boolean
+				// 'stock' above - used as the quantity stepper's "max".
+				'stock_quantity' => (int)$product['stock'],
+				'delivery_label' => $delivery_label,
+				'minimum'        => !$product['minimum_status'] ? sprintf($this->language->get('error_minimum'), $product['minimum']) : 0,
+				'price'          => $price_status ? $product['price_text'] : '',
+				'total'          => $price_status ? $product['total_text'] : '',
+				'href'           => $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product['product_id']),
+				'remove'         => $this->url->link('checkout/cart.remove', 'language=' . $this->config->get('config_language') . '&key=' . $product['cart_id'])
 			] + $product;
 		}
 
@@ -323,26 +343,41 @@ class Cart extends \MDcart\System\Engine\Controller {
 		}
 
 		if (!$json) {
-			$override = [];
-
 			// Sellable while in transit (task #13) / Pre-order-backorder: only
 			// ever offered client-side when the product is actually out of
 			// stock - re-checked here rather than trusted from the client.
-			$out_of_stock = (!$product_info['quantity'] || ($product_info['quantity'] < $quantity));
+			//
+			// When only *some* of the requested quantity is covered by
+			// current stock, the request is split into two cart lines
+			// instead of tagging the whole quantity as delayed: up to
+			// $available units go in as a normal line (ships now), and only
+			// the actual shortfall ($overage_quantity) becomes a separate
+			// pre-order/transit line with its own delivery date. This way a
+			// customer asking for more than is on hand can still see - and
+			// pay for/receive - the part that's genuinely available right
+			// away. Cart::add() keeps these as two distinct rows because it
+			// now also matches on `override` (see its docblock).
+			$available = max(0, (int)$product_info['quantity']);
+			$normal_quantity = min($quantity, $available);
+			$overage_quantity = $quantity - $normal_quantity;
+
 			$want_transit = !empty($this->request->post['transit']);
 			$want_preorder = !empty($this->request->post['preorder']);
 
-			if ($out_of_stock && $want_transit) {
+			$override = [];
+
+			if ($overage_quantity > 0 && $want_transit) {
 				$transit_options = $this->model_catalog_product->getTransitAvailability($product_info['product_id']);
 
 				// Each order line allocates against exactly ONE transfer (see
 				// Model\Catalog\Product::getTransitAvailability() docblock) -
 				// find the soonest-arriving transfer that alone has enough
-				// spare quantity for this whole line.
+				// spare quantity for the overage (the part not covered by
+				// current stock).
 				$matched_transfer = null;
 
 				foreach ($transit_options as $option) {
-					if ($option['available'] >= $quantity) {
+					if ($option['available'] >= $overage_quantity) {
 						$matched_transfer = $option;
 						break;
 					}
@@ -359,7 +394,7 @@ class Cart extends \MDcart\System\Engine\Controller {
 				}
 			}
 
-			if ($out_of_stock && empty($override) && $want_preorder && !empty($product_info['preorder_status'])) {
+			if ($overage_quantity > 0 && empty($override) && $want_preorder && !empty($product_info['preorder_status'])) {
 				$preorder_lead_days = !empty($product_info['preorder_lead_days']) ? (int)$product_info['preorder_lead_days'] : 7;
 
 				// Force stock_status true so Cart::hasStock() (which otherwise
@@ -369,7 +404,25 @@ class Cart extends \MDcart\System\Engine\Controller {
 				$override['preorder_delivery_date'] = date('Y-m-d', strtotime('+' . $preorder_lead_days . ' days'));
 			}
 
-			$this->cart->add($product_info['product_id'], $quantity, $option, $subscription_plan_id, $override);
+			if ($overage_quantity > 0 && empty($override)) {
+				// Neither transit nor pre-order could cover the shortfall
+				// (out of stock, no matching transfer, or pre-order not
+				// enabled/requested) - fall back to the original all-in-one
+				// behavior: the whole requested quantity goes in as a single
+				// ordinary line, same as before this split existed, so
+				// Cart::hasStock() still catches it at checkout the way it
+				// always has.
+				$normal_quantity = $quantity;
+				$overage_quantity = 0;
+			}
+
+			if ($normal_quantity > 0) {
+				$this->cart->add($product_info['product_id'], $normal_quantity, $option, $subscription_plan_id, []);
+			}
+
+			if ($overage_quantity > 0) {
+				$this->cart->add($product_info['product_id'], $overage_quantity, $option, $subscription_plan_id, $override);
+			}
 
 			$json['success'] = sprintf($this->language->get('text_success'), $this->url->link('product/product', 'language=' . $this->config->get('config_language') . '&product_id=' . $product_info['product_id']), $product_info['name'], $this->url->link('checkout/cart', 'language=' . $this->config->get('config_language')));
 

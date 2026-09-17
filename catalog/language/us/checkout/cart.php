@@ -21,6 +21,8 @@ $_['text_year']                  = 'year';
 $_['text_points']                = 'Reward Points';
 $_['text_next']                  = 'What would you like to do next?';
 $_['text_next_choice']           = 'Choose if you have a discount code or reward points you want to use or would like to estimate your delivery cost.';
+$_['text_preorder_line']         = 'Pre-order - estimated delivery: %s';
+$_['text_transit_line']          = 'On the way - estimated delivery: %s';
 
 // Column
 $_['column_image']               = 'Image';

@@ -149,7 +149,7 @@ $(document).on('submit', 'form', function (e) {
                     var target = $(form).attr('data-oc-target');
 
                     if (url !== undefined && target !== undefined) {
-                        $(target).load(url);
+                        ocReloadPreservingDropdown(target, url);
                     }
                 }
 
@@ -465,24 +465,42 @@ $(document).ready(function() {
     });
 });
 
-// Quantity +/- stepper - used on the product card (product/thumb.twig) and
-// the single product page (product/product.twig). Delegated on document so
-// it also works for cards loaded later via AJAX (category pagination,
-// related-product modules, etc). The actual quantity limit (minimum, and
-// any admin-set per-customer maximum) is still enforced server-side in
-// checkout/cart.php's add() regardless of what this lets someone click to.
-$(document).on('click', '.qty-stepper-plus', function(e) {
-    e.preventDefault();
-
-    var input = $(this).closest('.qty-stepper').find('input[name=\'quantity\']');
-    var min = parseInt(input.attr('min'), 10) || 1;
-    var value = parseInt(input.val(), 10);
+// Quantity +/- stepper - used on the product card (product/thumb.twig), the
+// single product page (product/product.twig), the mini-cart dropdown and the
+// cart page. Delegated on document so it also works for cards loaded later
+// via AJAX (category pagination, related-product modules, etc). The actual
+// quantity limit is still enforced server-side (checkout/cart.php's add()/
+// edit()) regardless of what this lets someone click to - the "max"
+// attribute here (when present) just mirrors available stock so the UI
+// doesn't invite an order it would reject anyway. A missing/empty "max"
+// means no client-side ceiling (used for pre-order/transit quantities that
+// legitimately exceed on-hand stock).
+function ocQtyStepperClamp(input) {
+    var min = parseInt($(input).attr('min'), 10) || 1;
+    var maxAttr = $(input).attr('max');
+    var max = (maxAttr !== undefined && maxAttr !== '') ? parseInt(maxAttr, 10) : NaN;
+    var value = parseInt($(input).val(), 10);
 
     if (isNaN(value) || value < min) {
         value = min;
     }
 
-    input.val(value + 1).trigger('change');
+    if (!isNaN(max) && value > max) {
+        value = max;
+    }
+
+    $(input).val(value);
+
+    return value;
+}
+
+$(document).on('click', '.qty-stepper-plus', function(e) {
+    e.preventDefault();
+
+    var input = $(this).closest('.qty-stepper').find('input[name=\'quantity\']');
+    var value = ocQtyStepperClamp(input) + 1;
+
+    input.val(value).trigger('change');
 });
 
 $(document).on('click', '.qty-stepper-minus', function(e) {
@@ -490,13 +508,7 @@ $(document).on('click', '.qty-stepper-minus', function(e) {
 
     var input = $(this).closest('.qty-stepper').find('input[name=\'quantity\']');
     var min = parseInt(input.attr('min'), 10) || 1;
-    var value = parseInt(input.val(), 10);
-
-    if (isNaN(value)) {
-        value = min;
-    }
-
-    value -= 1;
+    var value = ocQtyStepperClamp(input) - 1;
 
     if (value < min) {
         value = min;
@@ -505,20 +517,21 @@ $(document).on('click', '.qty-stepper-minus', function(e) {
     input.val(value).trigger('change');
 });
 
-// Auto-submit quantity changes for steppers marked ".qty-stepper-auto"
-// (the mini-cart dropdown and the cart page itself) so the total updates
-// on its own -- no separate "update"/refresh button needed there. Debounced
-// so a burst of +/- clicks collapses into one request. Relies on the form
-// having a real action="..." attribute (not just a submit button's
-// formaction), since there is no real submitter when triggered this way.
-$(document).on('change', '.qty-stepper-auto input[name=\'quantity\']', function() {
+// Clamp on direct typing too (not just +/- clicks), for every stepper.
+// Auto-submitting steppers (".qty-stepper-auto" - the mini-cart dropdown and
+// the cart page) additionally debounce-submit their form so the total
+// updates on its own, no separate "update"/refresh button needed there.
+// Relies on the form having a real action="..." attribute (not just a
+// submit button's formaction), since there is no real submitter when
+// triggered this way.
+$(document).on('change', '.qty-stepper input[name=\'quantity\']', function() {
     var input = this;
-    var min = parseInt($(input).attr('min'), 10) || 1;
-    var value = parseInt($(input).val(), 10);
+    var stepper = $(input).closest('.qty-stepper');
 
-    if (isNaN(value) || value < min) {
-        value = min;
-        $(input).val(value);
+    ocQtyStepperClamp(input);
+
+    if (!stepper.hasClass('qty-stepper-auto')) {
+        return;
     }
 
     window.clearTimeout($(input).data('qtyStepperTimer'));
@@ -529,3 +542,27 @@ $(document).on('change', '.qty-stepper-auto input[name=\'quantity\']', function(
 
     $(input).data('qtyStepperTimer', timer);
 });
+
+// Reload a target element via AJAX the way the generic ajax-form handler
+// (and the cart page's own inline script) already do, but if the target
+// currently contains an open Bootstrap dropdown menu (e.g. the header
+// mini-cart), keep it open across the reload instead of letting it snap
+// shut just because its DOM got replaced.
+function ocReloadPreservingDropdown(target, url, callback) {
+    var $target = $(target);
+    var wasOpen = $target.find('.dropdown-menu.show').length > 0;
+
+    $target.load(url, function() {
+        if (wasOpen && typeof bootstrap !== 'undefined') {
+            var toggleEl = $target.find('[data-bs-toggle=\'dropdown\']').get(0);
+
+            if (toggleEl) {
+                bootstrap.Dropdown.getOrCreateInstance(toggleEl).show();
+            }
+        }
+
+        if (typeof callback === 'function') {
+            callback();
+        }
+    });
+}
