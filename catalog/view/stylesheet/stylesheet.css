@@ -573,8 +573,11 @@ footer h5 {
   position: absolute;
   z-index: 20;
   pointer-events: none;
-  background-color: rgba(255, 255, 255, 0.35);
-  border: 1px solid rgba(0, 0, 0, 0.35);
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .25), 0 .5rem 1.5rem rgba(0, 0, 0, .35);
+  background-repeat: no-repeat;
+  background-color: #fff;
   box-sizing: border-box;
 }
 
@@ -601,16 +604,3 @@ footer h5 {
   pointer-events: none;
 }
 
-#product-info .product-zoom-pane {
-  display: none;
-  position: absolute;
-  top: 0;
-  z-index: 1000;
-  pointer-events: none;
-  background-repeat: no-repeat;
-  background-color: #fff;
-  border: 1px solid #dee2e6;
-  border-radius: .375rem;
-  box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .175);
-  overflow: hidden;
-}

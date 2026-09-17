@@ -370,14 +370,16 @@ $(document).ready(function() {
     });
 });
 
-// Amazon-style hover-to-zoom (magnifier) on the main product image: a small
-// "lens" rectangle follows the cursor over the (small) displayed image, and
-// a separate pane beside it shows that region using the full-size "popup"
-// image (already generated for the click-to-open lightbox above, reused
-// here as the zoom source with no extra image upload/config needed). Only
-// runs on devices that report a real mouse (hover + fine pointer) — on
-// touch devices this does nothing and the image keeps its normal
-// tap-to-open-lightbox behavior, unchanged.
+// Amazon-style hover-to-zoom (magnifier) on the main product image: while
+// hovering, a round "loupe" follows the cursor and shows, directly on top
+// of the image right where the cursor is, a zoomed-in view of whatever is
+// under it — using the full-size "popup" image (already generated for the
+// click-to-open lightbox above, reused here as the zoom source with no
+// extra image upload/config needed) so it stays sharp at native resolution
+// instead of blurrily upscaling a guessed ratio. Only runs on devices that
+// report a real mouse (hover + fine pointer) — on touch devices this does
+// nothing and the image keeps its normal tap-to-open-lightbox behavior,
+// unchanged.
 $(document).ready(function() {
     var $target = $('#product-zoom-target');
 
@@ -394,7 +396,7 @@ $(document).ready(function() {
 
     // Preload the full-size image so its true pixel dimensions are known
     // (needed to zoom at native resolution instead of blurrily upscaling a
-    // guessed ratio) and so there's no flash of an empty pane on first
+    // guessed ratio) and so there's no flash of an empty loupe on first
     // hover while it's still downloading.
     var naturalWidth = 0;
     var naturalHeight = 0;
@@ -408,40 +410,19 @@ $(document).ready(function() {
     preload.src = zoomSrc;
 
     var $wrap = $target.closest('.image');
-    var $lens = $('<div class="product-zoom-lens"></div>');
-    var $pane = $('<div class="product-zoom-pane"></div>').css('background-image', 'url(' + zoomSrc + ')');
+    var $lens = $('<div class="product-zoom-lens"></div>').css('background-image', 'url(' + zoomSrc + ')');
 
-    $wrap.append($lens).append($pane);
+    $wrap.append($lens);
 
     var zoomFactorX = 0;
     var zoomFactorY = 0;
     var imgRect = null;
-
-    // Flip the pane to whichever side of the image actually has room, so
-    // it's never partly cut off the edge of the screen — recomputed every
-    // time hovering starts, since the viewport/layout can change between
-    // hovers (window resize, orientation change, etc.).
-    function positionPane() {
-        var wrapRect = $wrap[0].getBoundingClientRect();
-        var paneWidth = imgRect.width;
-        var spaceEnd = window.innerWidth - wrapRect.right;
-        var spaceStart = wrapRect.left;
-        var showAtEnd = spaceEnd >= paneWidth + 16 || spaceEnd >= spaceStart;
-
-        $pane.css({
-            width: imgRect.width + 'px',
-            height: imgRect.height + 'px',
-            insetInlineStart: showAtEnd ? '100%' : 'auto',
-            insetInlineEnd: showAtEnd ? 'auto' : '100%',
-            marginInlineStart: showAtEnd ? '12px' : 0,
-            marginInlineEnd: showAtEnd ? 0 : '12px'
-        });
-    }
+    var lensSize = 0;
 
     $target.on('mouseenter', function() {
         if (!naturalWidth || !naturalHeight) {
             // Full-size image hasn't finished loading yet - skip this
-            // hover rather than show a broken/empty zoom pane.
+            // hover rather than show a broken/empty loupe.
             return;
         }
 
@@ -449,39 +430,45 @@ $(document).ready(function() {
         zoomFactorX = naturalWidth / imgRect.width;
         zoomFactorY = naturalHeight / imgRect.height;
 
-        positionPane();
+        // Loupe diameter: a comfortable fraction of the image's own size,
+        // kept within sane bounds (and never bigger than the image itself)
+        // so it looks right on both small and large product photos.
+        lensSize = Math.max(90, Math.min(220, Math.min(imgRect.width, imgRect.height) * 0.4));
+        lensSize = Math.min(lensSize, imgRect.width, imgRect.height);
 
-        $pane.css('background-size', naturalWidth + 'px ' + naturalHeight + 'px');
         $lens.css({
-            width: (imgRect.width / zoomFactorX) + 'px',
-            height: (imgRect.height / zoomFactorY) + 'px'
+            width: lensSize + 'px',
+            height: lensSize + 'px',
+            backgroundSize: naturalWidth + 'px ' + naturalHeight + 'px'
         });
 
-        $lens.add($pane).show();
+        $lens.show();
+        $target.css('cursor', 'none');
     });
 
     $target.on('mousemove', function(e) {
-        if (!imgRect) {
+        if (!imgRect || !lensSize) {
             return;
         }
-
-        var lensWidth = $lens.outerWidth();
-        var lensHeight = $lens.outerHeight();
 
         var x = Math.max(0, Math.min(e.clientX - imgRect.left, imgRect.width));
         var y = Math.max(0, Math.min(e.clientY - imgRect.top, imgRect.height));
 
-        var lensX = Math.max(0, Math.min(x - lensWidth / 2, imgRect.width - lensWidth));
-        var lensY = Math.max(0, Math.min(y - lensHeight / 2, imgRect.height - lensHeight));
+        var lensX = Math.max(0, Math.min(x - lensSize / 2, imgRect.width - lensSize));
+        var lensY = Math.max(0, Math.min(y - lensSize / 2, imgRect.height - lensSize));
 
-        $lens.css({ left: lensX + 'px', top: lensY + 'px' });
-
-        $pane.css('background-position', (-(lensX * zoomFactorX)) + 'px ' + (-(lensY * zoomFactorY)) + 'px');
+        $lens.css({
+            left: lensX + 'px',
+            top: lensY + 'px',
+            backgroundPosition: (-(lensX * zoomFactorX)) + 'px ' + (-(lensY * zoomFactorY)) + 'px'
+        });
     });
 
     $target.on('mouseleave', function() {
-        $lens.add($pane).hide();
+        $lens.hide();
+        $target.css('cursor', '');
         imgRect = null;
+        lensSize = 0;
     });
 });
 //--></script>
