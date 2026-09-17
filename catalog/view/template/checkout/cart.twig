@@ -28,7 +28,7 @@ $('#shopping-cart').on('submit', '#output-cart form', function(e) {
     }
 
     $.ajax({
-        url: $(button).attr('formaction'),
+        url: $(button).attr('formaction') || $(element).attr('action'),
         type: 'post',
         data: $(element).serialize(),
         dataType: 'json',

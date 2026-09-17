@@ -482,7 +482,7 @@ $(document).on('click', '.qty-stepper-plus', function(e) {
         value = min;
     }
 
-    input.val(value + 1);
+    input.val(value + 1).trigger('change');
 });
 
 $(document).on('click', '.qty-stepper-minus', function(e) {
@@ -502,5 +502,30 @@ $(document).on('click', '.qty-stepper-minus', function(e) {
         value = min;
     }
 
-    input.val(value);
+    input.val(value).trigger('change');
+});
+
+// Auto-submit quantity changes for steppers marked ".qty-stepper-auto"
+// (the mini-cart dropdown and the cart page itself) so the total updates
+// on its own -- no separate "update"/refresh button needed there. Debounced
+// so a burst of +/- clicks collapses into one request. Relies on the form
+// having a real action="..." attribute (not just a submit button's
+// formaction), since there is no real submitter when triggered this way.
+$(document).on('change', '.qty-stepper-auto input[name=\'quantity\']', function() {
+    var input = this;
+    var min = parseInt($(input).attr('min'), 10) || 1;
+    var value = parseInt($(input).val(), 10);
+
+    if (isNaN(value) || value < min) {
+        value = min;
+        $(input).val(value);
+    }
+
+    window.clearTimeout($(input).data('qtyStepperTimer'));
+
+    var timer = window.setTimeout(function() {
+        $(input).closest('form').trigger('submit');
+    }, 400);
+
+    $(input).data('qtyStepperTimer', timer);
 });

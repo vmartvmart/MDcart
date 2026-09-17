@@ -29,7 +29,16 @@
                   {% endif %}
                 </ul>
               </td>
-              <td class="text-end text-nowrap">x {{ product.quantity }}</td>
+              <td class="text-nowrap">
+                <form action="{{ edit }}" method="post" data-oc-toggle="ajax" data-oc-load="{{ list }}" data-oc-target="#cart">
+                  <div class="input-group input-group-sm qty-stepper qty-stepper-auto">
+                    <button type="button" class="btn btn-light qty-stepper-minus" tabindex="-1"><i class="fa-solid fa-minus"></i></button>
+                    <input type="text" name="quantity" value="{{ product.quantity }}" min="1" size="1" inputmode="numeric" class="form-control text-center"/>
+                    <button type="button" class="btn btn-light qty-stepper-plus" tabindex="-1"><i class="fa-solid fa-plus"></i></button>
+                  </div>
+                  <input type="hidden" name="key" value="{{ product.cart_id }}">
+                </form>
+              </td>
               <td class="text-end">{{ product.total }}</td>
               <td class="text-end">
                 <form action="{{ remove }}" method="post" data-oc-toggle="ajax" data-oc-load="{{ list }}" data-oc-target="#cart">

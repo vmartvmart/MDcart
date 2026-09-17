@@ -92,6 +92,7 @@ class Cart extends \MDcart\System\Engine\Controller {
 
 		$data['list'] = $this->url->link('common/cart.info', 'language=' . $this->config->get('config_language'));
 		$data['remove'] = $this->url->link('common/cart.remove', 'language=' . $this->config->get('config_language'));
+		$data['edit'] = $this->url->link('checkout/cart.edit', 'language=' . $this->config->get('config_language'));
 
 		$data['cart'] = $this->url->link('checkout/cart', 'language=' . $this->config->get('config_language'));
 		$data['checkout'] = $this->url->link('checkout/checkout', 'language=' . $this->config->get('config_language'));
