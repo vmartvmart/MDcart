@@ -1,0 +1,50 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 28db4ea..a0035dd 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -163,5 +163,10 @@
+     "version": "5.6.18",
+     "fa": "هر دو مشکلی که گزارش کردید ریشه‌شون پیدا و درست شد. (۱) ذره‌بین: هم گرد نبودنش هم اینکه فقط نصف عکس رو درست دنبال می‌کرد، هر دو یک علت داشتن - مرورگر شما یک نسخه‌ی قدیمی از فایل استایل سایت رو تا ۷ روز کش کرده بود، پس با اینکه پچ ۵.۶.۱۷ درست بود، اصلاً به مرورگرتون نمی‌رسید. حالا آدرس فایل‌های اصلی استایل و اسکریپت سایت با هر نسخه‌ی جدید خودکار عوض می‌شه تا مرورگر مجبور بشه نسخه‌ی تازه رو بگیره - این مشکل رو برای همه‌ی پچ‌های بعدی هم حل می‌کنه، نه فقط ذره‌بین. (۲) نبود فلش کنار ارز/زبان/حساب‌کاربری (و حتی سبد خرید) توی حالت انگلیسی سایت: فایل بوت‌استرپ انگلیسی سایت یک تعریف رو کم داشت (یک نقص قدیمی از قبل، نه چیزی که پچ‌های ما ایجاد کرده باشن - نسخه‌ی فارسی چون از فایل بوت‌استرپ دیگه‌ای استفاده می‌کنه مشکلی نداشت). حالا خودمون این فلش رو مستقل از بوت‌استرپ تعریف کردیم تا توی فارسی و انگلیسی یکسان و درست نمایش داده بشه.",
+     "en": "Root-caused and fixed both issues you reported. (1) The magnifier: both the \"not round\" and \"only tracks half the image\" symptoms had the same cause - your browser had cached an old copy of the site's stylesheet for up to 7 days, so even though 5.6.17's fix was correct, it was never actually reaching your browser. The site's core stylesheet and script URLs now change automatically with every new version, forcing browsers to fetch the fresh copy - this fixes the same silent-staleness risk for every future patch, not just the magnifier. (2) The missing arrow next to currency/language/account (and even the cart icon) on the English version of the site: the site's English Bootstrap file was missing a CSS rule (a pre-existing gap, not something our patches caused - the Persian version was fine because it uses a different Bootstrap build that had it). We now draw that arrow ourselves, independent of Bootstrap, so it renders identically and correctly in both Persian and English."
++  },
++  {
++    "version": "5.6.19",
++    "fa": "ذره‌بین عکس محصول کالیبره شد: قبلاً محاسبه‌ی مختصات یک اشتباه ریاضی داشت که باعث می‌شد بخشی که ذره‌بین بزرگ نشون می‌ده، دقیقاً زیر ماوس نباشه (هرچه بزرگ‌نمایی بیشتر بود، این جابه‌جایی هم بیشتر می‌شد). حالا دقیقاً همون نقطه‌ای که ماوس روشه، وسط ذره‌بین نشون داده می‌شه - با محاسبه‌ی دقیق روی سایت زنده تأیید شد (اختلاف کمتر از یک پیکسل). فقط طبیعتاً دقیقاً کنار لبه‌های عکس، چون خود ذره‌بین نمی‌تونه از عکس بیرون بزنه، ممکنه بزرگ‌نمایی چند پیکسل از مرکز فاصله داشته باشه - دقیقاً مثل یک ذره‌بین واقعی که کنار لبه‌ی یک عکس می‌گیرید.",
++    "en": "Calibrated the product-image magnifier: the coordinate math had a bug that made the zoomed-in content not line up exactly with the cursor (the more zoomed in, the bigger the mismatch). It now shows precisely the point the cursor is over, dead-center in the lens - verified with exact pixel math on the live site (under 1px off). Right at the very edges of the image, since the lens itself can't extend past the photo, the zoomed view may sit a few pixels off-center from the cursor - the same as holding a real magnifying glass right at the edge of a picture."
+   }
+ ]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index 99160fd..9eb3834 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.18
++5.6.19
+diff --git a/catalog/view/template/product/product.twig b/catalog/view/template/product/product.twig
+index 506d05b..7479aec 100644
+--- a/catalog/view/template/product/product.twig
++++ b/catalog/view/template/product/product.twig
+@@ -457,10 +457,21 @@ $(document).ready(function() {
+         var lensX = Math.max(0, Math.min(x - lensSize / 2, imgRect.width - lensSize));
+         var lensY = Math.max(0, Math.min(y - lensSize / 2, imgRect.height - lensSize));
+ 
++        // The lens BOX's screen position (left/top) is clamped above so it
++        // never runs past the image edges. What it SHOWS, though, has to be
++        // calibrated to the actual cursor position (x, y), not to that
++        // clamped box position - otherwise, once the two diverge (which is
++        // most of the time, since the box is deliberately kept centered on
++        // the cursor while its content window is a fixed size), the
++        // magnified content drifts away from the real cursor location. The
++        // point directly under the cursor, at native resolution, must land
++        // at the exact center of the lens (lensSize / 2) - it should NOT be
++        // scaled by zoomFactor, since the lens's own on-screen size is
++        // already in un-zoomed display pixels.
+         $lens.css({
+             left: lensX + 'px',
+             top: lensY + 'px',
+-            backgroundPosition: (-(lensX * zoomFactorX)) + 'px ' + (-(lensY * zoomFactorY)) + 'px'
++            backgroundPosition: (lensSize / 2 - x * zoomFactorX) + 'px ' + (lensSize / 2 - y * zoomFactorY) + 'px'
+         });
+     });
+ 

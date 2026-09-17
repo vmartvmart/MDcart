@@ -457,10 +457,21 @@ $(document).ready(function() {
         var lensX = Math.max(0, Math.min(x - lensSize / 2, imgRect.width - lensSize));
         var lensY = Math.max(0, Math.min(y - lensSize / 2, imgRect.height - lensSize));
 
+        // The lens BOX's screen position (left/top) is clamped above so it
+        // never runs past the image edges. What it SHOWS, though, has to be
+        // calibrated to the actual cursor position (x, y), not to that
+        // clamped box position - otherwise, once the two diverge (which is
+        // most of the time, since the box is deliberately kept centered on
+        // the cursor while its content window is a fixed size), the
+        // magnified content drifts away from the real cursor location. The
+        // point directly under the cursor, at native resolution, must land
+        // at the exact center of the lens (lensSize / 2) - it should NOT be
+        // scaled by zoomFactor, since the lens's own on-screen size is
+        // already in un-zoomed display pixels.
         $lens.css({
             left: lensX + 'px',
             top: lensY + 'px',
-            backgroundPosition: (-(lensX * zoomFactorX)) + 'px ' + (-(lensY * zoomFactorY)) + 'px'
+            backgroundPosition: (lensSize / 2 - x * zoomFactorX) + 'px ' + (lensSize / 2 - y * zoomFactorY) + 'px'
         });
     });
 
