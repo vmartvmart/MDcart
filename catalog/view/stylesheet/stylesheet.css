@@ -16,6 +16,30 @@ body {
   font-family: 'Vazirmatn', sans-serif;
 }
 
+/* Every Bootstrap dropdown toggle (mini-cart, currency, language, account -
+   anywhere `.dropdown-toggle` is used) is supposed to get its down-arrow
+   caret automatically from Bootstrap's own `.dropdown-toggle::after` CSS.
+   Confirmed live on 2026-09-17: the site's own `bootstrap.css` (loaded for
+   English/LTR pages) is missing that rule entirely - only
+   `bootstrap.rtl.min.css` (loaded for Persian/RTL pages) has it - so every
+   dropdown toggle sitewide silently loses its arrow in English while
+   looking correct in Persian. This isn't something any of our patches
+   introduced; the vendor file itself is incomplete. Rather than patch the
+   271KB vendor CSS (and risk missing whatever else might be incomplete in
+   it), we draw the same caret ourselves here, once, for both directions -
+   logical properties (inline-start/end) mean this doesn't need a separate
+   RTL variant the way Bootstrap's own two builds do. */
+.dropdown-toggle::after {
+  display: inline-block;
+  margin-inline-start: .255em;
+  vertical-align: .255em;
+  content: "";
+  border-top: .3em solid;
+  border-inline-end: .3em solid transparent;
+  border-bottom: 0;
+  border-inline-start: .3em solid transparent;
+}
+
 h1, h2, h3, h4, h5, h6 {
   color: #444;
 }

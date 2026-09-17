@@ -19,7 +19,7 @@
   {% if rtl_stylesheet %}
     <link href="{{ rtl_stylesheet }}" type="text/css" rel="stylesheet"/>
   {% endif %}
-  <script src="catalog/view/javascript/common.js" type="text/javascript"></script>
+  <script src="catalog/view/javascript/common.js?v={{ asset_version }}" type="text/javascript"></script>
   {% if icon %}
     <link rel="icon" href="{{ icon }}" type="image/png">
   {% endif %}

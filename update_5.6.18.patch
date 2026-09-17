@@ -1,0 +1,108 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 35245ae..28db4ea 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -158,5 +158,10 @@
+     "version": "5.6.17",
+     "fa": "حالت «ذره‌بینی» که تو نسخه‌ی قبل اضافه شده بود، طبق گزارش شما اصلاح شد: قبلاً یک پنجره‌ی جدا کنار عکس باز می‌شد که ممکن بود از عرض صفحه بیرون بزنه و دیده نشه. حالا به‌جای اون، خودِ ذره‌بین دقیقاً روی عکس و دور نشونگر ماوس می‌شینه و همون‌جا بخش زیر ماوس رو با کیفیت کامل بزرگ نشون می‌ده - درست مثل یک ذره‌بین واقعی که روی عکس می‌گیرید، بدون هیچ پنجره‌ی اضافه‌ای بیرون از عکس.",
+     "en": "The hover-magnifier added in the previous version was fixed per your report: it used to open a separate panel beside the image that could run off the edge of the screen and go unseen. Now the magnifier itself sits right on the image around the cursor and enlarges whatever is under it there, in full quality - like holding a real magnifying glass over the photo, with no separate window outside the image."
++  },
++  {
++    "version": "5.6.18",
++    "fa": "هر دو مشکلی که گزارش کردید ریشه‌شون پیدا و درست شد. (۱) ذره‌بین: هم گرد نبودنش هم اینکه فقط نصف عکس رو درست دنبال می‌کرد، هر دو یک علت داشتن - مرورگر شما یک نسخه‌ی قدیمی از فایل استایل سایت رو تا ۷ روز کش کرده بود، پس با اینکه پچ ۵.۶.۱۷ درست بود، اصلاً به مرورگرتون نمی‌رسید. حالا آدرس فایل‌های اصلی استایل و اسکریپت سایت با هر نسخه‌ی جدید خودکار عوض می‌شه تا مرورگر مجبور بشه نسخه‌ی تازه رو بگیره - این مشکل رو برای همه‌ی پچ‌های بعدی هم حل می‌کنه، نه فقط ذره‌بین. (۲) نبود فلش کنار ارز/زبان/حساب‌کاربری (و حتی سبد خرید) توی حالت انگلیسی سایت: فایل بوت‌استرپ انگلیسی سایت یک تعریف رو کم داشت (یک نقص قدیمی از قبل، نه چیزی که پچ‌های ما ایجاد کرده باشن - نسخه‌ی فارسی چون از فایل بوت‌استرپ دیگه‌ای استفاده می‌کنه مشکلی نداشت). حالا خودمون این فلش رو مستقل از بوت‌استرپ تعریف کردیم تا توی فارسی و انگلیسی یکسان و درست نمایش داده بشه.",
++    "en": "Root-caused and fixed both issues you reported. (1) The magnifier: both the \"not round\" and \"only tracks half the image\" symptoms had the same cause - your browser had cached an old copy of the site's stylesheet for up to 7 days, so even though 5.6.17's fix was correct, it was never actually reaching your browser. The site's core stylesheet and script URLs now change automatically with every new version, forcing browsers to fetch the fresh copy - this fixes the same silent-staleness risk for every future patch, not just the magnifier. (2) The missing arrow next to currency/language/account (and even the cart icon) on the English version of the site: the site's English Bootstrap file was missing a CSS rule (a pre-existing gap, not something our patches caused - the Persian version was fine because it uses a different Bootstrap build that had it). We now draw that arrow ourselves, independent of Bootstrap, so it renders identically and correctly in both Persian and English."
+   }
+ ]
+\ No newline at end of file
+diff --git a/VERSION b/VERSION
+index 379b69a..99160fd 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.17
++5.6.18
+diff --git a/catalog/controller/common/header.php b/catalog/controller/common/header.php
+index f6afed0..6385e03 100644
+--- a/catalog/controller/common/header.php
++++ b/catalog/controller/common/header.php
+@@ -38,6 +38,21 @@ class Header extends \MDcart\System\Engine\Controller {
+ 		$data['description'] = $this->document->getDescription();
+ 		$data['keywords'] = $this->document->getKeywords();
+ 
++		// Cache-busting suffix for the site's own CSS/JS (not vendor files like
++		// Bootstrap/jQuery, which are already versioned by their filename).
++		// The live host serves stylesheet.css with `Cache-Control: public,
++		// max-age=604800` (confirmed live 2026-09-17), so without a query
++		// string that changes on every release, a visitor's browser (and any
++		// edge/WAF cache in front of the site) can keep serving a week-old
++		// copy of our CSS even right after a new version is deployed - this
++		// caused a real bug where a shipped fix (the product-zoom-lens
++		// magnifier's shape/positioning) silently never reached real users.
++		// Tied to the VERSION file so it changes automatically with every
++		// release; falls back to the OpenCart core VERSION constant if that
++		// file is ever missing, so this never silently no-ops.
++		$version_file = MCART_ROOT . 'VERSION';
++		$data['asset_version'] = is_file($version_file) ? trim((string)file_get_contents($version_file)) : (string)VERSION;
++
+ 		// Hard coding css, so they can be replaced via the event's system.
+ 		// Bootstrap ships a dedicated RTL build. Select it from the language
+ 		// direction so switching the storefront language also switches the layout.
+@@ -45,8 +60,8 @@ class Header extends \MDcart\System\Engine\Controller {
+ 			? 'catalog/view/stylesheet/bootstrap.rtl.min.css'
+ 			: 'catalog/view/stylesheet/bootstrap.css';
+ 		$data['icons'] = 'catalog/view/stylesheet/fonts/fontawesome/css/all.min.css';
+-		$data['stylesheet'] = 'catalog/view/stylesheet/stylesheet.css';
+-		$data['rtl_stylesheet'] = $data['direction'] === 'rtl' ? 'catalog/view/stylesheet/rtl.css' : '';
++		$data['stylesheet'] = 'catalog/view/stylesheet/stylesheet.css?v=' . $data['asset_version'];
++		$data['rtl_stylesheet'] = $data['direction'] === 'rtl' ? 'catalog/view/stylesheet/rtl.css?v=' . $data['asset_version'] : '';
+ 
+ 		// Hard coding scripts, so they can be replaced via the event's system.
+ 		$data['jquery'] = 'catalog/view/javascript/jquery/jquery-3.7.1.min.js';
+diff --git a/catalog/view/stylesheet/stylesheet.css b/catalog/view/stylesheet/stylesheet.css
+index c0ff61b..ed75fbd 100644
+--- a/catalog/view/stylesheet/stylesheet.css
++++ b/catalog/view/stylesheet/stylesheet.css
+@@ -16,6 +16,30 @@ body {
+   font-family: 'Vazirmatn', sans-serif;
+ }
+ 
++/* Every Bootstrap dropdown toggle (mini-cart, currency, language, account -
++   anywhere `.dropdown-toggle` is used) is supposed to get its down-arrow
++   caret automatically from Bootstrap's own `.dropdown-toggle::after` CSS.
++   Confirmed live on 2026-09-17: the site's own `bootstrap.css` (loaded for
++   English/LTR pages) is missing that rule entirely - only
++   `bootstrap.rtl.min.css` (loaded for Persian/RTL pages) has it - so every
++   dropdown toggle sitewide silently loses its arrow in English while
++   looking correct in Persian. This isn't something any of our patches
++   introduced; the vendor file itself is incomplete. Rather than patch the
++   271KB vendor CSS (and risk missing whatever else might be incomplete in
++   it), we draw the same caret ourselves here, once, for both directions -
++   logical properties (inline-start/end) mean this doesn't need a separate
++   RTL variant the way Bootstrap's own two builds do. */
++.dropdown-toggle::after {
++  display: inline-block;
++  margin-inline-start: .255em;
++  vertical-align: .255em;
++  content: "";
++  border-top: .3em solid;
++  border-inline-end: .3em solid transparent;
++  border-bottom: 0;
++  border-inline-start: .3em solid transparent;
++}
++
+ h1, h2, h3, h4, h5, h6 {
+   color: #444;
+ }
+diff --git a/catalog/view/template/common/header.twig b/catalog/view/template/common/header.twig
+index 292b405..a161a01 100644
+--- a/catalog/view/template/common/header.twig
++++ b/catalog/view/template/common/header.twig
+@@ -19,7 +19,7 @@
+   {% if rtl_stylesheet %}
+     <link href="{{ rtl_stylesheet }}" type="text/css" rel="stylesheet"/>
+   {% endif %}
+-  <script src="catalog/view/javascript/common.js" type="text/javascript"></script>
++  <script src="catalog/view/javascript/common.js?v={{ asset_version }}" type="text/javascript"></script>
+   {% if icon %}
+     <link rel="icon" href="{{ icon }}" type="image/png">
+   {% endif %}

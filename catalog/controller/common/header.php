@@ -38,6 +38,21 @@ class Header extends \MDcart\System\Engine\Controller {
 		$data['description'] = $this->document->getDescription();
 		$data['keywords'] = $this->document->getKeywords();
 
+		// Cache-busting suffix for the site's own CSS/JS (not vendor files like
+		// Bootstrap/jQuery, which are already versioned by their filename).
+		// The live host serves stylesheet.css with `Cache-Control: public,
+		// max-age=604800` (confirmed live 2026-09-17), so without a query
+		// string that changes on every release, a visitor's browser (and any
+		// edge/WAF cache in front of the site) can keep serving a week-old
+		// copy of our CSS even right after a new version is deployed - this
+		// caused a real bug where a shipped fix (the product-zoom-lens
+		// magnifier's shape/positioning) silently never reached real users.
+		// Tied to the VERSION file so it changes automatically with every
+		// release; falls back to the OpenCart core VERSION constant if that
+		// file is ever missing, so this never silently no-ops.
+		$version_file = MCART_ROOT . 'VERSION';
+		$data['asset_version'] = is_file($version_file) ? trim((string)file_get_contents($version_file)) : (string)VERSION;
+
 		// Hard coding css, so they can be replaced via the event's system.
 		// Bootstrap ships a dedicated RTL build. Select it from the language
 		// direction so switching the storefront language also switches the layout.
@@ -45,8 +60,8 @@ class Header extends \MDcart\System\Engine\Controller {
 			? 'catalog/view/stylesheet/bootstrap.rtl.min.css'
 			: 'catalog/view/stylesheet/bootstrap.css';
 		$data['icons'] = 'catalog/view/stylesheet/fonts/fontawesome/css/all.min.css';
-		$data['stylesheet'] = 'catalog/view/stylesheet/stylesheet.css';
-		$data['rtl_stylesheet'] = $data['direction'] === 'rtl' ? 'catalog/view/stylesheet/rtl.css' : '';
+		$data['stylesheet'] = 'catalog/view/stylesheet/stylesheet.css?v=' . $data['asset_version'];
+		$data['rtl_stylesheet'] = $data['direction'] === 'rtl' ? 'catalog/view/stylesheet/rtl.css?v=' . $data['asset_version'] : '';
 
 		// Hard coding scripts, so they can be replaced via the event's system.
 		$data['jquery'] = 'catalog/view/javascript/jquery/jquery-3.7.1.min.js';
