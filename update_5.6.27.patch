@@ -1,0 +1,1493 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index ce0ea21..22f6bfc 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -203,5 +203,10 @@
+     "version": "5.6.26",
+     "fa": "اندازه‌ی نمادهای اعتماد فوتر ۲ برابر شد (از ۷۲ به ۱۴۴ پیکسل ارتفاع)، طبق درخواست مستقیم.",
+     "en": "Doubled the footer trust-badge image size (72px to 144px height), per direct request."
++  },
++  {
++    "version": "5.6.27",
++    "fa": "دو درگاه پرداخت جدید «آقای پرداخت» و «بیت‌پی» به بسته‌ی درگاه‌های پرداخت ایرانی اضافه شدند (در کنار زرین‌پال، آی‌دی‌پی، پی‌پینگ، سیزپی و کارت‌به‌کارت). پس از این بروزرسانی، به «افزونه‌ها > درگاه‌های پرداخت» بروید و کد پین (آقای پرداخت) یا کلید API (بیت‌پی) خودتان را وارد کنید تا فعال شوند.",
++    "en": "Added two new payment gateways, Aghaye Pardakht and BitPay, to the Iranian Payment Gateways extension package (alongside ZarinPal, IDPay, PayPing, SizPay and card-to-card). After this update, go to Extensions > Payment Gateways and enter your own Pin code (Aghaye Pardakht) or API key (BitPay) to activate them."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index aace0e9..40b7fe9 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.26
++5.6.27
+diff --git a/extension/iranian_gateways/admin/controller/payment/aqayepardakht.php b/extension/iranian_gateways/admin/controller/payment/aqayepardakht.php
+new file mode 100644
+index 0000000..d959eb4
+--- /dev/null
++++ b/extension/iranian_gateways/admin/controller/payment/aqayepardakht.php
+@@ -0,0 +1,103 @@
++<?php
++namespace MDcart\Admin\Controller\Extension\IranianGateways\Payment;
++/**
++ * Class Aqayepardakht
++ *
++ * @package MDcart\Admin\Controller\Extension\IranianGateways\Payment
++ */
++class Aqayepardakht extends \MDcart\System\Engine\Controller {
++	/**
++	 * @var array<string, string>
++	 */
++	private array $error = [];
++
++	/**
++	 * Index
++	 *
++	 * @return void
++	 */
++	public function index(): void {
++		$this->load->language('extension/iranian_gateways/payment/aqayepardakht');
++
++		$this->document->setTitle($this->language->get('heading_title'));
++
++		$data['breadcrumbs'] = [];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_home'),
++			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_extension'),
++			'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment')
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('heading_title'),
++			'href' => $this->url->link('extension/iranian_gateways/payment/aqayepardakht', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['save'] = $this->url->link('extension/iranian_gateways/payment/aqayepardakht.save', 'user_token=' . $this->session->data['user_token']);
++		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment');
++
++		$data['payment_aqayepardakht_pin'] = $this->config->get('payment_aqayepardakht_pin');
++		$data['payment_aqayepardakht_sandbox'] = $this->config->get('payment_aqayepardakht_sandbox');
++
++		// Order Status
++		$data['payment_aqayepardakht_order_status_id'] = (int)$this->config->get('payment_aqayepardakht_order_status_id');
++
++		$this->load->model('localisation/order_status');
++
++		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
++
++		// Geo Zone
++		$data['payment_aqayepardakht_geo_zone_id'] = $this->config->get('payment_aqayepardakht_geo_zone_id');
++
++		$this->load->model('localisation/geo_zone');
++
++		$data['geo_zones'] = $this->model_localisation_geo_zone->getGeoZones();
++
++		$data['payment_aqayepardakht_status'] = $this->config->get('payment_aqayepardakht_status');
++		$data['payment_aqayepardakht_sort_order'] = $this->config->get('payment_aqayepardakht_sort_order');
++
++		$data['callback_url'] = $this->url->link('extension/iranian_gateways/payment/aqayepardakht.callback', '', true);
++
++		$data['header'] = $this->load->controller('common/header');
++		$data['column_left'] = $this->load->controller('common/column_left');
++		$data['footer'] = $this->load->controller('common/footer');
++
++		$this->response->setOutput($this->load->view('extension/iranian_gateways/payment/aqayepardakht', $data));
++	}
++
++	/**
++	 * Save
++	 *
++	 * @return void
++	 */
++	public function save(): void {
++		$this->load->language('extension/iranian_gateways/payment/aqayepardakht');
++
++		$json = [];
++
++		if (!$this->user->hasPermission('modify', 'extension/iranian_gateways/payment/aqayepardakht')) {
++			$json['error']['warning'] = $this->language->get('error_permission');
++		}
++
++		if (empty($this->request->post['payment_aqayepardakht_pin'])) {
++			$json['error']['pin'] = $this->language->get('error_pin');
++		}
++
++		if (!$json) {
++			// Setting
++			$this->load->model('setting/setting');
++
++			$this->model_setting_setting->editSetting('payment_aqayepardakht', $this->request->post);
++
++			$json['success'] = $this->language->get('text_success');
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++}
+diff --git a/extension/iranian_gateways/admin/controller/payment/bitpay.php b/extension/iranian_gateways/admin/controller/payment/bitpay.php
+new file mode 100644
+index 0000000..a1583d0
+--- /dev/null
++++ b/extension/iranian_gateways/admin/controller/payment/bitpay.php
+@@ -0,0 +1,102 @@
++<?php
++namespace MDcart\Admin\Controller\Extension\IranianGateways\Payment;
++/**
++ * Class Bitpay
++ *
++ * @package MDcart\Admin\Controller\Extension\IranianGateways\Payment
++ */
++class Bitpay extends \MDcart\System\Engine\Controller {
++	/**
++	 * @var array<string, string>
++	 */
++	private array $error = [];
++
++	/**
++	 * Index
++	 *
++	 * @return void
++	 */
++	public function index(): void {
++		$this->load->language('extension/iranian_gateways/payment/bitpay');
++
++		$this->document->setTitle($this->language->get('heading_title'));
++
++		$data['breadcrumbs'] = [];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_home'),
++			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_extension'),
++			'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment')
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('heading_title'),
++			'href' => $this->url->link('extension/iranian_gateways/payment/bitpay', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['save'] = $this->url->link('extension/iranian_gateways/payment/bitpay.save', 'user_token=' . $this->session->data['user_token']);
++		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment');
++
++		$data['payment_bitpay_api'] = $this->config->get('payment_bitpay_api');
++
++		// Order Status
++		$data['payment_bitpay_order_status_id'] = (int)$this->config->get('payment_bitpay_order_status_id');
++
++		$this->load->model('localisation/order_status');
++
++		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
++
++		// Geo Zone
++		$data['payment_bitpay_geo_zone_id'] = $this->config->get('payment_bitpay_geo_zone_id');
++
++		$this->load->model('localisation/geo_zone');
++
++		$data['geo_zones'] = $this->model_localisation_geo_zone->getGeoZones();
++
++		$data['payment_bitpay_status'] = $this->config->get('payment_bitpay_status');
++		$data['payment_bitpay_sort_order'] = $this->config->get('payment_bitpay_sort_order');
++
++		$data['callback_url'] = $this->url->link('extension/iranian_gateways/payment/bitpay.callback', '', true);
++
++		$data['header'] = $this->load->controller('common/header');
++		$data['column_left'] = $this->load->controller('common/column_left');
++		$data['footer'] = $this->load->controller('common/footer');
++
++		$this->response->setOutput($this->load->view('extension/iranian_gateways/payment/bitpay', $data));
++	}
++
++	/**
++	 * Save
++	 *
++	 * @return void
++	 */
++	public function save(): void {
++		$this->load->language('extension/iranian_gateways/payment/bitpay');
++
++		$json = [];
++
++		if (!$this->user->hasPermission('modify', 'extension/iranian_gateways/payment/bitpay')) {
++			$json['error']['warning'] = $this->language->get('error_permission');
++		}
++
++		if (empty($this->request->post['payment_bitpay_api'])) {
++			$json['error']['api'] = $this->language->get('error_api');
++		}
++
++		if (!$json) {
++			// Setting
++			$this->load->model('setting/setting');
++
++			$this->model_setting_setting->editSetting('payment_bitpay', $this->request->post);
++
++			$json['success'] = $this->language->get('text_success');
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++}
+diff --git a/extension/iranian_gateways/admin/language/fa/payment/aqayepardakht.php b/extension/iranian_gateways/admin/language/fa/payment/aqayepardakht.php
+new file mode 100644
+index 0000000..3b6fa5f
+--- /dev/null
++++ b/extension/iranian_gateways/admin/language/fa/payment/aqayepardakht.php
+@@ -0,0 +1,27 @@
++<?php
++// Heading
++$_['heading_title']       = 'آقای پرداخت';
++
++// Text
++$_['text_extension']      = 'افزونه‌ها';
++$_['text_success']        = 'موفق: اطلاعات آقای پرداخت با موفقیت ویرایش شد!';
++$_['text_edit']           = 'ویرایش آقای پرداخت';
++$_['text_all_zones']      = 'همه مناطق';
++$_['text_callback_url']   = 'آدرس بازگشت (Callback URL)';
++
++// Entry
++$_['entry_pin']           = 'کد پین (Pin)';
++$_['entry_sandbox']       = 'حالت آزمایشی (Sandbox)';
++$_['entry_order_status']  = 'وضعیت سفارش (پرداخت موفق)';
++$_['entry_geo_zone']      = 'منطقه جغرافیایی';
++$_['entry_status']        = 'وضعیت';
++$_['entry_sort_order']    = 'ترتیب نمایش';
++
++// Help
++$_['help_pin']             = 'کد پین دریافتی از پنل آقای پرداخت (aqayepardakht.ir).';
++$_['help_sandbox']         = 'برای تست از حالت آزمایشی آقای پرداخت استفاده کنید - هیچ مبلغی جابه‌جا نمی‌شود. پیش از فعال‌سازی نهایی خاموش کنید.';
++$_['help_callback_url']    = 'اگر پنل آقای پرداخت آدرس بازگشت (Callback) درخواست کرد، از این آدرس استفاده کنید.';
++
++// Error
++$_['error_permission']    = 'هشدار: شما اجازه ویرایش تنظیمات آقای پرداخت را ندارید!';
++$_['error_pin']            = 'وارد کردن کد پین الزامی است!';
+diff --git a/extension/iranian_gateways/admin/language/fa/payment/bitpay.php b/extension/iranian_gateways/admin/language/fa/payment/bitpay.php
+new file mode 100644
+index 0000000..b3e82ed
+--- /dev/null
++++ b/extension/iranian_gateways/admin/language/fa/payment/bitpay.php
+@@ -0,0 +1,25 @@
++<?php
++// Heading
++$_['heading_title']       = 'بیت‌پی';
++
++// Text
++$_['text_extension']      = 'افزونه‌ها';
++$_['text_success']        = 'موفق: اطلاعات بیت‌پی با موفقیت ویرایش شد!';
++$_['text_edit']           = 'ویرایش بیت‌پی';
++$_['text_all_zones']      = 'همه مناطق';
++$_['text_callback_url']   = 'آدرس بازگشت (Callback URL)';
++
++// Entry
++$_['entry_api']           = 'کلید API';
++$_['entry_order_status']  = 'وضعیت سفارش (پرداخت موفق)';
++$_['entry_geo_zone']      = 'منطقه جغرافیایی';
++$_['entry_status']        = 'وضعیت';
++$_['entry_sort_order']    = 'ترتیب نمایش';
++
++// Help
++$_['help_api']             = 'کلید API دریافتی از پنل بیت‌پی (bitpay.ir).';
++$_['help_callback_url']    = 'اگر پنل بیت‌پی آدرس بازگشت (Redirect) درخواست کرد، از این آدرس استفاده کنید.';
++
++// Error
++$_['error_permission']    = 'هشدار: شما اجازه ویرایش تنظیمات بیت‌پی را ندارید!';
++$_['error_api']            = 'وارد کردن کلید API الزامی است!';
+diff --git a/extension/iranian_gateways/admin/language/us/payment/aqayepardakht.php b/extension/iranian_gateways/admin/language/us/payment/aqayepardakht.php
+new file mode 100644
+index 0000000..72c75d9
+--- /dev/null
++++ b/extension/iranian_gateways/admin/language/us/payment/aqayepardakht.php
+@@ -0,0 +1,27 @@
++<?php
++// Heading
++$_['heading_title']       = 'Aghaye Pardakht';
++
++// Text
++$_['text_extension']      = 'Extensions';
++$_['text_success']        = 'Success: You have modified Aghaye Pardakht details!';
++$_['text_edit']           = 'Edit Aghaye Pardakht';
++$_['text_all_zones']      = 'All Zones';
++$_['text_callback_url']   = 'Callback URL';
++
++// Entry
++$_['entry_pin']           = 'Pin Code';
++$_['entry_sandbox']       = 'Sandbox Mode';
++$_['entry_order_status']  = 'Order Status (Successful Payment)';
++$_['entry_geo_zone']      = 'Geo Zone';
++$_['entry_status']        = 'Status';
++$_['entry_sort_order']    = 'Sort Order';
++
++// Help
++$_['help_pin']             = 'The Pin code from your Aghaye Pardakht panel (aqayepardakht.ir).';
++$_['help_sandbox']         = 'Use Aghaye Pardakht\'s sandbox for testing - no real money changes hands. Turn off before going live.';
++$_['help_callback_url']    = 'If your Aghaye Pardakht panel asks you to set a callback URL, use this address.';
++
++// Error
++$_['error_permission']    = 'Warning: You do not have permission to modify payment Aghaye Pardakht!';
++$_['error_pin']            = 'Pin Code required!';
+diff --git a/extension/iranian_gateways/admin/language/us/payment/bitpay.php b/extension/iranian_gateways/admin/language/us/payment/bitpay.php
+new file mode 100644
+index 0000000..eba066b
+--- /dev/null
++++ b/extension/iranian_gateways/admin/language/us/payment/bitpay.php
+@@ -0,0 +1,25 @@
++<?php
++// Heading
++$_['heading_title']       = 'BitPay';
++
++// Text
++$_['text_extension']      = 'Extensions';
++$_['text_success']        = 'Success: You have modified BitPay details!';
++$_['text_edit']           = 'Edit BitPay';
++$_['text_all_zones']      = 'All Zones';
++$_['text_callback_url']   = 'Callback URL';
++
++// Entry
++$_['entry_api']           = 'API Key';
++$_['entry_order_status']  = 'Order Status (Successful Payment)';
++$_['entry_geo_zone']      = 'Geo Zone';
++$_['entry_status']        = 'Status';
++$_['entry_sort_order']    = 'Sort Order';
++
++// Help
++$_['help_api']             = 'The API Key from your BitPay panel (bitpay.ir).';
++$_['help_callback_url']    = 'If your BitPay panel asks you to set a redirect/callback URL, use this address.';
++
++// Error
++$_['error_permission']    = 'Warning: You do not have permission to modify payment BitPay!';
++$_['error_api']            = 'API Key required!';
+diff --git a/extension/iranian_gateways/admin/view/template/payment/aqayepardakht.twig b/extension/iranian_gateways/admin/view/template/payment/aqayepardakht.twig
+new file mode 100644
+index 0000000..c7433a0
+--- /dev/null
++++ b/extension/iranian_gateways/admin/view/template/payment/aqayepardakht.twig
+@@ -0,0 +1,87 @@
++{{ header }}{{ column_left }}
++<div id="content">
++  <div class="page-header">
++    <div class="container-fluid">
++      <div class="float-end">
++        <button type="submit" form="form-payment" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-save"></i></button>
++        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
++      <h1>{{ heading_title }}</h1>
++      <ol class="breadcrumb">
++        {% for breadcrumb in breadcrumbs %}
++          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
++        {% endfor %}
++      </ol>
++    </div>
++  </div>
++  <div class="container-fluid">
++    <div class="card">
++      <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_edit }}</div>
++      <div class="card-body">
++        <form id="form-payment" action="{{ save }}" method="post" data-oc-toggle="ajax">
++          <div class="row mb-3 required">
++            <label for="input-pin" class="col-sm-2 col-form-label">{{ entry_pin }}</label>
++            <div class="col-sm-10">
++              <input type="text" name="payment_aqayepardakht_pin" value="{{ payment_aqayepardakht_pin }}" id="input-pin" class="form-control"/>
++              <div id="error-pin" class="invalid-feedback"></div>
++              <div class="form-text">{{ help_pin }}</div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label class="col-sm-2 col-form-label">{{ entry_sandbox }}</label>
++            <div class="col-sm-10">
++              <div class="form-check form-switch form-switch-lg">
++                <input type="hidden" name="payment_aqayepardakht_sandbox" value="0"/>
++                <input type="checkbox" name="payment_aqayepardakht_sandbox" value="1" id="input-sandbox" class="form-check-input"{% if payment_aqayepardakht_sandbox %} checked{% endif %}/>
++              </div>
++              <div class="form-text">{{ help_sandbox }}</div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label class="col-sm-2 col-form-label">{{ text_callback_url }}</label>
++            <div class="col-sm-10">
++              <input type="text" value="{{ callback_url }}" class="form-control" readonly="readonly"/>
++              <div class="form-text">{{ help_callback_url }}</div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label for="input-order-status" class="col-sm-2 col-form-label">{{ entry_order_status }}</label>
++            <div class="col-sm-10">
++              <select name="payment_aqayepardakht_order_status_id" id="input-order-status" class="form-select">
++                {% for order_status in order_statuses %}
++                  <option value="{{ order_status.order_status_id }}"{% if order_status.order_status_id == payment_aqayepardakht_order_status_id %} selected{% endif %}>{{ order_status.name }}</option>
++                {% endfor %}
++              </select>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label for="input-geo-zone" class="col-sm-2 col-form-label">{{ entry_geo_zone }}</label>
++            <div class="col-sm-10">
++              <select name="payment_aqayepardakht_geo_zone_id" id="input-geo-zone" class="form-select">
++                <option value="0">{{ text_all_zones }}</option>
++                {% for geo_zone in geo_zones %}
++                  <option value="{{ geo_zone.geo_zone_id }}"{% if geo_zone.geo_zone_id == payment_aqayepardakht_geo_zone_id %} selected{% endif %}>{{ geo_zone.name }}</option>
++                {% endfor %}
++              </select>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label class="col-sm-2 col-form-label">{{ entry_status }}</label>
++            <div class="col-sm-10">
++              <div class="form-check form-switch form-switch-lg">
++                <input type="hidden" name="payment_aqayepardakht_status" value="0"/>
++                <input type="checkbox" name="payment_aqayepardakht_status" value="1" id="input-status" class="form-check-input"{% if payment_aqayepardakht_status %} checked{% endif %}/>
++              </div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label for="input-sort-order" class="col-sm-2 col-form-label">{{ entry_sort_order }}</label>
++            <div class="col-sm-10">
++              <input type="text" name="payment_aqayepardakht_sort_order" value="{{ payment_aqayepardakht_sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control"/>
++            </div>
++          </div>
++        </form>
++      </div>
++    </div>
++  </div>
++</div>
++{{ footer }}
+diff --git a/extension/iranian_gateways/admin/view/template/payment/bitpay.twig b/extension/iranian_gateways/admin/view/template/payment/bitpay.twig
+new file mode 100644
+index 0000000..bb308c9
+--- /dev/null
++++ b/extension/iranian_gateways/admin/view/template/payment/bitpay.twig
+@@ -0,0 +1,77 @@
++{{ header }}{{ column_left }}
++<div id="content">
++  <div class="page-header">
++    <div class="container-fluid">
++      <div class="float-end">
++        <button type="submit" form="form-payment" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-save"></i></button>
++        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
++      <h1>{{ heading_title }}</h1>
++      <ol class="breadcrumb">
++        {% for breadcrumb in breadcrumbs %}
++          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
++        {% endfor %}
++      </ol>
++    </div>
++  </div>
++  <div class="container-fluid">
++    <div class="card">
++      <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_edit }}</div>
++      <div class="card-body">
++        <form id="form-payment" action="{{ save }}" method="post" data-oc-toggle="ajax">
++          <div class="row mb-3 required">
++            <label for="input-api" class="col-sm-2 col-form-label">{{ entry_api }}</label>
++            <div class="col-sm-10">
++              <input type="text" name="payment_bitpay_api" value="{{ payment_bitpay_api }}" id="input-api" class="form-control"/>
++              <div id="error-api" class="invalid-feedback"></div>
++              <div class="form-text">{{ help_api }}</div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label class="col-sm-2 col-form-label">{{ text_callback_url }}</label>
++            <div class="col-sm-10">
++              <input type="text" value="{{ callback_url }}" class="form-control" readonly="readonly"/>
++              <div class="form-text">{{ help_callback_url }}</div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label for="input-order-status" class="col-sm-2 col-form-label">{{ entry_order_status }}</label>
++            <div class="col-sm-10">
++              <select name="payment_bitpay_order_status_id" id="input-order-status" class="form-select">
++                {% for order_status in order_statuses %}
++                  <option value="{{ order_status.order_status_id }}"{% if order_status.order_status_id == payment_bitpay_order_status_id %} selected{% endif %}>{{ order_status.name }}</option>
++                {% endfor %}
++              </select>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label for="input-geo-zone" class="col-sm-2 col-form-label">{{ entry_geo_zone }}</label>
++            <div class="col-sm-10">
++              <select name="payment_bitpay_geo_zone_id" id="input-geo-zone" class="form-select">
++                <option value="0">{{ text_all_zones }}</option>
++                {% for geo_zone in geo_zones %}
++                  <option value="{{ geo_zone.geo_zone_id }}"{% if geo_zone.geo_zone_id == payment_bitpay_geo_zone_id %} selected{% endif %}>{{ geo_zone.name }}</option>
++                {% endfor %}
++              </select>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label class="col-sm-2 col-form-label">{{ entry_status }}</label>
++            <div class="col-sm-10">
++              <div class="form-check form-switch form-switch-lg">
++                <input type="hidden" name="payment_bitpay_status" value="0"/>
++                <input type="checkbox" name="payment_bitpay_status" value="1" id="input-status" class="form-check-input"{% if payment_bitpay_status %} checked{% endif %}/>
++              </div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label for="input-sort-order" class="col-sm-2 col-form-label">{{ entry_sort_order }}</label>
++            <div class="col-sm-10">
++              <input type="text" name="payment_bitpay_sort_order" value="{{ payment_bitpay_sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control"/>
++            </div>
++          </div>
++        </form>
++      </div>
++    </div>
++  </div>
++</div>
++{{ footer }}
+diff --git a/extension/iranian_gateways/catalog/controller/payment/aqayepardakht.php b/extension/iranian_gateways/catalog/controller/payment/aqayepardakht.php
+new file mode 100644
+index 0000000..de8ce01
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/controller/payment/aqayepardakht.php
+@@ -0,0 +1,284 @@
++<?php
++namespace MDcart\Catalog\Controller\Extension\IranianGateways\Payment;
++/**
++ * Class Aqayepardakht
++ *
++ * @package MDcart\Catalog\Controller\Extension\IranianGateways\Payment
++ */
++class Aqayepardakht extends \MDcart\System\Engine\Controller {
++	private const API_CREATE_URL = 'https://panel.aqayepardakht.ir/api/v2/create';
++	private const API_VERIFY_URL = 'https://panel.aqayepardakht.ir/api/v2/verify';
++	private const GATE_URL = 'https://panel.aqayepardakht.ir/startpay/';
++	private const GATE_URL_SANDBOX = 'https://panel.aqayepardakht.ir/startpay/sandbox/';
++
++	/**
++	 * Index
++	 *
++	 * @return string
++	 */
++	public function index(): string {
++		$this->load->language('extension/iranian_gateways/payment/aqayepardakht');
++
++		$data['language'] = $this->config->get('config_language');
++
++		return $this->load->view('extension/iranian_gateways/payment/aqayepardakht', $data);
++	}
++
++	/**
++	 * Confirm
++	 *
++	 * Called by the customer to start the Aghaye Pardakht payment - sends a
++	 * create request and returns the URL to redirect the browser to.
++	 *
++	 * @return void
++	 */
++	public function confirm(): void {
++		$this->load->language('extension/iranian_gateways/payment/aqayepardakht');
++
++		$json = [];
++
++		$order_info = $this->validateOrder($json);
++
++		if (!$json && $order_info) {
++			$amount = $this->getTomanAmount($order_info, $json);
++
++			if (!$json) {
++				$fields = [
++					'pin'      => $this->config->get('payment_aqayepardakht_pin'),
++					'amount'   => $amount,
++					'callback' => str_replace('&amp;', '&', $this->url->link('extension/iranian_gateways/payment/aqayepardakht.callback', '', true))
++				];
++
++				$optional = [
++					'invoice_id'  => (string)$order_info['order_id'],
++					'mobile'      => $order_info['telephone'],
++					'email'       => $order_info['email'],
++					'description' => sprintf($this->language->get('text_order_description'), $order_info['order_id'], $this->config->get('config_name'))
++				];
++
++				foreach ($optional as $key => $value) {
++					if ($value !== null && $value !== '') {
++						$fields[$key] = $value;
++					}
++				}
++
++				[$result, $http_code, $error] = $this->curlPost(self::API_CREATE_URL, $fields);
++
++				if ($error || $http_code != 200 || empty($result['status']) || $result['status'] !== 'success' || empty($result['transid'])) {
++					$json['error'] = $this->formatGatewayError($result);
++				} else {
++					$this->session->data['aqayepardakht_transid'] = $result['transid'];
++
++					$sandbox = (bool)$this->config->get('payment_aqayepardakht_sandbox');
++
++					$gate_url = $sandbox ? self::GATE_URL_SANDBOX : self::GATE_URL;
++
++					$json['redirect'] = $gate_url . $result['transid'];
++				}
++			}
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++
++	/**
++	 * Callback
++	 *
++	 * Aghaye Pardakht sends the customer back here via POST with transid
++	 * and status ("1" for success, "0" for failure) - read both GET and
++	 * POST defensively, matching the pattern used for IDPay in this store.
++	 *
++	 * @return void
++	 */
++	public function callback(): void {
++		$this->load->language('extension/iranian_gateways/payment/aqayepardakht');
++
++		$failure_url = $this->url->link('checkout/failure', 'language=' . $this->config->get('config_language'), true);
++
++		$status = $this->requestParam('status');
++		$transid = $this->requestParam('transid');
++
++		if ($status === null || !$transid) {
++			$this->response->redirect($failure_url);
++
++			return;
++		}
++
++		$json = [];
++
++		$order_info = $this->validateOrder($json);
++
++		if ($json || !$order_info) {
++			$this->response->redirect($failure_url);
++
++			return;
++		}
++
++		if (empty($this->session->data['aqayepardakht_transid']) || (string)$this->session->data['aqayepardakht_transid'] !== $transid) {
++			$this->response->redirect($failure_url);
++
++			return;
++		}
++
++		if ($status !== '1') {
++			unset($this->session->data['aqayepardakht_transid']);
++
++			$this->response->redirect($failure_url);
++
++			return;
++		}
++
++		$amount = $this->getTomanAmount($order_info, $json);
++
++		if ($json) {
++			$this->response->redirect($failure_url);
++
++			return;
++		}
++
++		$fields = [
++			'pin'     => $this->config->get('payment_aqayepardakht_pin'),
++			'amount'  => $amount,
++			'transid' => $transid
++		];
++
++		[$result, $http_code, $error] = $this->curlPost(self::API_VERIFY_URL, $fields);
++
++		if ($error || $http_code != 200 || empty($result['status']) || $result['status'] !== 'success' || (string)($result['code'] ?? '') !== '1') {
++			$this->response->redirect($failure_url);
++
++			return;
++		}
++
++		unset($this->session->data['aqayepardakht_transid']);
++
++		$comment = sprintf($this->language->get('text_track_id'), $transid);
++
++		$this->load->model('checkout/order');
++
++		$this->model_checkout_order->addHistory($this->session->data['order_id'], (int)$this->config->get('payment_aqayepardakht_order_status_id'), $comment, true);
++
++		$this->response->redirect($this->url->link('checkout/success', 'language=' . $this->config->get('config_language'), true));
++	}
++
++	/**
++	 * Read a field from POST first, then GET.
++	 *
++	 * @param string $key
++	 *
++	 * @return string|null
++	 */
++	private function requestParam(string $key): ?string {
++		if (isset($this->request->post[$key]) && $this->request->post[$key] !== '') {
++			return (string)$this->request->post[$key];
++		}
++
++		if (isset($this->request->get[$key]) && $this->request->get[$key] !== '') {
++			return (string)$this->request->get[$key];
++		}
++
++		return null;
++	}
++
++	/**
++	 * @param array<string, mixed> $json
++	 *
++	 * @return array<string, mixed>
++	 */
++	private function validateOrder(array &$json): array {
++		if (!isset($this->session->data['order_id'])) {
++			$json['error'] = $this->language->get('error_order');
++
++			return [];
++		}
++
++		$this->load->model('checkout/order');
++
++		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
++
++		if (!$order_info) {
++			unset($this->session->data['order_id']);
++
++			$json['error'] = $this->language->get('error_order');
++
++			return [];
++		}
++
++		if (!isset($this->session->data['payment_method']) || $this->session->data['payment_method']['code'] != 'aqayepardakht.aqayepardakht') {
++			$json['error'] = $this->language->get('error_payment_method');
++
++			return [];
++		}
++
++		return $order_info;
++	}
++
++	/**
++	 * Orders in this store are always placed in IRR - see
++	 * catalog/controller/checkout/confirm.php. Aghaye Pardakht's API takes
++	 * amounts in Toman (1 Toman = 10 Rial), so the Rial total is converted
++	 * down before it is sent.
++	 *
++	 * @param array<string, mixed> $order_info
++	 * @param array<string, mixed> $json
++	 *
++	 * @return int
++	 */
++	private function getTomanAmount(array $order_info, array &$json): int {
++		if ($order_info['currency_code'] !== 'IRR') {
++			$json['error'] = $this->language->get('error_currency');
++
++			return 0;
++		}
++
++		$rial = (int)round($order_info['total'] * $order_info['currency_value']);
++
++		return (int)round($rial / 10);
++	}
++
++	/**
++	 * @param array<string, mixed>|null $result
++	 *
++	 * @return string
++	 */
++	private function formatGatewayError($result): string {
++		if (is_array($result) && !empty($result['code'])) {
++			return sprintf($this->language->get('error_gateway_code'), $result['code']);
++		}
++
++		return $this->language->get('error_gateway');
++	}
++
++	/**
++	 * POST JSON to Aghaye Pardakht and decode the JSON response.
++	 *
++	 * @param string               $url
++	 * @param array<string, mixed> $fields
++	 *
++	 * @return array{0: array<string, mixed>|null, 1: int, 2: bool}
++	 */
++	private function curlPost(string $url, array $fields): array {
++		$curl = curl_init($url);
++
++		curl_setopt($curl, CURLOPT_POST, true);
++		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($fields));
++		curl_setopt($curl, CURLOPT_HTTPHEADER, [
++			'Content-Type: application/json'
++		]);
++		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
++		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
++		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
++		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
++
++		$response = curl_exec($curl);
++		$error = curl_errno($curl) !== 0;
++		$http_code = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
++
++		curl_close($curl);
++
++		$result = $response !== false ? json_decode($response, true) : null;
++
++		return [$result, $http_code, $error];
++	}
++}
+diff --git a/extension/iranian_gateways/catalog/controller/payment/bitpay.php b/extension/iranian_gateways/catalog/controller/payment/bitpay.php
+new file mode 100644
+index 0000000..3868a68
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/controller/payment/bitpay.php
+@@ -0,0 +1,296 @@
++<?php
++namespace MDcart\Catalog\Controller\Extension\IranianGateways\Payment;
++/**
++ * Class Bitpay
++ *
++ * @package MDcart\Catalog\Controller\Extension\IranianGateways\Payment
++ */
++class Bitpay extends \MDcart\System\Engine\Controller {
++	private const API_SEND_URL = 'https://bitpay.ir/payment/gateway-send';
++	private const API_VERIFY_URL = 'https://bitpay.ir/payment/gateway-result-second';
++	private const GATE_URL_PREFIX = 'https://bitpay.ir/payment/gateway-';
++	private const GATE_URL_SUFFIX = '-get';
++
++	/**
++	 * Index
++	 *
++	 * @return string
++	 */
++	public function index(): string {
++		$this->load->language('extension/iranian_gateways/payment/bitpay');
++
++		$data['language'] = $this->config->get('config_language');
++
++		return $this->load->view('extension/iranian_gateways/payment/bitpay', $data);
++	}
++
++	/**
++	 * Confirm
++	 *
++	 * Called by the customer to start the BitPay payment - sends a purchase
++	 * request and returns the URL to redirect the browser to.
++	 *
++	 * @return void
++	 */
++	public function confirm(): void {
++		$this->load->language('extension/iranian_gateways/payment/bitpay');
++
++		$json = [];
++
++		$order_info = $this->validateOrder($json);
++
++		if (!$json && $order_info) {
++			$amount = $this->getRialAmount($order_info, $json);
++
++			if (!$json) {
++				$fields = [
++					'api'         => $this->config->get('payment_bitpay_api'),
++					'amount'      => $amount,
++					'redirect'    => str_replace('&amp;', '&', $this->url->link('extension/iranian_gateways/payment/bitpay.callback', '', true)),
++					'factorId'    => (string)$order_info['order_id'],
++					'name'        => trim($order_info['firstname'] . ' ' . $order_info['lastname']),
++					'email'       => $order_info['email'],
++					'description' => sprintf($this->language->get('text_order_description'), $order_info['order_id'], $this->config->get('config_name'))
++				];
++
++				[$id_get, $error] = $this->requestIdGet($fields);
++
++				if ($error || $id_get === null) {
++					$json['error'] = $this->language->get('error_gateway');
++				} else {
++					$this->session->data['bitpay_id_get'] = $id_get;
++
++					$json['redirect'] = self::GATE_URL_PREFIX . $id_get . self::GATE_URL_SUFFIX;
++				}
++			}
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++
++	/**
++	 * Callback
++	 *
++	 * BitPay's own site could not be fetched directly during development, so
++	 * this follows the request/response shape documented by well-established
++	 * third-party open-source integrations (cross-checked across two
++	 * independent implementations) - the customer is expected back here
++	 * carrying trans_id and id_get, read from either GET or POST
++	 * defensively, matching the pattern used for IDPay in this store.
++	 *
++	 * @return void
++	 */
++	public function callback(): void {
++		$this->load->language('extension/iranian_gateways/payment/bitpay');
++
++		$failure_url = $this->url->link('checkout/failure', 'language=' . $this->config->get('config_language'), true);
++
++		$trans_id = $this->requestParam('trans_id');
++		$id_get = $this->requestParam('id_get');
++
++		if (!$trans_id || !$id_get) {
++			$this->response->redirect($failure_url);
++
++			return;
++		}
++
++		$json = [];
++
++		$order_info = $this->validateOrder($json);
++
++		if ($json || !$order_info) {
++			$this->response->redirect($failure_url);
++
++			return;
++		}
++
++		if (empty($this->session->data['bitpay_id_get']) || (string)$this->session->data['bitpay_id_get'] !== (string)$id_get) {
++			$this->response->redirect($failure_url);
++
++			return;
++		}
++
++		$fields = [
++			'api'      => $this->config->get('payment_bitpay_api'),
++			'id_get'   => $id_get,
++			'trans_id' => $trans_id,
++			'json'     => 1
++		];
++
++		[$result, $error] = $this->curlPostForm(self::API_VERIFY_URL, $fields);
++
++		$status = $result['status'] ?? null;
++
++		if ($error || ($status != 1 && $status != 11)) {
++			$this->response->redirect($failure_url);
++
++			return;
++		}
++
++		$amount = $this->getRialAmount($order_info, $json);
++
++		if ($json || (isset($result['amount']) && (int)$result['amount'] !== $amount)) {
++			$this->response->redirect($failure_url);
++
++			return;
++		}
++
++		unset($this->session->data['bitpay_id_get']);
++
++		$comment = sprintf($this->language->get('text_track_id'), $trans_id);
++
++		$this->load->model('checkout/order');
++
++		$this->model_checkout_order->addHistory($this->session->data['order_id'], (int)$this->config->get('payment_bitpay_order_status_id'), $comment, true);
++
++		$this->response->redirect($this->url->link('checkout/success', 'language=' . $this->config->get('config_language'), true));
++	}
++
++	/**
++	 * Send the purchase request to BitPay and pull out the id_get value.
++	 * BitPay's gateway-send endpoint has been documented (via third-party
++	 * libraries) as replying with either a bare positive numeric string
++	 * (the id_get itself) or a JSON object containing an "IDGet" field, so
++	 * both shapes are handled defensively.
++	 *
++	 * @param array<string, mixed> $fields
++	 *
++	 * @return array{0: string|null, 1: bool}
++	 */
++	private function requestIdGet(array $fields): array {
++		[$response, $error] = $this->curlPostForm(self::API_SEND_URL, $fields, false);
++
++		if ($error || $response === null) {
++			return [null, true];
++		}
++
++		$response = trim((string)$response);
++
++		if (is_numeric($response) && (int)$response > 0) {
++			return [$response, false];
++		}
++
++		$decoded = json_decode($response, true);
++
++		if (is_array($decoded) && !empty($decoded['IDGet'])) {
++			return [(string)$decoded['IDGet'], false];
++		}
++
++		return [null, true];
++	}
++
++	/**
++	 * Read a field from POST first, then GET.
++	 *
++	 * @param string $key
++	 *
++	 * @return string|null
++	 */
++	private function requestParam(string $key): ?string {
++		if (isset($this->request->post[$key]) && $this->request->post[$key] !== '') {
++			return (string)$this->request->post[$key];
++		}
++
++		if (isset($this->request->get[$key]) && $this->request->get[$key] !== '') {
++			return (string)$this->request->get[$key];
++		}
++
++		return null;
++	}
++
++	/**
++	 * @param array<string, mixed> $json
++	 *
++	 * @return array<string, mixed>
++	 */
++	private function validateOrder(array &$json): array {
++		if (!isset($this->session->data['order_id'])) {
++			$json['error'] = $this->language->get('error_order');
++
++			return [];
++		}
++
++		$this->load->model('checkout/order');
++
++		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
++
++		if (!$order_info) {
++			unset($this->session->data['order_id']);
++
++			$json['error'] = $this->language->get('error_order');
++
++			return [];
++		}
++
++		if (!isset($this->session->data['payment_method']) || $this->session->data['payment_method']['code'] != 'bitpay.bitpay') {
++			$json['error'] = $this->language->get('error_payment_method');
++
++			return [];
++		}
++
++		return $order_info;
++	}
++
++	/**
++	 * Orders in this store are always placed in IRR - see
++	 * catalog/controller/checkout/confirm.php. BitPay's API takes amounts
++	 * in Rial directly, so no conversion is needed here (unlike Aghaye
++	 * Pardakht, which needs Toman).
++	 *
++	 * @param array<string, mixed> $order_info
++	 * @param array<string, mixed> $json
++	 *
++	 * @return int
++	 */
++	private function getRialAmount(array $order_info, array &$json): int {
++		if ($order_info['currency_code'] !== 'IRR') {
++			$json['error'] = $this->language->get('error_currency');
++
++			return 0;
++		}
++
++		return (int)round($order_info['total'] * $order_info['currency_value']);
++	}
++
++	/**
++	 * POST form-urlencoded fields to BitPay. When $decode_json is true the
++	 * response is JSON-decoded before being returned; otherwise the raw
++	 * response body is returned so the caller can inspect its shape itself
++	 * (used by requestIdGet(), whose response may be a bare number rather
++	 * than JSON).
++	 *
++	 * @param string               $url
++	 * @param array<string, mixed> $fields
++	 * @param bool                 $decode_json
++	 *
++	 * @return array{0: mixed, 1: bool}
++	 */
++	private function curlPostForm(string $url, array $fields, bool $decode_json = true): array {
++		$curl = curl_init($url);
++
++		curl_setopt($curl, CURLOPT_POST, true);
++		curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($fields));
++		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
++		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
++		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
++		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
++
++		$response = curl_exec($curl);
++		$error = curl_errno($curl) !== 0;
++
++		curl_close($curl);
++
++		if ($response === false) {
++			return [null, true];
++		}
++
++		if (!$decode_json) {
++			return [$response, $error];
++		}
++
++		$result = json_decode($response, true);
++
++		return [$result, $error || $result === null];
++	}
++}
+diff --git a/extension/iranian_gateways/catalog/language/fa/payment/aqayepardakht.php b/extension/iranian_gateways/catalog/language/fa/payment/aqayepardakht.php
+new file mode 100644
+index 0000000..1675d68
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/language/fa/payment/aqayepardakht.php
+@@ -0,0 +1,15 @@
++<?php
++// Heading
++$_['heading_title']          = 'آقای پرداخت';
++
++// Text
++$_['text_description']       = 'برای تکمیل پرداخت به‌صورت امن به درگاه آقای پرداخت منتقل می‌شوید.';
++$_['text_order_description'] = 'پرداخت سفارش #%s - %s';
++$_['text_track_id']          = 'پرداخت از طریق آقای پرداخت. کد تراکنش: %s';
++
++// Error
++$_['error_order']            = 'سفارش شما یافت نشد!';
++$_['error_payment_method']   = 'روش پرداخت انتخاب نشده است!';
++$_['error_currency']         = 'این سفارش به ریال ثبت نشده و امکان اتصال به آقای پرداخت وجود ندارد!';
++$_['error_gateway']          = 'درخواست پرداخت توسط آقای پرداخت رد شد. لطفاً دوباره تلاش کنید.';
++$_['error_gateway_code']     = 'درخواست پرداخت توسط آقای پرداخت رد شد (کد خطا: %s). لطفاً دوباره تلاش کنید.';
+diff --git a/extension/iranian_gateways/catalog/language/fa/payment/bitpay.php b/extension/iranian_gateways/catalog/language/fa/payment/bitpay.php
+new file mode 100644
+index 0000000..98fcd29
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/language/fa/payment/bitpay.php
+@@ -0,0 +1,14 @@
++<?php
++// Heading
++$_['heading_title']          = 'بیت‌پی';
++
++// Text
++$_['text_description']       = 'برای تکمیل پرداخت به‌صورت امن به درگاه بیت‌پی منتقل می‌شوید.';
++$_['text_order_description'] = 'پرداخت سفارش #%s - %s';
++$_['text_track_id']          = 'پرداخت از طریق بیت‌پی. کد تراکنش: %s';
++
++// Error
++$_['error_order']            = 'سفارش شما یافت نشد!';
++$_['error_payment_method']   = 'روش پرداخت انتخاب نشده است!';
++$_['error_currency']         = 'این سفارش به ریال ثبت نشده و امکان اتصال به بیت‌پی وجود ندارد!';
++$_['error_gateway']          = 'درخواست پرداخت توسط بیت‌پی رد شد. لطفاً دوباره تلاش کنید.';
+diff --git a/extension/iranian_gateways/catalog/language/us/payment/aqayepardakht.php b/extension/iranian_gateways/catalog/language/us/payment/aqayepardakht.php
+new file mode 100644
+index 0000000..b395c7c
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/language/us/payment/aqayepardakht.php
+@@ -0,0 +1,15 @@
++<?php
++// Heading
++$_['heading_title']          = 'Aghaye Pardakht';
++
++// Text
++$_['text_description']       = 'You will be redirected to Aghaye Pardakht to complete your payment securely.';
++$_['text_order_description'] = 'Payment for order #%s - %s';
++$_['text_track_id']          = 'Paid via Aghaye Pardakht. Transaction ID: %s';
++
++// Error
++$_['error_order']            = 'Your order could not be found!';
++$_['error_payment_method']   = 'Payment method not selected!';
++$_['error_currency']         = 'This order is not in Iranian Rial and cannot be sent to Aghaye Pardakht!';
++$_['error_gateway']          = 'Aghaye Pardakht rejected the payment request. Please try again.';
++$_['error_gateway_code']     = 'Aghaye Pardakht rejected the payment request (error code: %s). Please try again.';
+diff --git a/extension/iranian_gateways/catalog/language/us/payment/bitpay.php b/extension/iranian_gateways/catalog/language/us/payment/bitpay.php
+new file mode 100644
+index 0000000..4122618
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/language/us/payment/bitpay.php
+@@ -0,0 +1,14 @@
++<?php
++// Heading
++$_['heading_title']          = 'BitPay';
++
++// Text
++$_['text_description']       = 'You will be redirected to BitPay to complete your payment securely.';
++$_['text_order_description'] = 'Payment for order #%s - %s';
++$_['text_track_id']          = 'Paid via BitPay. Transaction ID: %s';
++
++// Error
++$_['error_order']            = 'Your order could not be found!';
++$_['error_payment_method']   = 'Payment method not selected!';
++$_['error_currency']         = 'This order is not in Iranian Rial and cannot be sent to BitPay!';
++$_['error_gateway']          = 'BitPay rejected the payment request. Please try again.';
+diff --git a/extension/iranian_gateways/catalog/model/payment/aqayepardakht.php b/extension/iranian_gateways/catalog/model/payment/aqayepardakht.php
+new file mode 100644
+index 0000000..6dc4bcb
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/model/payment/aqayepardakht.php
+@@ -0,0 +1,57 @@
++<?php
++namespace MDcart\Catalog\Model\Extension\IranianGateways\Payment;
++/**
++ * Class Aqayepardakht
++ *
++ * Can be called from $this->load->model('extension/iranian_gateways/payment/aqayepardakht');
++ *
++ * @package MDcart\Catalog\Model\Extension\IranianGateways\Payment
++ */
++class Aqayepardakht extends \MDcart\System\Engine\Model {
++	/**
++	 * Get Methods
++	 *
++	 * @param array<string, mixed> $address array of data
++	 *
++	 * @return array<string, mixed>
++	 */
++	public function getMethods(array $address = []): array {
++		$this->load->language('extension/iranian_gateways/payment/aqayepardakht');
++
++		if (!$this->config->get('payment_aqayepardakht_pin')) {
++			return [];
++		}
++
++		if ($this->cart->hasSubscription()) {
++			$status = false;
++		} elseif (!$this->config->get('config_checkout_payment_address')) {
++			$status = true;
++		} elseif (!$this->config->get('payment_aqayepardakht_geo_zone_id')) {
++			$status = true;
++		} else {
++			$this->load->model('localisation/geo_zone');
++
++			$results = $this->model_localisation_geo_zone->getGeoZone((int)$this->config->get('payment_aqayepardakht_geo_zone_id'), (int)$address['country_id'], (int)$address['zone_id']);
++
++			$status = (bool)$results;
++		}
++
++		$method_data = [];
++
++		if ($status) {
++			$option_data['aqayepardakht'] = [
++				'code' => 'aqayepardakht.aqayepardakht',
++				'name' => $this->language->get('heading_title')
++			];
++
++			$method_data = [
++				'code'       => 'aqayepardakht',
++				'name'       => $this->language->get('heading_title'),
++				'option'     => $option_data,
++				'sort_order' => $this->config->get('payment_aqayepardakht_sort_order')
++			];
++		}
++
++		return $method_data;
++	}
++}
+diff --git a/extension/iranian_gateways/catalog/model/payment/bitpay.php b/extension/iranian_gateways/catalog/model/payment/bitpay.php
+new file mode 100644
+index 0000000..aaa251f
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/model/payment/bitpay.php
+@@ -0,0 +1,57 @@
++<?php
++namespace MDcart\Catalog\Model\Extension\IranianGateways\Payment;
++/**
++ * Class Bitpay
++ *
++ * Can be called from $this->load->model('extension/iranian_gateways/payment/bitpay');
++ *
++ * @package MDcart\Catalog\Model\Extension\IranianGateways\Payment
++ */
++class Bitpay extends \MDcart\System\Engine\Model {
++	/**
++	 * Get Methods
++	 *
++	 * @param array<string, mixed> $address array of data
++	 *
++	 * @return array<string, mixed>
++	 */
++	public function getMethods(array $address = []): array {
++		$this->load->language('extension/iranian_gateways/payment/bitpay');
++
++		if (!$this->config->get('payment_bitpay_api')) {
++			return [];
++		}
++
++		if ($this->cart->hasSubscription()) {
++			$status = false;
++		} elseif (!$this->config->get('config_checkout_payment_address')) {
++			$status = true;
++		} elseif (!$this->config->get('payment_bitpay_geo_zone_id')) {
++			$status = true;
++		} else {
++			$this->load->model('localisation/geo_zone');
++
++			$results = $this->model_localisation_geo_zone->getGeoZone((int)$this->config->get('payment_bitpay_geo_zone_id'), (int)$address['country_id'], (int)$address['zone_id']);
++
++			$status = (bool)$results;
++		}
++
++		$method_data = [];
++
++		if ($status) {
++			$option_data['bitpay'] = [
++				'code' => 'bitpay.bitpay',
++				'name' => $this->language->get('heading_title')
++			];
++
++			$method_data = [
++				'code'       => 'bitpay',
++				'name'       => $this->language->get('heading_title'),
++				'option'     => $option_data,
++				'sort_order' => $this->config->get('payment_bitpay_sort_order')
++			];
++		}
++
++		return $method_data;
++	}
++}
+diff --git a/extension/iranian_gateways/catalog/view/template/payment/aqayepardakht.twig b/extension/iranian_gateways/catalog/view/template/payment/aqayepardakht.twig
+new file mode 100644
+index 0000000..8b39c2b
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/view/template/payment/aqayepardakht.twig
+@@ -0,0 +1,36 @@
++<fieldset>
++  <legend>{{ heading_title }}</legend>
++  <p>{{ text_description }}</p>
++  <div class="text-end">
++    <button type="button" id="button-confirm" class="btn btn-primary">{{ button_confirm }}</button>
++  </div>
++</fieldset>
++<script type="text/javascript"><!--
++$('#button-confirm').on('click', function() {
++    var element = this;
++
++    $.ajax({
++        url: 'index.php?route=extension/iranian_gateways/payment/aqayepardakht.confirm&language={{ language }}',
++        type: 'post',
++        dataType: 'json',
++        beforeSend: function() {
++            $(element).button('loading');
++        },
++        complete: function() {
++            $(element).button('reset');
++        },
++        success: function(json) {
++            if (json['error']) {
++                $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + json['error'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
++            }
++
++            if (json['redirect']) {
++                location = json['redirect'];
++            }
++        },
++        error: function(xhr, ajaxOptions, thrownError) {
++            console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
++        }
++    });
++});
++//--></script>
+diff --git a/extension/iranian_gateways/catalog/view/template/payment/bitpay.twig b/extension/iranian_gateways/catalog/view/template/payment/bitpay.twig
+new file mode 100644
+index 0000000..2292bde
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/view/template/payment/bitpay.twig
+@@ -0,0 +1,36 @@
++<fieldset>
++  <legend>{{ heading_title }}</legend>
++  <p>{{ text_description }}</p>
++  <div class="text-end">
++    <button type="button" id="button-confirm" class="btn btn-primary">{{ button_confirm }}</button>
++  </div>
++</fieldset>
++<script type="text/javascript"><!--
++$('#button-confirm').on('click', function() {
++    var element = this;
++
++    $.ajax({
++        url: 'index.php?route=extension/iranian_gateways/payment/bitpay.confirm&language={{ language }}',
++        type: 'post',
++        dataType: 'json',
++        beforeSend: function() {
++            $(element).button('loading');
++        },
++        complete: function() {
++            $(element).button('reset');
++        },
++        success: function(json) {
++            if (json['error']) {
++                $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + json['error'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
++            }
++
++            if (json['redirect']) {
++                location = json['redirect'];
++            }
++        },
++        error: function(xhr, ajaxOptions, thrownError) {
++            console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
++        }
++    });
++});
++//--></script>
+diff --git a/extension/iranian_gateways/install.json b/extension/iranian_gateways/install.json
+index 635b059..a0a6feb 100644
+--- a/extension/iranian_gateways/install.json
++++ b/extension/iranian_gateways/install.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "Iranian Payment Gateways",
+-  "description": "ZarinPal, PayPing, IDPay, SizPay and card-to-card payment methods for Iranian stores.",
++  "description": "ZarinPal, PayPing, IDPay, SizPay, card-to-card, Aghaye Pardakht and BitPay payment methods for Iranian stores.",
+   "version": "1.0",
+   "author": "",
+   "link": ""
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index 1689ceb..ea8e86e 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -748,6 +748,49 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 					$this->db->query("ALTER TABLE `" . DB_PREFIX . "product` ADD COLUMN `max_customer_quantity` int(11) DEFAULT 0 AFTER `minimum`");
+ 				}
+ 			},
++
++			// Aghaye Pardakht (aqayepardakht.ir) and BitPay (bitpay.ir) are two
++			// more gateways added to the existing `iranian_gateways` extension
++			// package - same "grant permission + seed extension row" pattern as
++			// notification_and_payment_extensions above, but only a NEW
++			// migration key (that migration has almost certainly already run on
++			// this install, so its own array literal cannot be edited after the
++			// fact - see runMigrations()'s per-key skip). No new
++			// `extension_install` row is needed: the `iranian_gateways` package
++			// row already exists from notification_and_payment_extensions, and
++			// both new gateways ship inside that same package directory.
++			'aqayepardakht_bitpay_extensions' => function (): void {
++				$this->grantAdministratorPermissions([
++					'extension/iranian_gateways/payment/aqayepardakht',
++					'extension/iranian_gateways/payment/bitpay',
++				]);
++
++				$extensions = [
++					['iranian_gateways', 'payment', 'aqayepardakht'],
++					['iranian_gateways', 'payment', 'bitpay'],
++				];
++
++				foreach ($extensions as [$extension, $type, $code]) {
++					$query = $this->db->query(
++						"SELECT `extension_id` FROM `" . DB_PREFIX . "extension`"
++						. " WHERE `extension` = '" . $this->db->escape($extension) . "' AND `type` = '" . $this->db->escape($type) . "' AND `code` = '" . $this->db->escape($code) . "'"
++					);
++
++					if (!$query->num_rows) {
++						$this->db->query(
++							"INSERT INTO `" . DB_PREFIX . "extension` SET `extension` = '" . $this->db->escape($extension) . "', `type` = '" . $this->db->escape($type) . "', `code` = '" . $this->db->escape($code) . "'"
++						);
++					}
++				}
++
++				// Refresh the package's Extensions > Installer description so
++				// it lists all seven gateways now, not just the original five -
++				// this install's row was already inserted by
++				// notification_and_payment_extensions above with the old text.
++				$this->db->query(
++					"UPDATE `" . DB_PREFIX . "extension_install` SET `description` = '" . $this->db->escape('ZarinPal, PayPing, IDPay, SizPay, card-to-card, Aghaye Pardakht and BitPay payment methods for Iranian stores.') . "' WHERE `code` = 'iranian_gateways'"
++				);
++			},
+ 		];
+ 	}
+ 
