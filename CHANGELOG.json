@@ -188,5 +188,10 @@
     "version": "5.6.23",
     "fa": "یک راه ساده‌تر برای گذاشتن نمادها و مجوزهای اعتماد (اینماد، مجوز کسب‌وکار مجازی، لوگوی درگاه‌های پرداخت) در فوتر سایت اضافه شد: حالا از منوی «تنظیمات > عمومی» یک بخش جدید به اسم «نمادها و مجوزهای اعتماد (فوتر سایت)» هست که فقط یک کادر متنی داره - کد اصلی‌ای که هر کدوم از این نمادها بهتون می‌دن (نه عکسش، بلکه همون کد لینک‌دار) رو اونجا کپی/پیست می‌کنید و ذخیره می‌کنید، همین. نیازی به نصب افزونه یا رفتن توی چیدمان‌ها نیست. (پچ 5.6.21 هم یه راه دیگه برای این کار اضافه کرده بود از طریق ماژول‌ها/چیدمان‌ها که هنوز کار می‌کنه، ولی این روش خیلی ساده‌تره.)",
     "en": "Added a simpler way to place trust seals and license badges (Enamad, business license, payment gateway logos) in the site footer: Settings > General now has a new \"Trust Badges & License Seals (Footer)\" field - a single text box where you paste the exact code each badge issuer gives you (not a picture of it, the real linked code) and save. No extension to install, no layout editing needed. (5.6.21 added an alternative way to do this via modules/layouts, which still works, but this is much simpler.)"
+  },
+  {
+    "version": "5.6.24",
+    "fa": "رفع سه اشکال ظاهری در نمایش نمادهای اعتماد/مجوز فوتر (که در ۵.۶.۲۳ اضافه شد): ۱) حذف فاصله‌ی خالی اضافه‌ای که فوتر را بی‌دلیل بزرگ می‌کرد، ۲) بزرگ‌تر شدن اندازه‌ی نمادها، ۳) محدود شدن ناحیه‌ی قابل‌کلیک هر نماد به خود تصویر (قبلاً کل عرض ردیف کلیک‌پذیر بود، چون از استایل عمومی لینک‌های فوتر ارث می‌برد). طراحی جدید همچنین برای نمایش چند نماد کنار هم (مثلاً چند درگاه پرداخت به‌همراه اینماد) آماده است.",
+    "en": "Fixed three visual bugs in the footer trust/license badges added in 5.6.23: 1) removed extra empty space that made the footer needlessly taller, 2) made badge images bigger, 3) limited each badge's clickable area to just the image itself (previously the whole row width was clickable, because it inherited the theme's generic footer-link styling). The new layout also supports several badges side by side (e.g. multiple payment gateways plus Enamad)."
   }
 ]

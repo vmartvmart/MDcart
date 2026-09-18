@@ -1,0 +1,65 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 14a93dd..d573a1c 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -188,5 +188,10 @@
+     "version": "5.6.23",
+     "fa": "یک راه ساده‌تر برای گذاشتن نمادها و مجوزهای اعتماد (اینماد، مجوز کسب‌وکار مجازی، لوگوی درگاه‌های پرداخت) در فوتر سایت اضافه شد: حالا از منوی «تنظیمات > عمومی» یک بخش جدید به اسم «نمادها و مجوزهای اعتماد (فوتر سایت)» هست که فقط یک کادر متنی داره - کد اصلی‌ای که هر کدوم از این نمادها بهتون می‌دن (نه عکسش، بلکه همون کد لینک‌دار) رو اونجا کپی/پیست می‌کنید و ذخیره می‌کنید، همین. نیازی به نصب افزونه یا رفتن توی چیدمان‌ها نیست. (پچ 5.6.21 هم یه راه دیگه برای این کار اضافه کرده بود از طریق ماژول‌ها/چیدمان‌ها که هنوز کار می‌کنه، ولی این روش خیلی ساده‌تره.)",
+     "en": "Added a simpler way to place trust seals and license badges (Enamad, business license, payment gateway logos) in the site footer: Settings > General now has a new \"Trust Badges & License Seals (Footer)\" field - a single text box where you paste the exact code each badge issuer gives you (not a picture of it, the real linked code) and save. No extension to install, no layout editing needed. (5.6.21 added an alternative way to do this via modules/layouts, which still works, but this is much simpler.)"
++  },
++  {
++    "version": "5.6.24",
++    "fa": "رفع سه اشکال ظاهری در نمایش نمادهای اعتماد/مجوز فوتر (که در ۵.۶.۲۳ اضافه شد): ۱) حذف فاصله‌ی خالی اضافه‌ای که فوتر را بی‌دلیل بزرگ می‌کرد، ۲) بزرگ‌تر شدن اندازه‌ی نمادها، ۳) محدود شدن ناحیه‌ی قابل‌کلیک هر نماد به خود تصویر (قبلاً کل عرض ردیف کلیک‌پذیر بود، چون از استایل عمومی لینک‌های فوتر ارث می‌برد). طراحی جدید همچنین برای نمایش چند نماد کنار هم (مثلاً چند درگاه پرداخت به‌همراه اینماد) آماده است.",
++    "en": "Fixed three visual bugs in the footer trust/license badges added in 5.6.23: 1) removed extra empty space that made the footer needlessly taller, 2) made badge images bigger, 3) limited each badge's clickable area to just the image itself (previously the whole row width was clickable, because it inherited the theme's generic footer-link styling). The new layout also supports several badges side by side (e.g. multiple payment gateways plus Enamad)."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 4ad2d62..ad842ca 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.23
++5.6.24
+diff --git a/catalog/view/template/common/footer.twig b/catalog/view/template/common/footer.twig
+index d7d646e..ccaf59d 100644
+--- a/catalog/view/template/common/footer.twig
++++ b/catalog/view/template/common/footer.twig
+@@ -46,12 +46,6 @@
+         </ul>
+       </div>
+     </div>
+-    {% if trust_badges_html %}
+-      <hr>
+-      <div class="row justify-content-center text-center align-items-center">
+-        {{ trust_badges_html }}
+-      </div>
+-    {% endif %}
+     {% if modules %}
+       <hr>
+       <div class="row justify-content-center text-center">
+@@ -61,6 +55,25 @@
+       </div>
+     {% endif %}
+     <hr>
++    {% if trust_badges_html %}
++      <style>
++        /* Scoped rules for the admin-pasted trust/license badge codes
++           (Settings > General > "نمادها و مجوزهای اعتماد"). Kept inline
++           here (rather than in the main stylesheet) so it always matches
++           the currently deployed template with no CSS-file cache lag.
++           - Forces each badge's <a> to hug its own <img> instead of the
++             theme's "footer a { display:block; width:100% }" list-link
++             style, which was making the ENTIRE row clickable.
++           - Gives every badge a consistent, larger height regardless of
++             its original SVG/PNG size, and lets multiple badges wrap
++             onto more than one line on narrow screens. */
++        .footer-trust-badges a { display: inline-block !important; width: auto !important; height: auto !important; }
++        .footer-trust-badges img { display: inline-block !important; height: 100px !important; width: auto !important; max-width: 200px; vertical-align: middle; }
++      </style>
++      <div class="footer-trust-badges d-flex flex-wrap justify-content-center align-items-center gap-3 mb-2">
++        {{ trust_badges_html }}
++      </div>
++    {% endif %}
+     <p>{{ powered }}</p>
+   </div>
+ </footer>
