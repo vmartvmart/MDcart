@@ -1,9 +1,25 @@
 </main>
 <footer>
   <div class="container">
+    {% if trust_badges_html %}
+      <style>
+        /* Scoped rules for the admin-pasted trust/license badge codes
+           (Settings > General > "نمادها و مجوزهای اعتماد"). Kept inline
+           here (rather than in the main stylesheet) so it always matches
+           the currently deployed template with no CSS-file cache lag.
+           - Forces each badge's <a> to hug its own <img> instead of the
+             theme's "footer a { display:block; width:100% }" list-link
+             style, which was making the ENTIRE row clickable.
+           - Gives every badge a consistent height regardless of its
+             original SVG/PNG size, and lets several badges wrap onto
+             more than one line inside their column as more get added. */
+        .footer-trust-badges a { display: inline-block !important; width: auto !important; height: auto !important; }
+        .footer-trust-badges img { display: inline-block !important; height: 72px !important; width: auto !important; max-width: 110px; vertical-align: middle; }
+      </style>
+    {% endif %}
     <div class="row">
       {% if informations or blog %}
-        <div class="col-sm-3">
+        <div class="col-sm">
           <h5>{{ text_information }}</h5>
           <ul class="list-unstyled">
             {% if blog %}
@@ -15,7 +31,7 @@
           </ul>
         </div>
       {% endif %}
-      <div class="col-sm-3">
+      <div class="col-sm">
         <h5>{{ text_service }}</h5>
         <ul class="list-unstyled">
           <li><a href="{{ contact }}">{{ text_contact }}</a></li>
@@ -26,7 +42,7 @@
           <li><a href="{{ sitemap }}">{{ text_sitemap }}</a></li>
         </ul>
       </div>
-      <div class="col-sm-3">
+      <div class="col-sm">
         <h5>{{ text_extra }}</h5>
         <ul class="list-unstyled">
           <li><a href="{{ manufacturer }}">{{ text_manufacturer }}</a></li>
@@ -36,7 +52,7 @@
           <li><a href="{{ special }}">{{ text_special }}</a></li>
         </ul>
       </div>
-      <div class="col-sm-3">
+      <div class="col-sm">
         <h5>{{ text_account }}</h5>
         <ul class="list-unstyled">
           <li><a href="{{ account }}">{{ text_account }}</a></li>
@@ -45,6 +61,14 @@
           <li><a href="{{ newsletter }}">{{ text_newsletter }}</a></li>
         </ul>
       </div>
+      {% if trust_badges_html %}
+        <div class="col-sm-auto">
+          <h5>{{ text_trust_badges }}</h5>
+          <div class="footer-trust-badges d-flex flex-wrap gap-2">
+            {{ trust_badges_html }}
+          </div>
+        </div>
+      {% endif %}
     </div>
     {% if modules %}
       <hr>
@@ -55,25 +79,6 @@
       </div>
     {% endif %}
     <hr>
-    {% if trust_badges_html %}
-      <style>
-        /* Scoped rules for the admin-pasted trust/license badge codes
-           (Settings > General > "نمادها و مجوزهای اعتماد"). Kept inline
-           here (rather than in the main stylesheet) so it always matches
-           the currently deployed template with no CSS-file cache lag.
-           - Forces each badge's <a> to hug its own <img> instead of the
-             theme's "footer a { display:block; width:100% }" list-link
-             style, which was making the ENTIRE row clickable.
-           - Gives every badge a consistent, larger height regardless of
-             its original SVG/PNG size, and lets multiple badges wrap
-             onto more than one line on narrow screens. */
-        .footer-trust-badges a { display: inline-block !important; width: auto !important; height: auto !important; }
-        .footer-trust-badges img { display: inline-block !important; height: 100px !important; width: auto !important; max-width: 200px; vertical-align: middle; }
-      </style>
-      <div class="footer-trust-badges d-flex flex-wrap justify-content-center align-items-center gap-3 mb-2">
-        {{ trust_badges_html }}
-      </div>
-    {% endif %}
     <p>{{ powered }}</p>
   </div>
 </footer>

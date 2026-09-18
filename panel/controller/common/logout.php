@@ -16,7 +16,7 @@ class Logout extends \MDcart\System\Engine\Controller {
 	public function index(): void {
 		$this->user->logout();
 
-		unset($this->session->data['user_token']);
+		unset($this->session->data['user_token'], $this->session->data['redirect_after_login']);
 
 		$this->response->redirect($this->url->link('common/login', '', true));
 	}

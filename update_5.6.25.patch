@@ -1,0 +1,289 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index d573a1c..99c8518 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -193,5 +193,10 @@
+     "version": "5.6.24",
+     "fa": "رفع سه اشکال ظاهری در نمایش نمادهای اعتماد/مجوز فوتر (که در ۵.۶.۲۳ اضافه شد): ۱) حذف فاصله‌ی خالی اضافه‌ای که فوتر را بی‌دلیل بزرگ می‌کرد، ۲) بزرگ‌تر شدن اندازه‌ی نمادها، ۳) محدود شدن ناحیه‌ی قابل‌کلیک هر نماد به خود تصویر (قبلاً کل عرض ردیف کلیک‌پذیر بود، چون از استایل عمومی لینک‌های فوتر ارث می‌برد). طراحی جدید همچنین برای نمایش چند نماد کنار هم (مثلاً چند درگاه پرداخت به‌همراه اینماد) آماده است.",
+     "en": "Fixed three visual bugs in the footer trust/license badges added in 5.6.23: 1) removed extra empty space that made the footer needlessly taller, 2) made badge images bigger, 3) limited each badge's clickable area to just the image itself (previously the whole row width was clickable, because it inherited the theme's generic footer-link styling). The new layout also supports several badges side by side (e.g. multiple payment gateways plus Enamad)."
++  },
++  {
++    "version": "5.6.25",
++    "fa": "دو تغییر مستقل: ۱) نمادهای اعتماد/فوتر حالا به‌جای پایین فوتر، به‌صورت یک ستون جدید کنار همان چهار ستون اطلاعات/خدمات مشتریان/موارد بیشتر/حساب کاربری قرار می‌گیرند (بالا، کنار نوشته‌ها)، و اندازه‌شان با توجه به این‌که چند نماد قراره کنار هم بیان (۳ تا ۴ تا) تنظیم شده. ۲) رفع دو اشکال ورود به پنل ادمین: وقتی سشن منقضی می‌شه و دوباره وارد می‌شید، حالا به همون صفحه‌ای که توش بودید برمی‌گردید (نه همیشه داشبورد)، و اگه توی یک تب لاگین کنید، بقیه تب‌های باز همون مرورگر هم به‌جای اینکه دوباره یوزرنیم/پسورد بخوان، خودشون سشن جدید رو تشخیص می‌دن و بدون وقفه ادامه می‌دن.",
++    "en": "Two independent changes: 1) The footer trust/license badges now sit as a new column right next to the existing Information/Customer Service/More/My Account columns (up top, alongside the text), instead of down near the copyright line, and their size was tuned for several badges (3-4) sitting side by side. 2) Fixed two admin-panel login bugs: when your session expires and you log back in, you're now returned to the exact page you were on instead of always landing on the dashboard, and logging in on one browser tab now makes every other already-open tab of that same browser recognize the new session automatically instead of asking for your username/password again."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index ad842ca..7d99292 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.24
++5.6.25
+diff --git a/catalog/language/fa/common/footer.php b/catalog/language/fa/common/footer.php
+index 4d17622..5d17358 100644
+--- a/catalog/language/fa/common/footer.php
++++ b/catalog/language/fa/common/footer.php
+@@ -15,4 +15,5 @@ $_['text_account']      = 'حساب کاربری من';
+ $_['text_order']        = 'تاریخچه سفارش‌ها';
+ $_['text_wishlist']     = 'لیست علاقه‌مندی‌ها';
+ $_['text_newsletter']   = 'خبرنامه';
++$_['text_trust_badges'] = 'نمادهای اعتماد';
+ $_['text_powered']      = 'قدرت گرفته از MDcart<br/> %s &copy; %s';
+diff --git a/catalog/language/us/common/footer.php b/catalog/language/us/common/footer.php
+index 3bfd876..3b85f0a 100644
+--- a/catalog/language/us/common/footer.php
++++ b/catalog/language/us/common/footer.php
+@@ -15,4 +15,5 @@ $_['text_account']      = 'My Account';
+ $_['text_order']        = 'Order History';
+ $_['text_wishlist']     = 'Wish List';
+ $_['text_newsletter']   = 'Newsletter';
++$_['text_trust_badges'] = 'Trust Badges';
+ $_['text_powered']      = 'Powered By MDcart<br/> %s &copy; %s';
+diff --git a/catalog/view/template/common/footer.twig b/catalog/view/template/common/footer.twig
+index ccaf59d..67c0eac 100644
+--- a/catalog/view/template/common/footer.twig
++++ b/catalog/view/template/common/footer.twig
+@@ -1,9 +1,25 @@
+ </main>
+ <footer>
+   <div class="container">
++    {% if trust_badges_html %}
++      <style>
++        /* Scoped rules for the admin-pasted trust/license badge codes
++           (Settings > General > "نمادها و مجوزهای اعتماد"). Kept inline
++           here (rather than in the main stylesheet) so it always matches
++           the currently deployed template with no CSS-file cache lag.
++           - Forces each badge's <a> to hug its own <img> instead of the
++             theme's "footer a { display:block; width:100% }" list-link
++             style, which was making the ENTIRE row clickable.
++           - Gives every badge a consistent height regardless of its
++             original SVG/PNG size, and lets several badges wrap onto
++             more than one line inside their column as more get added. */
++        .footer-trust-badges a { display: inline-block !important; width: auto !important; height: auto !important; }
++        .footer-trust-badges img { display: inline-block !important; height: 72px !important; width: auto !important; max-width: 110px; vertical-align: middle; }
++      </style>
++    {% endif %}
+     <div class="row">
+       {% if informations or blog %}
+-        <div class="col-sm-3">
++        <div class="col-sm">
+           <h5>{{ text_information }}</h5>
+           <ul class="list-unstyled">
+             {% if blog %}
+@@ -15,7 +31,7 @@
+           </ul>
+         </div>
+       {% endif %}
+-      <div class="col-sm-3">
++      <div class="col-sm">
+         <h5>{{ text_service }}</h5>
+         <ul class="list-unstyled">
+           <li><a href="{{ contact }}">{{ text_contact }}</a></li>
+@@ -26,7 +42,7 @@
+           <li><a href="{{ sitemap }}">{{ text_sitemap }}</a></li>
+         </ul>
+       </div>
+-      <div class="col-sm-3">
++      <div class="col-sm">
+         <h5>{{ text_extra }}</h5>
+         <ul class="list-unstyled">
+           <li><a href="{{ manufacturer }}">{{ text_manufacturer }}</a></li>
+@@ -36,7 +52,7 @@
+           <li><a href="{{ special }}">{{ text_special }}</a></li>
+         </ul>
+       </div>
+-      <div class="col-sm-3">
++      <div class="col-sm">
+         <h5>{{ text_account }}</h5>
+         <ul class="list-unstyled">
+           <li><a href="{{ account }}">{{ text_account }}</a></li>
+@@ -45,6 +61,14 @@
+           <li><a href="{{ newsletter }}">{{ text_newsletter }}</a></li>
+         </ul>
+       </div>
++      {% if trust_badges_html %}
++        <div class="col-sm-auto">
++          <h5>{{ text_trust_badges }}</h5>
++          <div class="footer-trust-badges d-flex flex-wrap gap-2">
++            {{ trust_badges_html }}
++          </div>
++        </div>
++      {% endif %}
+     </div>
+     {% if modules %}
+       <hr>
+@@ -55,25 +79,6 @@
+       </div>
+     {% endif %}
+     <hr>
+-    {% if trust_badges_html %}
+-      <style>
+-        /* Scoped rules for the admin-pasted trust/license badge codes
+-           (Settings > General > "نمادها و مجوزهای اعتماد"). Kept inline
+-           here (rather than in the main stylesheet) so it always matches
+-           the currently deployed template with no CSS-file cache lag.
+-           - Forces each badge's <a> to hug its own <img> instead of the
+-             theme's "footer a { display:block; width:100% }" list-link
+-             style, which was making the ENTIRE row clickable.
+-           - Gives every badge a consistent, larger height regardless of
+-             its original SVG/PNG size, and lets multiple badges wrap
+-             onto more than one line on narrow screens. */
+-        .footer-trust-badges a { display: inline-block !important; width: auto !important; height: auto !important; }
+-        .footer-trust-badges img { display: inline-block !important; height: 100px !important; width: auto !important; max-width: 200px; vertical-align: middle; }
+-      </style>
+-      <div class="footer-trust-badges d-flex flex-wrap justify-content-center align-items-center gap-3 mb-2">
+-        {{ trust_badges_html }}
+-      </div>
+-    {% endif %}
+     <p>{{ powered }}</p>
+   </div>
+ </footer>
+diff --git a/panel/controller/common/login.php b/panel/controller/common/login.php
+index f3ad2c8..8d78259 100644
+--- a/panel/controller/common/login.php
++++ b/panel/controller/common/login.php
+@@ -106,7 +106,24 @@ class Login extends \MDcart\System\Engine\Controller {
+ 
+ 			$this->model_user_user->addLogin($this->user->getId(), $login_data);
+ 
+-			$json['redirect'] = $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true);
++			// Send the user back to whichever page originally bounced them
++			// to this login form (e.g. a session that expired while
++			// editing a product), instead of always to the dashboard.
++			// Set by startup/login.php right before it shows the login
++			// form - only an already-validated internal route/args pair
++			// is ever stored there, never anything from this request.
++			if (!empty($this->session->data['redirect_after_login']['route'])) {
++				$redirect_route = (string)$this->session->data['redirect_after_login']['route'];
++				$redirect_args = is_array($this->session->data['redirect_after_login']['args'] ?? null) ? $this->session->data['redirect_after_login']['args'] : [];
++
++				unset($this->session->data['redirect_after_login']);
++
++				$redirect_args['user_token'] = $this->session->data['user_token'];
++
++				$json['redirect'] = $this->url->link($redirect_route, $redirect_args, true);
++			} else {
++				$json['redirect'] = $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true);
++			}
+ 		}
+ 
+ 		$this->response->addHeader('Content-Type: application/json');
+diff --git a/panel/controller/common/logout.php b/panel/controller/common/logout.php
+index b939c76..922f414 100644
+--- a/panel/controller/common/logout.php
++++ b/panel/controller/common/logout.php
+@@ -16,7 +16,7 @@ class Logout extends \MDcart\System\Engine\Controller {
+ 	public function index(): void {
+ 		$this->user->logout();
+ 
+-		unset($this->session->data['user_token']);
++		unset($this->session->data['user_token'], $this->session->data['redirect_after_login']);
+ 
+ 		$this->response->redirect($this->url->link('common/login', '', true));
+ 	}
+diff --git a/panel/controller/startup/login.php b/panel/controller/startup/login.php
+index cb975a7..ba35403 100644
+--- a/panel/controller/startup/login.php
++++ b/panel/controller/startup/login.php
+@@ -13,12 +13,14 @@ class Login extends \MDcart\System\Engine\Controller {
+ 	 */
+ 	public function index(): ?object {
+ 		if (isset($this->request->get['route'])) {
+-			$route = (string)$this->request->get['route'];
++			$full_route = (string)$this->request->get['route'];
+ 		} else {
+-			$route = '';
++			$full_route = '';
+ 		}
+ 
+ 		// Remove any method call for checking ignore pages.
++		$route = $full_route;
++
+ 		$pos = strrpos($route, '.');
+ 
+ 		if ($pos !== false) {
+@@ -36,6 +38,12 @@ class Login extends \MDcart\System\Engine\Controller {
+ 		$this->registry->set('user', new \MDcart\System\Library\Cart\User($this->registry));
+ 
+ 		if (!$this->user->isLogged() && !in_array($route, $ignore)) {
++			// Remember exactly where the user was headed (route + every
++			// other GET param, minus the now-meaningless user_token) so
++			// common/login can send them back here once they've logged
++			// back in, instead of always landing on the dashboard.
++			$this->rememberCurrentPage($full_route);
++
+ 			return new \MDcart\System\Engine\Action('common/login');
+ 		}
+ 
+@@ -56,10 +64,69 @@ class Login extends \MDcart\System\Engine\Controller {
+ 			'error/permission'
+ 		];
+ 
+-		if (!in_array($route, $ignore) && (!isset($this->request->get['user_token']) || !isset($this->session->data['user_token']) || ($this->request->get['user_token'] != $this->session->data['user_token']))) {
++		if (!in_array($route, $ignore) && (!isset($this->request->get['user_token']) || !isset($this->session->data['user_token']))) {
++			$this->rememberCurrentPage($full_route);
++
+ 			return new \MDcart\System\Engine\Action('common/login');
+ 		}
+ 
++		if (!in_array($route, $ignore) && ($this->request->get['user_token'] != $this->session->data['user_token'])) {
++			// The user IS genuinely logged in - isLogged() above already
++			// confirmed a valid session - this is just a stale token in
++			// THIS tab's URL. That happens whenever the same browser logs
++			// in again in a different tab, since every login rotates the
++			// token. Rather than forcing another username/password prompt
++			// in this tab too, silently bounce it to the exact same page
++			// with the now-current token, so every open tab "catches up"
++			// to whichever tab most recently logged in, with no re-login
++			// and no loss of place.
++			$this->response->redirect($this->currentPageLink($full_route, (string)$this->session->data['user_token']));
++		}
++
+ 		return null;
+ 	}
++
++	/**
++	 * Save the page the user was trying to reach (route + GET args,
++	 * minus the stale user_token) so common/login can return them to it
++	 * after a fresh login, instead of always landing on the dashboard.
++	 *
++	 * @param string $full_route
++	 *
++	 * @return void
++	 */
++	private function rememberCurrentPage(string $full_route): void {
++		if ($full_route === '' || $full_route === 'common/login') {
++			unset($this->session->data['redirect_after_login']);
++
++			return;
++		}
++
++		$args = $this->request->get;
++
++		unset($args['route'], $args['user_token']);
++
++		$this->session->data['redirect_after_login'] = [
++			'route' => $full_route,
++			'args'  => $args
++		];
++	}
++
++	/**
++	 * Rebuild the current page's URL using a given (fresh) user_token.
++	 *
++	 * @param string $full_route
++	 * @param string $user_token
++	 *
++	 * @return string
++	 */
++	private function currentPageLink(string $full_route, string $user_token): string {
++		$args = $this->request->get;
++
++		unset($args['route'], $args['user_token']);
++
++		$args['user_token'] = $user_token;
++
++		return $this->url->link($full_route, $args, true);
++	}
+ }

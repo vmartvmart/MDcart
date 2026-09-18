@@ -106,7 +106,24 @@ class Login extends \MDcart\System\Engine\Controller {
 
 			$this->model_user_user->addLogin($this->user->getId(), $login_data);
 
-			$json['redirect'] = $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true);
+			// Send the user back to whichever page originally bounced them
+			// to this login form (e.g. a session that expired while
+			// editing a product), instead of always to the dashboard.
+			// Set by startup/login.php right before it shows the login
+			// form - only an already-validated internal route/args pair
+			// is ever stored there, never anything from this request.
+			if (!empty($this->session->data['redirect_after_login']['route'])) {
+				$redirect_route = (string)$this->session->data['redirect_after_login']['route'];
+				$redirect_args = is_array($this->session->data['redirect_after_login']['args'] ?? null) ? $this->session->data['redirect_after_login']['args'] : [];
+
+				unset($this->session->data['redirect_after_login']);
+
+				$redirect_args['user_token'] = $this->session->data['user_token'];
+
+				$json['redirect'] = $this->url->link($redirect_route, $redirect_args, true);
+			} else {
+				$json['redirect'] = $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], true);
+			}
 		}
 
 		$this->response->addHeader('Content-Type: application/json');
