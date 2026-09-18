@@ -101,6 +101,16 @@
                 </div>
               </fieldset>
               <fieldset>
+                <legend>{{ text_trust_badges }}</legend>
+                <div class="row mb-3">
+                  <label for="input-trust-badges-html" class="col-sm-2 col-form-label">{{ entry_trust_badges_html }}</label>
+                  <div class="col-sm-10">
+                    <textarea name="config_trust_badges_html" placeholder="{{ entry_trust_badges_html }}" id="input-trust-badges-html" rows="6" class="form-control" style="direction:ltr;text-align:left;font-family:monospace;font-size:12px">{{ config_trust_badges_html }}</textarea>
+                    <div class="form-text">{{ help_trust_badges_html }}</div>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset>
                 <legend>{{ text_meta }}</legend>
                 <ul class="nav nav-tabs">
                   {% for language in languages %}

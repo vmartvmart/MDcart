@@ -87,6 +87,16 @@ class Footer extends \MDcart\System\Engine\Controller {
 		$data['scripts'] = $this->document->getScripts('footer');
 		$data['cookie'] = $this->load->controller('common/cookie');
 
+		// Trust badges / license seals (Enamad, business license, payment
+		// gateway logos, etc.), configured as one raw-HTML field under
+		// Settings > General ("نمادها و مجوزهای اعتماد"). This is the
+		// simple/recommended path - a badge issuer's code (a link+image, or
+		// a script snippet) is only valid/verifiable when their exact
+		// original code survives untouched, so this is stored and rendered
+		// completely unescaped, exactly as pasted. See
+		// panel/controller/setting/setting.php for where it's saved.
+		$data['trust_badges_html'] = html_entity_decode((string)$this->config->get('config_trust_badges_html'), ENT_QUOTES, 'UTF-8');
+
 		// Footer modules (e.g. a Banner module holding trust seals like
 		// Enamad, business licenses, or payment gateway logos - the admin
 		// adds these under Design > Banners, then assigns that banner to

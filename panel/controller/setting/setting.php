@@ -42,6 +42,15 @@ class Setting extends \MDcart\System\Engine\Controller {
 		// Store Details
 		$data['config_name'] = $this->config->get('config_name');
 
+		// Trust badges / license seals (Enamad, business license, payment
+		// gateway logos, etc.) shown in the storefront footer. This is
+		// intentionally a raw HTML field, not a rich-text editor, so
+		// whatever code the badge issuer provides (a plain <a><img></a> or
+		// a <script> snippet) is stored and rendered exactly as given -
+		// these seals are only valid/verifiable when their original link
+		// survives untouched. See catalog/controller/common/footer.php.
+		$data['config_trust_badges_html'] = html_entity_decode((string)$this->config->get('config_trust_badges_html'), ENT_QUOTES, 'UTF-8');
+
 		$data['store_url'] = HTTP_CATALOG;
 
 		$data['themes'] = [];
