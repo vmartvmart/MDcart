@@ -198,5 +198,10 @@
     "version": "5.6.25",
     "fa": "دو تغییر مستقل: ۱) نمادهای اعتماد/فوتر حالا به‌جای پایین فوتر، به‌صورت یک ستون جدید کنار همان چهار ستون اطلاعات/خدمات مشتریان/موارد بیشتر/حساب کاربری قرار می‌گیرند (بالا، کنار نوشته‌ها)، و اندازه‌شان با توجه به این‌که چند نماد قراره کنار هم بیان (۳ تا ۴ تا) تنظیم شده. ۲) رفع دو اشکال ورود به پنل ادمین: وقتی سشن منقضی می‌شه و دوباره وارد می‌شید، حالا به همون صفحه‌ای که توش بودید برمی‌گردید (نه همیشه داشبورد)، و اگه توی یک تب لاگین کنید، بقیه تب‌های باز همون مرورگر هم به‌جای اینکه دوباره یوزرنیم/پسورد بخوان، خودشون سشن جدید رو تشخیص می‌دن و بدون وقفه ادامه می‌دن.",
     "en": "Two independent changes: 1) The footer trust/license badges now sit as a new column right next to the existing Information/Customer Service/More/My Account columns (up top, alongside the text), instead of down near the copyright line, and their size was tuned for several badges (3-4) sitting side by side. 2) Fixed two admin-panel login bugs: when your session expires and you log back in, you're now returned to the exact page you were on instead of always landing on the dashboard, and logging in on one browser tab now makes every other already-open tab of that same browser recognize the new session automatically instead of asking for your username/password again."
+  },
+  {
+    "version": "5.6.26",
+    "fa": "اندازه‌ی نمادهای اعتماد فوتر ۲ برابر شد (از ۷۲ به ۱۴۴ پیکسل ارتفاع)، طبق درخواست مستقیم.",
+    "en": "Doubled the footer trust-badge image size (72px to 144px height), per direct request."
   }
 ]
