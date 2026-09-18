@@ -748,6 +748,49 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 					$this->db->query("ALTER TABLE `" . DB_PREFIX . "product` ADD COLUMN `max_customer_quantity` int(11) DEFAULT 0 AFTER `minimum`");
 				}
 			},
+
+			// Aghaye Pardakht (aqayepardakht.ir) and BitPay (bitpay.ir) are two
+			// more gateways added to the existing `iranian_gateways` extension
+			// package - same "grant permission + seed extension row" pattern as
+			// notification_and_payment_extensions above, but only a NEW
+			// migration key (that migration has almost certainly already run on
+			// this install, so its own array literal cannot be edited after the
+			// fact - see runMigrations()'s per-key skip). No new
+			// `extension_install` row is needed: the `iranian_gateways` package
+			// row already exists from notification_and_payment_extensions, and
+			// both new gateways ship inside that same package directory.
+			'aqayepardakht_bitpay_extensions' => function (): void {
+				$this->grantAdministratorPermissions([
+					'extension/iranian_gateways/payment/aqayepardakht',
+					'extension/iranian_gateways/payment/bitpay',
+				]);
+
+				$extensions = [
+					['iranian_gateways', 'payment', 'aqayepardakht'],
+					['iranian_gateways', 'payment', 'bitpay'],
+				];
+
+				foreach ($extensions as [$extension, $type, $code]) {
+					$query = $this->db->query(
+						"SELECT `extension_id` FROM `" . DB_PREFIX . "extension`"
+						. " WHERE `extension` = '" . $this->db->escape($extension) . "' AND `type` = '" . $this->db->escape($type) . "' AND `code` = '" . $this->db->escape($code) . "'"
+					);
+
+					if (!$query->num_rows) {
+						$this->db->query(
+							"INSERT INTO `" . DB_PREFIX . "extension` SET `extension` = '" . $this->db->escape($extension) . "', `type` = '" . $this->db->escape($type) . "', `code` = '" . $this->db->escape($code) . "'"
+						);
+					}
+				}
+
+				// Refresh the package's Extensions > Installer description so
+				// it lists all seven gateways now, not just the original five -
+				// this install's row was already inserted by
+				// notification_and_payment_extensions above with the old text.
+				$this->db->query(
+					"UPDATE `" . DB_PREFIX . "extension_install` SET `description` = '" . $this->db->escape('ZarinPal, PayPing, IDPay, SizPay, card-to-card, Aghaye Pardakht and BitPay payment methods for Iranian stores.') . "' WHERE `code` = 'iranian_gateways'"
+				);
+			},
 		];
 	}
 

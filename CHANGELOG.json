@@ -203,5 +203,10 @@
     "version": "5.6.26",
     "fa": "اندازه‌ی نمادهای اعتماد فوتر ۲ برابر شد (از ۷۲ به ۱۴۴ پیکسل ارتفاع)، طبق درخواست مستقیم.",
     "en": "Doubled the footer trust-badge image size (72px to 144px height), per direct request."
+  },
+  {
+    "version": "5.6.27",
+    "fa": "دو درگاه پرداخت جدید «آقای پرداخت» و «بیت‌پی» به بسته‌ی درگاه‌های پرداخت ایرانی اضافه شدند (در کنار زرین‌پال، آی‌دی‌پی، پی‌پینگ، سیزپی و کارت‌به‌کارت). پس از این بروزرسانی، به «افزونه‌ها > درگاه‌های پرداخت» بروید و کد پین (آقای پرداخت) یا کلید API (بیت‌پی) خودتان را وارد کنید تا فعال شوند.",
+    "en": "Added two new payment gateways, Aghaye Pardakht and BitPay, to the Iranian Payment Gateways extension package (alongside ZarinPal, IDPay, PayPing, SizPay and card-to-card). After this update, go to Extensions > Payment Gateways and enter your own Pin code (Aghaye Pardakht) or API key (BitPay) to activate them."
   }
 ]
