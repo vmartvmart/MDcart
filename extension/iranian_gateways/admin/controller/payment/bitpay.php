@@ -42,6 +42,7 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment');
 
 		$data['payment_bitpay_api'] = $this->config->get('payment_bitpay_api');
+		$data['payment_bitpay_sandbox'] = $this->config->get('payment_bitpay_sandbox');
 
 		// Order Status
 		$data['payment_bitpay_order_status_id'] = (int)$this->config->get('payment_bitpay_order_status_id');

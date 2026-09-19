@@ -11,6 +11,13 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 	private const GATE_URL_PREFIX = 'https://bitpay.ir/payment/gateway-';
 	private const GATE_URL_SUFFIX = '-get';
 
+	// BitPay's own test/sandbox environment - same shape as production, just
+	// a different URL prefix ("payment-test" instead of "payment"), per
+	// BitPay's official test-environment documentation.
+	private const API_SEND_URL_SANDBOX = 'https://bitpay.ir/payment-test/gateway-send';
+	private const API_VERIFY_URL_SANDBOX = 'https://bitpay.ir/payment-test/gateway-result-second';
+	private const GATE_URL_PREFIX_SANDBOX = 'https://bitpay.ir/payment-test/gateway-';
+
 	/**
 	 * Index
 	 *
@@ -43,6 +50,8 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 			$amount = $this->getRialAmount($order_info, $json);
 
 			if (!$json) {
+				$sandbox = (bool)$this->config->get('payment_bitpay_sandbox');
+
 				$fields = [
 					'api'         => $this->config->get('payment_bitpay_api'),
 					'amount'      => $amount,
@@ -53,14 +62,16 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 					'description' => sprintf($this->language->get('text_order_description'), $order_info['order_id'], $this->config->get('config_name'))
 				];
 
-				[$id_get, $error] = $this->requestIdGet($fields);
+				[$id_get, $error] = $this->requestIdGet($fields, $sandbox);
 
 				if ($error || $id_get === null) {
 					$json['error'] = $this->language->get('error_gateway');
 				} else {
 					$this->session->data['bitpay_id_get'] = $id_get;
 
-					$json['redirect'] = self::GATE_URL_PREFIX . $id_get . self::GATE_URL_SUFFIX;
+					$gate_prefix = $sandbox ? self::GATE_URL_PREFIX_SANDBOX : self::GATE_URL_PREFIX;
+
+					$json['redirect'] = $gate_prefix . $id_get . self::GATE_URL_SUFFIX;
 				}
 			}
 		}
@@ -111,6 +122,8 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 			return;
 		}
 
+		$sandbox = (bool)$this->config->get('payment_bitpay_sandbox');
+
 		$fields = [
 			'api'      => $this->config->get('payment_bitpay_api'),
 			'id_get'   => $id_get,
@@ -118,7 +131,7 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 			'json'     => 1
 		];
 
-		[$result, $error] = $this->curlPostForm(self::API_VERIFY_URL, $fields);
+		[$result, $error] = $this->curlPostForm($sandbox ? self::API_VERIFY_URL_SANDBOX : self::API_VERIFY_URL, $fields);
 
 		$status = $result['status'] ?? null;
 
@@ -155,11 +168,12 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 	 * both shapes are handled defensively.
 	 *
 	 * @param array<string, mixed> $fields
+	 * @param bool                 $sandbox
 	 *
 	 * @return array{0: string|null, 1: bool}
 	 */
-	private function requestIdGet(array $fields): array {
-		[$response, $error] = $this->curlPostForm(self::API_SEND_URL, $fields, false);
+	private function requestIdGet(array $fields, bool $sandbox = false): array {
+		[$response, $error] = $this->curlPostForm($sandbox ? self::API_SEND_URL_SANDBOX : self::API_SEND_URL, $fields, false);
 
 		if ($error || $response === null) {
 			return [null, true];

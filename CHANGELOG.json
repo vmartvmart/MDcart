@@ -208,5 +208,10 @@
     "version": "5.6.27",
     "fa": "دو درگاه پرداخت جدید «آقای پرداخت» و «بیت‌پی» به بسته‌ی درگاه‌های پرداخت ایرانی اضافه شدند (در کنار زرین‌پال، آی‌دی‌پی، پی‌پینگ، سیزپی و کارت‌به‌کارت). پس از این بروزرسانی، به «افزونه‌ها > درگاه‌های پرداخت» بروید و کد پین (آقای پرداخت) یا کلید API (بیت‌پی) خودتان را وارد کنید تا فعال شوند.",
     "en": "Added two new payment gateways, Aghaye Pardakht and BitPay, to the Iranian Payment Gateways extension package (alongside ZarinPal, IDPay, PayPing, SizPay and card-to-card). After this update, go to Extensions > Payment Gateways and enter your own Pin code (Aghaye Pardakht) or API key (BitPay) to activate them."
+  },
+  {
+    "version": "5.6.28",
+    "fa": "امکان «حالت تست (Sandbox)» به درگاه بیت‌پی اضافه شد تا بشود قبل از وارد کردن اطلاعات واقعی، کل مسیر پرداخت را با محیط تستِ رسمی بیت‌پی امتحان کرد — بدون جابه‌جایی پول واقعی. برای تست: در «افزونه‌ها > درگاه‌های پرداخت > بیت‌پی»، کلید API تستی که بیت‌پی در مستندات رسمی خودش منتشر کرده را در فیلد «کلید API» وارد کنید و «حالت تست» را روشن کنید، سپس یک سفارش آزمایشی ثبت کنید. پیش از فعال شدن واقعی سایت، حتماً کلید API واقعی خودتان را جایگزین کرده و «حالت تست» را خاموش کنید.",
+    "en": "Added a Sandbox (test) mode to the BitPay gateway so the full checkout flow can be tried against BitPay's own official test environment before entering real credentials - no real money moves. To test: under Extensions > Payment Gateways > BitPay, enter the test API key BitPay publishes in its own official documentation into the API Key field, turn on Sandbox Mode, then place a test order. Before going live, replace it with your real API key and turn Sandbox Mode back off."
   }
 ]

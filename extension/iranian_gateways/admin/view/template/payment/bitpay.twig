@@ -27,6 +27,16 @@
             </div>
           </div>
           <div class="row mb-3">
+            <label class="col-sm-2 col-form-label">{{ entry_sandbox }}</label>
+            <div class="col-sm-10">
+              <div class="form-check form-switch form-switch-lg">
+                <input type="hidden" name="payment_bitpay_sandbox" value="0"/>
+                <input type="checkbox" name="payment_bitpay_sandbox" value="1" id="input-sandbox" class="form-check-input"{% if payment_bitpay_sandbox %} checked{% endif %}/>
+              </div>
+              <div class="form-text">{{ help_sandbox }}</div>
+            </div>
+          </div>
+          <div class="row mb-3">
             <label class="col-sm-2 col-form-label">{{ text_callback_url }}</label>
             <div class="col-sm-10">
               <input type="text" value="{{ callback_url }}" class="form-control" readonly="readonly"/>
