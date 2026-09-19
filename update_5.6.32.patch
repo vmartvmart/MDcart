@@ -1,0 +1,64 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index deb5e67..bd1bfa0 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -228,5 +228,10 @@
+     "version": "5.6.31",
+     "fa": "افزودن گزارش خطای موقت (فقط در حالت آزمایشی بیت‌پی، هیچ تاثیری روی مشتری واقعی ندارد): وقتی پرداخت در حالت آزمایشی با خطا مواجه شود، دلیل دقیق آن (کدام بررسی رد شده) به‌صورت یک پارامتر کوچک در آدرس صفحه‌ی «پرداخت ناموفق» اضافه می‌شود تا بتوان علت واقعی را بدون دسترسی به لاگ سرور پیدا کرد.",
+     "en": "Added a sandbox-only diagnostic (never affects real/production traffic): when a BitPay sandbox-mode payment fails, the exact reason (which check failed) is appended as a small query parameter on the checkout/failure page URL, so the real cause can be found without server log access."
++  },
++  {
++    "version": "5.6.32",
++    "fa": "رفع مشکل نمایش تنظیمات «کارت به کارت» در پنل مدیریت: فایل ترجمه‌ی این بخش در پوشه‌ی زبان انگلیسی نادرستی (en-gb) قرار داشت که اصلاً در سایت استفاده نمی‌شود، بنابراین هیچ‌کدام از برچسب‌ها، راهنماها و پیام‌های خطای این صفحه ترجمه نمی‌شدند و به‌جای متن فارسی، کلیدهای خام (مثل heading_title یا entry_card_number) نمایش داده می‌شدند. حالا ترجمه‌ی فارسی و انگلیسی درست اضافه شده و صفحه‌ی تنظیمات «کارت به کارت» در پنل به‌درستی نمایش داده می‌شود.",
++    "en": "Fixed the Card to Card settings page in the admin panel showing raw untranslated text: its language file lived in an unused folder (en-gb) that the site never actually loads, so every label, help text and error message on that page displayed as a raw key (e.g. heading_title, entry_card_number) instead of readable text. Proper Persian and English translations have been added and the Card to Card settings page now displays correctly."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 3f85c68..22446c0 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.31
++5.6.32
+diff --git a/extension/iranian_gateways/admin/language/fa/payment/card_to_card.php b/extension/iranian_gateways/admin/language/fa/payment/card_to_card.php
+new file mode 100644
+index 0000000..37c8aa5
+--- /dev/null
++++ b/extension/iranian_gateways/admin/language/fa/payment/card_to_card.php
+@@ -0,0 +1,32 @@
++<?php
++// Heading
++$_['heading_title']       = 'کارت به کارت';
++
++// Text
++$_['text_extension']      = 'افزونه‌ها';
++$_['text_success']        = 'موفق: اطلاعات کارت به کارت با موفقیت ویرایش شد!';
++$_['text_edit']           = 'ویرایش کارت به کارت';
++$_['text_add_card']       = 'افزودن کارت';
++$_['text_all_zones']      = 'همه مناطق';
++$_['text_active']         = 'فعال';
++
++// Entry
++$_['entry_card_number']   = 'شماره کارت';
++$_['entry_holder_name']   = 'نام صاحب کارت';
++$_['entry_bank_name']     = 'نام بانک';
++$_['entry_instruction']   = 'راهنما';
++$_['entry_order_status']  = 'وضعیت سفارش';
++$_['entry_geo_zone']      = 'منطقه جغرافیایی';
++$_['entry_status']        = 'وضعیت';
++$_['entry_sort_order']    = 'ترتیب نمایش';
++
++// Help
++$_['help_instruction']    = 'همراه با کارت فعال به مشتری نمایش داده می‌شود، مثلاً اینکه در توضیحات واریز چه چیزی بنویسد.';
++$_['help_order_status']   = 'وضعیتی که پس از تأیید واریز توسط مشتری برای سفارش ثبت می‌شود. از وضعیتی مانند «در انتظار بررسی» استفاده کنید — نباید وضعیت معمول «در حال پردازش/تکمیل شده» باشد، چون واریزی هنوز به‌صورت دستی بررسی نشده است.';
++
++// Error
++$_['error_permission']    = 'هشدار: شما اجازه ویرایش تنظیمات کارت به کارت را ندارید!';
++$_['error_card_number']   = 'شماره کارت باید ۱۶ رقم باشد!';
++$_['error_holder_name']   = 'نام صاحب کارت الزامی است!';
++$_['error_no_cards']      = 'حداقل یک کارت باید ثبت شود!';
++$_['error_active_card']   = 'مشخص کنید کدام کارت فعال است!';
+diff --git a/extension/iranian_gateways/admin/language/en-gb/payment/card_to_card.php b/extension/iranian_gateways/admin/language/us/payment/card_to_card.php
+similarity index 100%
+rename from extension/iranian_gateways/admin/language/en-gb/payment/card_to_card.php
+rename to extension/iranian_gateways/admin/language/us/payment/card_to_card.php

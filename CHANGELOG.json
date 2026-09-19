@@ -228,5 +228,10 @@
     "version": "5.6.31",
     "fa": "افزودن گزارش خطای موقت (فقط در حالت آزمایشی بیت‌پی، هیچ تاثیری روی مشتری واقعی ندارد): وقتی پرداخت در حالت آزمایشی با خطا مواجه شود، دلیل دقیق آن (کدام بررسی رد شده) به‌صورت یک پارامتر کوچک در آدرس صفحه‌ی «پرداخت ناموفق» اضافه می‌شود تا بتوان علت واقعی را بدون دسترسی به لاگ سرور پیدا کرد.",
     "en": "Added a sandbox-only diagnostic (never affects real/production traffic): when a BitPay sandbox-mode payment fails, the exact reason (which check failed) is appended as a small query parameter on the checkout/failure page URL, so the real cause can be found without server log access."
+  },
+  {
+    "version": "5.6.32",
+    "fa": "رفع مشکل نمایش تنظیمات «کارت به کارت» در پنل مدیریت: فایل ترجمه‌ی این بخش در پوشه‌ی زبان انگلیسی نادرستی (en-gb) قرار داشت که اصلاً در سایت استفاده نمی‌شود، بنابراین هیچ‌کدام از برچسب‌ها، راهنماها و پیام‌های خطای این صفحه ترجمه نمی‌شدند و به‌جای متن فارسی، کلیدهای خام (مثل heading_title یا entry_card_number) نمایش داده می‌شدند. حالا ترجمه‌ی فارسی و انگلیسی درست اضافه شده و صفحه‌ی تنظیمات «کارت به کارت» در پنل به‌درستی نمایش داده می‌شود.",
+    "en": "Fixed the Card to Card settings page in the admin panel showing raw untranslated text: its language file lived in an unused folder (en-gb) that the site never actually loads, so every label, help text and error message on that page displayed as a raw key (e.g. heading_title, entry_card_number) instead of readable text. Proper Persian and English translations have been added and the Card to Card settings page now displays correctly."
   }
 ]
