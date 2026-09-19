@@ -51,6 +51,16 @@ class Register extends \MDcart\System\Engine\Controller {
 
 		if (isset($this->session->data['customer']['customer_id'])) {
 			$data['account'] = $this->session->data['customer']['customer_id'];
+		} elseif ($data['config_checkout_guest']) {
+			// Default to guest checkout rather than forcing a new customer to
+			// notice and switch the radio themselves - stock OpenCart defaults
+			// to "Create Account" even when guest checkout is available, which
+			// silently requires a password the customer isn't expecting and
+			// has caused real confusion here (the customer fills in their
+			// info, doesn't touch the account-type radio or the password
+			// field, and the save fails validation with no visible feedback
+			// beyond a small red field-level error).
+			$data['account'] = 0;
 		} else {
 			$data['account'] = 1;
 		}

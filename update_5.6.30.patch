@@ -1,0 +1,44 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 10c496f..a5b087d 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -218,5 +218,10 @@
+     "version": "5.6.29",
+     "fa": "روش پرداخت در صفحه تسویه‌حساب حالا مستقیم نمایش داده می‌شود: به‌جای اینکه مشتری اول دکمه‌ی «انتخاب» را بزند و بعد یک پنجره باز شود، همین که اطلاعات لازم آماده باشد (بعد از تکمیل اطلاعات شخصی، و در صورت نیاز به ارسال، بعد از انتخاب روش ارسال)، لیست درگاه‌های فعال همان‌جا توی صفحه نشان داده می‌شود و مشتری فقط یکی را انتخاب می‌کند.",
+     "en": "The payment method step on checkout now shows the active gateways directly on the page instead of requiring a \"Choose\" button click that opened a separate popup - as soon as the needed information is ready (after personal info is completed, and after a shipping method is chosen if the cart needs shipping), the list of active gateways appears inline and the customer just picks one."
++  },
++  {
++    "version": "5.6.30",
++    "fa": "رفع مشکل تسویه‌حساب مهمان: در فرم اطلاعات شخصی، گزینه‌ی «ایجاد حساب کاربری» به‌صورت پیش‌فرض انتخاب شده بود (حتی وقتی تسویه‌حساب مهمان فعال است)، که یک فیلد رمز عبور اجباری می‌خواست. اگر مشتری این گزینه را عوض نمی‌کرد و رمز عبور را خالی می‌گذاشت، ثبت اطلاعات بی‌صدا با خطا متوقف می‌شد و در نتیجه روش پرداخت هیچ‌وقت نمایش داده نمی‌شد و دکمه‌ی «تأیید سفارش» غیرفعال می‌ماند. حالا وقتی تسویه‌حساب مهمان در تنظیمات فعال باشد، گزینه‌ی «تسویه‌حساب مهمان» به‌صورت پیش‌فرض انتخاب شده است.",
++    "en": "Fixed guest checkout getting silently stuck: the personal-info form defaulted to the \"Create Account\" radio option (even when guest checkout is enabled), which requires a password field. If a customer did not notice and switch that radio, and left the password blank, the save silently failed validation - so the payment method never appeared and the \"Confirm Order\" button stayed disabled. The \"Guest Checkout\" option is now selected by default whenever guest checkout is enabled in settings."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 83e2d80..3672286 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.29
+\ No newline at end of file
++5.6.30
+diff --git a/catalog/controller/checkout/register.php b/catalog/controller/checkout/register.php
+index 1c46036..ade7b02 100644
+--- a/catalog/controller/checkout/register.php
++++ b/catalog/controller/checkout/register.php
+@@ -51,6 +51,16 @@ class Register extends \MDcart\System\Engine\Controller {
+ 
+ 		if (isset($this->session->data['customer']['customer_id'])) {
+ 			$data['account'] = $this->session->data['customer']['customer_id'];
++		} elseif ($data['config_checkout_guest']) {
++			// Default to guest checkout rather than forcing a new customer to
++			// notice and switch the radio themselves - stock OpenCart defaults
++			// to "Create Account" even when guest checkout is available, which
++			// silently requires a password the customer isn't expecting and
++			// has caused real confusion here (the customer fills in their
++			// info, doesn't touch the account-type radio or the password
++			// field, and the save fails validation with no visible feedback
++			// beyond a small red field-level error).
++			$data['account'] = 0;
+ 		} else {
+ 			$data['account'] = 1;
+ 		}

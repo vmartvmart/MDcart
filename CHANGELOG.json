@@ -218,5 +218,10 @@
     "version": "5.6.29",
     "fa": "روش پرداخت در صفحه تسویه‌حساب حالا مستقیم نمایش داده می‌شود: به‌جای اینکه مشتری اول دکمه‌ی «انتخاب» را بزند و بعد یک پنجره باز شود، همین که اطلاعات لازم آماده باشد (بعد از تکمیل اطلاعات شخصی، و در صورت نیاز به ارسال، بعد از انتخاب روش ارسال)، لیست درگاه‌های فعال همان‌جا توی صفحه نشان داده می‌شود و مشتری فقط یکی را انتخاب می‌کند.",
     "en": "The payment method step on checkout now shows the active gateways directly on the page instead of requiring a \"Choose\" button click that opened a separate popup - as soon as the needed information is ready (after personal info is completed, and after a shipping method is chosen if the cart needs shipping), the list of active gateways appears inline and the customer just picks one."
+  },
+  {
+    "version": "5.6.30",
+    "fa": "رفع مشکل تسویه‌حساب مهمان: در فرم اطلاعات شخصی، گزینه‌ی «ایجاد حساب کاربری» به‌صورت پیش‌فرض انتخاب شده بود (حتی وقتی تسویه‌حساب مهمان فعال است)، که یک فیلد رمز عبور اجباری می‌خواست. اگر مشتری این گزینه را عوض نمی‌کرد و رمز عبور را خالی می‌گذاشت، ثبت اطلاعات بی‌صدا با خطا متوقف می‌شد و در نتیجه روش پرداخت هیچ‌وقت نمایش داده نمی‌شد و دکمه‌ی «تأیید سفارش» غیرفعال می‌ماند. حالا وقتی تسویه‌حساب مهمان در تنظیمات فعال باشد، گزینه‌ی «تسویه‌حساب مهمان» به‌صورت پیش‌فرض انتخاب شده است.",
+    "en": "Fixed guest checkout getting silently stuck: the personal-info form defaulted to the \"Create Account\" radio option (even when guest checkout is enabled), which requires a password field. If a customer did not notice and switch that radio, and left the password blank, the save silently failed validation - so the payment method never appeared and the \"Confirm Order\" button stayed disabled. The \"Guest Checkout\" option is now selected by default whenever guest checkout is enabled in settings."
   }
 ]
