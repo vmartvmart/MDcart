@@ -223,5 +223,10 @@
     "version": "5.6.30",
     "fa": "رفع مشکل تسویه‌حساب مهمان: در فرم اطلاعات شخصی، گزینه‌ی «ایجاد حساب کاربری» به‌صورت پیش‌فرض انتخاب شده بود (حتی وقتی تسویه‌حساب مهمان فعال است)، که یک فیلد رمز عبور اجباری می‌خواست. اگر مشتری این گزینه را عوض نمی‌کرد و رمز عبور را خالی می‌گذاشت، ثبت اطلاعات بی‌صدا با خطا متوقف می‌شد و در نتیجه روش پرداخت هیچ‌وقت نمایش داده نمی‌شد و دکمه‌ی «تأیید سفارش» غیرفعال می‌ماند. حالا وقتی تسویه‌حساب مهمان در تنظیمات فعال باشد، گزینه‌ی «تسویه‌حساب مهمان» به‌صورت پیش‌فرض انتخاب شده است.",
     "en": "Fixed guest checkout getting silently stuck: the personal-info form defaulted to the \"Create Account\" radio option (even when guest checkout is enabled), which requires a password field. If a customer did not notice and switch that radio, and left the password blank, the save silently failed validation - so the payment method never appeared and the \"Confirm Order\" button stayed disabled. The \"Guest Checkout\" option is now selected by default whenever guest checkout is enabled in settings."
+  },
+  {
+    "version": "5.6.31",
+    "fa": "افزودن گزارش خطای موقت (فقط در حالت آزمایشی بیت‌پی، هیچ تاثیری روی مشتری واقعی ندارد): وقتی پرداخت در حالت آزمایشی با خطا مواجه شود، دلیل دقیق آن (کدام بررسی رد شده) به‌صورت یک پارامتر کوچک در آدرس صفحه‌ی «پرداخت ناموفق» اضافه می‌شود تا بتوان علت واقعی را بدون دسترسی به لاگ سرور پیدا کرد.",
+    "en": "Added a sandbox-only diagnostic (never affects real/production traffic): when a BitPay sandbox-mode payment fails, the exact reason (which check failed) is appended as a small query parameter on the checkout/failure page URL, so the real cause can be found without server log access."
   }
 ]

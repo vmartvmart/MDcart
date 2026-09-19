@@ -95,13 +95,15 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 	public function callback(): void {
 		$this->load->language('extension/iranian_gateways/payment/bitpay');
 
+		$sandbox = (bool)$this->config->get('payment_bitpay_sandbox');
+
 		$failure_url = $this->url->link('checkout/failure', 'language=' . $this->config->get('config_language'), true);
 
 		$trans_id = $this->requestParam('trans_id');
 		$id_get = $this->requestParam('id_get');
 
 		if (!$trans_id || !$id_get) {
-			$this->response->redirect($failure_url);
+			$this->redirectFailure($failure_url, $sandbox, 'missing_params');
 
 			return;
 		}
@@ -111,18 +113,16 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 		$order_info = $this->validateOrder($json);
 
 		if ($json || !$order_info) {
-			$this->response->redirect($failure_url);
+			$this->redirectFailure($failure_url, $sandbox, 'order_invalid:' . ($json['error'] ?? ''));
 
 			return;
 		}
 
 		if (empty($this->session->data['bitpay_id_get']) || (string)$this->session->data['bitpay_id_get'] !== (string)$id_get) {
-			$this->response->redirect($failure_url);
+			$this->redirectFailure($failure_url, $sandbox, 'id_get_mismatch:session=' . ($this->session->data['bitpay_id_get'] ?? 'unset') . ';got=' . $id_get);
 
 			return;
 		}
-
-		$sandbox = (bool)$this->config->get('payment_bitpay_sandbox');
 
 		$fields = [
 			'api'      => $this->config->get('payment_bitpay_api'),
@@ -136,7 +136,7 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 		$status = $result['status'] ?? null;
 
 		if ($error || ($status != 1 && $status != 11)) {
-			$this->response->redirect($failure_url);
+			$this->redirectFailure($failure_url, $sandbox, 'verify_failed:status=' . var_export($status, true) . ';curl_error=' . ($error ? '1' : '0') . ';raw=' . substr((string)json_encode($result), 0, 200));
 
 			return;
 		}
@@ -144,7 +144,7 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 		$amount = $this->getRialAmount($order_info, $json);
 
 		if ($json || (isset($result['amount']) && (int)$result['amount'] !== $amount)) {
-			$this->response->redirect($failure_url);
+			$this->redirectFailure($failure_url, $sandbox, 'amount_mismatch:expected=' . $amount . ';got=' . ($result['amount'] ?? 'null'));
 
 			return;
 		}
@@ -158,6 +158,26 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 		$this->model_checkout_order->addHistory($this->session->data['order_id'], (int)$this->config->get('payment_bitpay_order_status_id'), $comment, true);
 
 		$this->response->redirect($this->url->link('checkout/success', 'language=' . $this->config->get('config_language'), true));
+	}
+
+	/**
+	 * Redirect to the failure page. In sandbox mode only, a short debug
+	 * reason is appended as a query string so a developer testing the
+	 * gateway can see which check actually failed - never appended in
+	 * production, so real customers never see this.
+	 *
+	 * @param string $failure_url
+	 * @param bool   $sandbox
+	 * @param string $reason
+	 *
+	 * @return void
+	 */
+	private function redirectFailure(string $failure_url, bool $sandbox, string $reason): void {
+		if ($sandbox) {
+			$failure_url .= (str_contains($failure_url, '?') ? '&' : '?') . 'bitpay_debug=' . rawurlencode($reason);
+		}
+
+		$this->response->redirect($failure_url);
 	}
 
 	/**
