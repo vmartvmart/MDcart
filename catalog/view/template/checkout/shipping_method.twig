@@ -132,6 +132,13 @@ $(document).on('submit', '#form-shipping-method', function(e) {
 
                     $('#input-payment-method').val('');
 
+                    // Now that a shipping method is picked, the payment
+                    // method list can be fetched (it depends on the shipping
+                    // zone, so it waits until now to load).
+                    if (typeof window.loadPaymentMethods === 'function') {
+                        window.loadPaymentMethods();
+                    }
+
                     $('#cart').load('index.php?route=common/cart.info&language={{ language }}');
                     $('#checkout-confirm').load('index.php?route=checkout/confirm.confirm&language={{ language }}');
                 }

@@ -596,6 +596,13 @@ $('#form-register').on('submit', function(e) {
                     $('#input-shipping-method').val('');
                     $('#input-payment-method').val('');
 
+                    // If this cart doesn't need shipping, the payment method
+                    // list can be fetched right away - otherwise it waits
+                    // for a shipping method to be chosen first.
+                    if (typeof window.loadPaymentMethods === 'function' && !window.checkoutHasShipping) {
+                        window.loadPaymentMethods();
+                    }
+
                     $('#checkout-confirm').load('index.php?route=checkout/confirm.confirm&language={{ language }}');
                 }
             },

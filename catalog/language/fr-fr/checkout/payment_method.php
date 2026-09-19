@@ -9,6 +9,9 @@ $_['text_comments']          = 'Ajouter des commentaires sur votre commande';
 $_['text_agree']             = 'J\'ai lu et j\'accepte les <a href="%s" class="modal-link"><b>%s</b></a>';
 $_['text_success']           = 'Succès: Vous avez modifié le mode de paiement!';
 $_['text_comment']           = 'Succès: Commentaire ajouté!';
+$_['text_loading']           = 'Chargement des modes de paiement...';
+$_['text_select_shipping_first'] = 'Les modes de paiement s\'afficheront une fois le mode d\'expédition choisi.';
+$_['text_complete_info_first']   = 'Les modes de paiement s\'afficheront une fois vos informations personnelles complétées.';
 
 // Entrée
 $_['entry_payment_method']   = 'Choisir un mode de paiement...';

@@ -9,6 +9,9 @@ $_['text_comments']          = 'Add Comments About Your Order';
 $_['text_agree']             = 'I have read and agree to the <a href="%s" class="modal-link"><b>%s</b></a>';
 $_['text_success']           = 'Success: You have changed payment method!';
 $_['text_comment']           = 'Success: Comment added!';
+$_['text_loading']           = 'Loading payment methods...';
+$_['text_select_shipping_first'] = 'Payment methods will appear once you choose a shipping method.';
+$_['text_complete_info_first']   = 'Payment methods will appear once you complete your personal info.';
 
 // Entry
 $_['entry_payment_method']   = 'Choose payment method...';

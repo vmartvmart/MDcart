@@ -47,6 +47,16 @@ class PaymentMethod extends \MDcart\System\Engine\Controller {
 
 		$data['language'] = $this->config->get('config_language');
 
+		// The payment methods list is now shown inline (no more "Choose" button
+		// + modal) - it fetches and renders automatically as soon as its
+		// dependencies are known, so the template needs to know whether
+		// shipping applies to this cart (to wait for a shipping method to be
+		// picked) and, on a fresh page load, whether it can fetch right away
+		// (e.g. the customer already completed checkout up to this point in
+		// this session, such as after a page refresh).
+		$data['has_shipping'] = $this->cart->hasShipping();
+		$data['ready'] = isset($this->session->data['customer']) && (!$this->cart->hasShipping() || isset($this->session->data['shipping_method']));
+
 		return $this->load->view('checkout/payment_method', $data);
 	}
 

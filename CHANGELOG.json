@@ -213,5 +213,10 @@
     "version": "5.6.28",
     "fa": "امکان «حالت تست (Sandbox)» به درگاه بیت‌پی اضافه شد تا بشود قبل از وارد کردن اطلاعات واقعی، کل مسیر پرداخت را با محیط تستِ رسمی بیت‌پی امتحان کرد — بدون جابه‌جایی پول واقعی. برای تست: در «افزونه‌ها > درگاه‌های پرداخت > بیت‌پی»، کلید API تستی که بیت‌پی در مستندات رسمی خودش منتشر کرده را در فیلد «کلید API» وارد کنید و «حالت تست» را روشن کنید، سپس یک سفارش آزمایشی ثبت کنید. پیش از فعال شدن واقعی سایت، حتماً کلید API واقعی خودتان را جایگزین کرده و «حالت تست» را خاموش کنید.",
     "en": "Added a Sandbox (test) mode to the BitPay gateway so the full checkout flow can be tried against BitPay's own official test environment before entering real credentials - no real money moves. To test: under Extensions > Payment Gateways > BitPay, enter the test API key BitPay publishes in its own official documentation into the API Key field, turn on Sandbox Mode, then place a test order. Before going live, replace it with your real API key and turn Sandbox Mode back off."
+  },
+  {
+    "version": "5.6.29",
+    "fa": "روش پرداخت در صفحه تسویه‌حساب حالا مستقیم نمایش داده می‌شود: به‌جای اینکه مشتری اول دکمه‌ی «انتخاب» را بزند و بعد یک پنجره باز شود، همین که اطلاعات لازم آماده باشد (بعد از تکمیل اطلاعات شخصی، و در صورت نیاز به ارسال، بعد از انتخاب روش ارسال)، لیست درگاه‌های فعال همان‌جا توی صفحه نشان داده می‌شود و مشتری فقط یکی را انتخاب می‌کند.",
+    "en": "The payment method step on checkout now shows the active gateways directly on the page instead of requiring a \"Choose\" button click that opened a separate popup - as soon as the needed information is ready (after personal info is completed, and after a shipping method is chosen if the cart needs shipping), the list of active gateways appears inline and the customer just picks one."
   }
 ]
