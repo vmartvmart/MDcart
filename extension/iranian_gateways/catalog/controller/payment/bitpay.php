@@ -62,10 +62,21 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 					'description' => sprintf($this->language->get('text_order_description'), $order_info['order_id'], $this->config->get('config_name'))
 				];
 
-				[$id_get, $error] = $this->requestIdGet($fields, $sandbox);
+				[$id_get, $error, $raw_response] = $this->requestIdGet($fields, $sandbox);
 
 				if ($error || $id_get === null) {
 					$json['error'] = $this->language->get('error_gateway');
+
+					// Sandbox-only diagnostic (never shown to real customers):
+					// BitPay's gateway-send endpoint returns a negative numeric
+					// error code (e.g. invalid API key, amount too low, redirect
+					// address not matching the registered domain) rather than an
+					// exception, so the generic "rejected" message alone does not
+					// say why. Surface the raw response so the actual cause can
+					// be found without server log access.
+					if ($sandbox) {
+						$json['error'] .= ' [bitpay_debug: ' . substr((string)$raw_response, 0, 200) . ']';
+					}
 				} else {
 					$this->session->data['bitpay_id_get'] = $id_get;
 
@@ -190,28 +201,32 @@ class Bitpay extends \MDcart\System\Engine\Controller {
 	 * @param array<string, mixed> $fields
 	 * @param bool                 $sandbox
 	 *
-	 * @return array{0: string|null, 1: bool}
+	 * @return array{0: string|null, 1: bool, 2: mixed}
 	 */
 	private function requestIdGet(array $fields, bool $sandbox = false): array {
 		[$response, $error] = $this->curlPostForm($sandbox ? self::API_SEND_URL_SANDBOX : self::API_SEND_URL, $fields, false);
 
 		if ($error || $response === null) {
-			return [null, true];
+			return [null, true, 'curl_error'];
 		}
 
 		$response = trim((string)$response);
 
 		if (is_numeric($response) && (int)$response > 0) {
-			return [$response, false];
+			return [$response, false, $response];
 		}
 
 		$decoded = json_decode($response, true);
 
 		if (is_array($decoded) && !empty($decoded['IDGet'])) {
-			return [(string)$decoded['IDGet'], false];
+			return [(string)$decoded['IDGet'], false, $response];
 		}
 
-		return [null, true];
+		// A negative numeric string is BitPay's own error code convention
+		// (invalid API key, amount too low, redirect address not matching
+		// the domain registered with the merchant account, etc.) - surfaced
+		// as-is via $raw_response so confirm() can show it in sandbox mode.
+		return [null, true, $response];
 	}
 
 	/**

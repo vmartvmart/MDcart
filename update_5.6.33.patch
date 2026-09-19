@@ -1,0 +1,122 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index bd1bfa0..9e32f35 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -233,5 +233,10 @@
+     "version": "5.6.32",
+     "fa": "رفع مشکل نمایش تنظیمات «کارت به کارت» در پنل مدیریت: فایل ترجمه‌ی این بخش در پوشه‌ی زبان انگلیسی نادرستی (en-gb) قرار داشت که اصلاً در سایت استفاده نمی‌شود، بنابراین هیچ‌کدام از برچسب‌ها، راهنماها و پیام‌های خطای این صفحه ترجمه نمی‌شدند و به‌جای متن فارسی، کلیدهای خام (مثل heading_title یا entry_card_number) نمایش داده می‌شدند. حالا ترجمه‌ی فارسی و انگلیسی درست اضافه شده و صفحه‌ی تنظیمات «کارت به کارت» در پنل به‌درستی نمایش داده می‌شود.",
+     "en": "Fixed the Card to Card settings page in the admin panel showing raw untranslated text: its language file lived in an unused folder (en-gb) that the site never actually loads, so every label, help text and error message on that page displayed as a raw key (e.g. heading_title, entry_card_number) instead of readable text. Proper Persian and English translations have been added and the Card to Card settings page now displays correctly."
++  },
++  {
++    "version": "5.6.33",
++    "fa": "رفع نمایش برعکس شماره کارت در روش پرداخت «کارت به کارت»: چون صفحه از راست‌به‌چپ است و شماره کارت جهت مشخصی نداشت، مرورگر گاهی گروه‌های ۴ رقمی را برعکس نمایش می‌داد (مثلاً ۵۶۷۸ ۱۲۳۴ ۸۶۱۰ ۶۲۱۹ به‌جای ۶۲۱۹ ۸۶۱۰ ۱۲۳۴ ۵۶۷۸) که می‌توانست باعث واریز اشتباه توسط مشتری شود؛ حالا شماره کارت همیشه به ترتیب درست نمایش داده می‌شود. همچنین یک گزارش خطای موقت (فقط در حالت آزمایشی بیت‌پی) به مرحله‌ی «تأیید پرداخت» درگاه بیت‌پی اضافه شد تا وقتی درخواست پرداخت همان ابتدا (قبل از رسیدن به صفحه‌ی بیت‌پی) رد می‌شود، دلیل دقیق آن قابل بررسی باشد.",
++    "en": "Fixed the card number showing in reversed digit-group order on the Card to Card payment method: on the right-to-left page, the browser could visually reverse the space-separated 4-digit groups (e.g. showing 5678 1234 8610 6219 instead of 6219 8610 1234 5678), risking a customer transferring money using the wrong number; the card number now always displays in the correct order. Also added a sandbox-only diagnostic to BitPay's payment-request step (before the customer ever reaches BitPay's page) so the exact reason for an immediate rejection can be found without server log access."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 22446c0..65a710c 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.32
++5.6.33
+diff --git a/extension/iranian_gateways/admin/view/template/payment/card_to_card.twig b/extension/iranian_gateways/admin/view/template/payment/card_to_card.twig
+index 2d89554..e009346 100644
+--- a/extension/iranian_gateways/admin/view/template/payment/card_to_card.twig
++++ b/extension/iranian_gateways/admin/view/template/payment/card_to_card.twig
+@@ -37,7 +37,7 @@
+                       <input type="radio" name="payment_card_to_card_active" value="{{ uid }}" class="form-check-input"{% if uid == payment_card_to_card_active %} checked{% endif %}/>
+                     </td>
+                     <td>
+-                      <input type="text" name="payment_card_to_card_cards[{{ uid }}][card_number]" value="{{ card.card_number }}" maxlength="19" placeholder="6219861012345678" class="form-control"/>
++                      <input type="text" name="payment_card_to_card_cards[{{ uid }}][card_number]" value="{{ card.card_number }}" maxlength="19" placeholder="6219861012345678" dir="ltr" class="form-control"/>
+                       <div id="error-card-number-{{ uid }}" class="invalid-feedback"></div>
+                     </td>
+                     <td>
+@@ -115,7 +115,7 @@
+       <input type="radio" name="payment_card_to_card_active" value="" class="form-check-input"/>
+     </td>
+     <td>
+-      <input type="text" name="" maxlength="19" placeholder="6219861012345678" class="form-control" data-oc-field="card_number"/>
++      <input type="text" name="" maxlength="19" placeholder="6219861012345678" dir="ltr" class="form-control" data-oc-field="card_number"/>
+     </td>
+     <td>
+       <input type="text" name="" class="form-control" data-oc-field="holder_name"/>
+diff --git a/extension/iranian_gateways/catalog/controller/payment/bitpay.php b/extension/iranian_gateways/catalog/controller/payment/bitpay.php
+index 29ca62e..edb0507 100644
+--- a/extension/iranian_gateways/catalog/controller/payment/bitpay.php
++++ b/extension/iranian_gateways/catalog/controller/payment/bitpay.php
+@@ -62,10 +62,21 @@ class Bitpay extends \MDcart\System\Engine\Controller {
+ 					'description' => sprintf($this->language->get('text_order_description'), $order_info['order_id'], $this->config->get('config_name'))
+ 				];
+ 
+-				[$id_get, $error] = $this->requestIdGet($fields, $sandbox);
++				[$id_get, $error, $raw_response] = $this->requestIdGet($fields, $sandbox);
+ 
+ 				if ($error || $id_get === null) {
+ 					$json['error'] = $this->language->get('error_gateway');
++
++					// Sandbox-only diagnostic (never shown to real customers):
++					// BitPay's gateway-send endpoint returns a negative numeric
++					// error code (e.g. invalid API key, amount too low, redirect
++					// address not matching the registered domain) rather than an
++					// exception, so the generic "rejected" message alone does not
++					// say why. Surface the raw response so the actual cause can
++					// be found without server log access.
++					if ($sandbox) {
++						$json['error'] .= ' [bitpay_debug: ' . substr((string)$raw_response, 0, 200) . ']';
++					}
+ 				} else {
+ 					$this->session->data['bitpay_id_get'] = $id_get;
+ 
+@@ -190,28 +201,32 @@ class Bitpay extends \MDcart\System\Engine\Controller {
+ 	 * @param array<string, mixed> $fields
+ 	 * @param bool                 $sandbox
+ 	 *
+-	 * @return array{0: string|null, 1: bool}
++	 * @return array{0: string|null, 1: bool, 2: mixed}
+ 	 */
+ 	private function requestIdGet(array $fields, bool $sandbox = false): array {
+ 		[$response, $error] = $this->curlPostForm($sandbox ? self::API_SEND_URL_SANDBOX : self::API_SEND_URL, $fields, false);
+ 
+ 		if ($error || $response === null) {
+-			return [null, true];
++			return [null, true, 'curl_error'];
+ 		}
+ 
+ 		$response = trim((string)$response);
+ 
+ 		if (is_numeric($response) && (int)$response > 0) {
+-			return [$response, false];
++			return [$response, false, $response];
+ 		}
+ 
+ 		$decoded = json_decode($response, true);
+ 
+ 		if (is_array($decoded) && !empty($decoded['IDGet'])) {
+-			return [(string)$decoded['IDGet'], false];
++			return [(string)$decoded['IDGet'], false, $response];
+ 		}
+ 
+-		return [null, true];
++		// A negative numeric string is BitPay's own error code convention
++		// (invalid API key, amount too low, redirect address not matching
++		// the domain registered with the merchant account, etc.) - surfaced
++		// as-is via $raw_response so confirm() can show it in sandbox mode.
++		return [null, true, $response];
+ 	}
+ 
+ 	/**
+diff --git a/extension/iranian_gateways/catalog/view/template/payment/card_to_card.twig b/extension/iranian_gateways/catalog/view/template/payment/card_to_card.twig
+index 44c8b6f..f8e326e 100644
+--- a/extension/iranian_gateways/catalog/view/template/payment/card_to_card.twig
++++ b/extension/iranian_gateways/catalog/view/template/payment/card_to_card.twig
+@@ -2,7 +2,7 @@
+   <legend>{{ text_instruction }}</legend>
+   <p><b>{{ text_description }}</b></p>
+   <div class="border rounded p-3 mb-2">
+-    <p class="fs-4 fw-bold text-center">{{ card_number }}</p>
++    <p class="fs-4 fw-bold text-center" dir="ltr" style="unicode-bidi: isolate;">{{ card_number }}</p>
+     <p class="text-center">{{ text_holder }}: {{ holder_name }}{% if bank_name %} &mdash; {{ text_bank }}: {{ bank_name }}{% endif %}</p>
+     {% if instruction %}
+       <p>{{ instruction|raw }}</p>

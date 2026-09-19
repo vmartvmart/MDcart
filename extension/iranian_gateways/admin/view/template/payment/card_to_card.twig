@@ -37,7 +37,7 @@
                       <input type="radio" name="payment_card_to_card_active" value="{{ uid }}" class="form-check-input"{% if uid == payment_card_to_card_active %} checked{% endif %}/>
                     </td>
                     <td>
-                      <input type="text" name="payment_card_to_card_cards[{{ uid }}][card_number]" value="{{ card.card_number }}" maxlength="19" placeholder="6219861012345678" class="form-control"/>
+                      <input type="text" name="payment_card_to_card_cards[{{ uid }}][card_number]" value="{{ card.card_number }}" maxlength="19" placeholder="6219861012345678" dir="ltr" class="form-control"/>
                       <div id="error-card-number-{{ uid }}" class="invalid-feedback"></div>
                     </td>
                     <td>
@@ -115,7 +115,7 @@
       <input type="radio" name="payment_card_to_card_active" value="" class="form-check-input"/>
     </td>
     <td>
-      <input type="text" name="" maxlength="19" placeholder="6219861012345678" class="form-control" data-oc-field="card_number"/>
+      <input type="text" name="" maxlength="19" placeholder="6219861012345678" dir="ltr" class="form-control" data-oc-field="card_number"/>
     </td>
     <td>
       <input type="text" name="" class="form-control" data-oc-field="holder_name"/>

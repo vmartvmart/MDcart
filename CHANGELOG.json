@@ -233,5 +233,10 @@
     "version": "5.6.32",
     "fa": "رفع مشکل نمایش تنظیمات «کارت به کارت» در پنل مدیریت: فایل ترجمه‌ی این بخش در پوشه‌ی زبان انگلیسی نادرستی (en-gb) قرار داشت که اصلاً در سایت استفاده نمی‌شود، بنابراین هیچ‌کدام از برچسب‌ها، راهنماها و پیام‌های خطای این صفحه ترجمه نمی‌شدند و به‌جای متن فارسی، کلیدهای خام (مثل heading_title یا entry_card_number) نمایش داده می‌شدند. حالا ترجمه‌ی فارسی و انگلیسی درست اضافه شده و صفحه‌ی تنظیمات «کارت به کارت» در پنل به‌درستی نمایش داده می‌شود.",
     "en": "Fixed the Card to Card settings page in the admin panel showing raw untranslated text: its language file lived in an unused folder (en-gb) that the site never actually loads, so every label, help text and error message on that page displayed as a raw key (e.g. heading_title, entry_card_number) instead of readable text. Proper Persian and English translations have been added and the Card to Card settings page now displays correctly."
+  },
+  {
+    "version": "5.6.33",
+    "fa": "رفع نمایش برعکس شماره کارت در روش پرداخت «کارت به کارت»: چون صفحه از راست‌به‌چپ است و شماره کارت جهت مشخصی نداشت، مرورگر گاهی گروه‌های ۴ رقمی را برعکس نمایش می‌داد (مثلاً ۵۶۷۸ ۱۲۳۴ ۸۶۱۰ ۶۲۱۹ به‌جای ۶۲۱۹ ۸۶۱۰ ۱۲۳۴ ۵۶۷۸) که می‌توانست باعث واریز اشتباه توسط مشتری شود؛ حالا شماره کارت همیشه به ترتیب درست نمایش داده می‌شود. همچنین یک گزارش خطای موقت (فقط در حالت آزمایشی بیت‌پی) به مرحله‌ی «تأیید پرداخت» درگاه بیت‌پی اضافه شد تا وقتی درخواست پرداخت همان ابتدا (قبل از رسیدن به صفحه‌ی بیت‌پی) رد می‌شود، دلیل دقیق آن قابل بررسی باشد.",
+    "en": "Fixed the card number showing in reversed digit-group order on the Card to Card payment method: on the right-to-left page, the browser could visually reverse the space-separated 4-digit groups (e.g. showing 5678 1234 8610 6219 instead of 6219 8610 1234 5678), risking a customer transferring money using the wrong number; the card number now always displays in the correct order. Also added a sandbox-only diagnostic to BitPay's payment-request step (before the customer ever reaches BitPay's page) so the exact reason for an immediate rejection can be found without server log access."
   }
 ]

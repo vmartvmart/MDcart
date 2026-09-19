@@ -2,7 +2,7 @@
   <legend>{{ text_instruction }}</legend>
   <p><b>{{ text_description }}</b></p>
   <div class="border rounded p-3 mb-2">
-    <p class="fs-4 fw-bold text-center">{{ card_number }}</p>
+    <p class="fs-4 fw-bold text-center" dir="ltr" style="unicode-bidi: isolate;">{{ card_number }}</p>
     <p class="text-center">{{ text_holder }}: {{ holder_name }}{% if bank_name %} &mdash; {{ text_bank }}: {{ bank_name }}{% endif %}</p>
     {% if instruction %}
       <p>{{ instruction|raw }}</p>
