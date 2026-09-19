@@ -1,0 +1,70 @@
+{{ header }}{{ column_left }}
+<div id="content">
+  <div class="page-header">
+    <div class="container-fluid">
+      <div class="float-end">
+        <button type="submit" form="form-total" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-save"></i></button>
+        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
+      <h1>{{ heading_title }}</h1>
+      <ol class="breadcrumb">
+        {% for breadcrumb in breadcrumbs %}
+          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_edit }}</div>
+      <div class="card-body">
+        <div class="alert alert-info alert-dismissible"><i class="fa-solid fa-circle-info"></i> {{ text_payment_fee_help }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <form id="form-total" action="{{ save }}" method="post" data-oc-toggle="ajax">
+          {% if payment_methods %}
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <td>{{ column_payment_method }}</td>
+                  <td>{{ column_rate }}</td>
+                </tr>
+              </thead>
+              <tbody>
+                {% for payment_method in payment_methods %}
+                  <tr>
+                    <td class="align-middle">{{ payment_method.name }}</td>
+                    <td>
+                      <div class="input-group">
+                        <input type="text" name="total_payment_fee_rates[{{ payment_method.code }}]" value="{{ total_payment_fee_rates[payment_method.code] }}" placeholder="{{ entry_rate }}" id="input-rate-{{ payment_method.code }}" class="form-control"/>
+                        <span class="input-group-text">%</span>
+                      </div>
+                      <div id="error-rate-{{ payment_method.code|replace({'_': '-'}) }}" class="invalid-feedback"></div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="text-center">{{ text_no_results }}</div>
+          {% endif %}
+          <div class="row mb-3">
+            <label class="col-sm-2 col-form-label">{{ entry_status }}</label>
+            <div class="col-sm-10">
+              <div class="form-check form-switch form-switch-lg">
+                <input type="hidden" name="total_payment_fee_status" value="0"/>
+                <input type="checkbox" name="total_payment_fee_status" value="1" id="input-status" class="form-check-input"{% if total_payment_fee_status %} checked{% endif %}/>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="input-sort-order" class="col-sm-2 col-form-label">{{ entry_sort_order }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="total_payment_fee_sort_order" value="{{ total_payment_fee_sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control"/>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{{ footer }}

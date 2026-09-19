@@ -1,0 +1,523 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 9e32f35..bfbec3c 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -238,5 +238,10 @@
+     "version": "5.6.33",
+     "fa": "رفع نمایش برعکس شماره کارت در روش پرداخت «کارت به کارت»: چون صفحه از راست‌به‌چپ است و شماره کارت جهت مشخصی نداشت، مرورگر گاهی گروه‌های ۴ رقمی را برعکس نمایش می‌داد (مثلاً ۵۶۷۸ ۱۲۳۴ ۸۶۱۰ ۶۲۱۹ به‌جای ۶۲۱۹ ۸۶۱۰ ۱۲۳۴ ۵۶۷۸) که می‌توانست باعث واریز اشتباه توسط مشتری شود؛ حالا شماره کارت همیشه به ترتیب درست نمایش داده می‌شود. همچنین یک گزارش خطای موقت (فقط در حالت آزمایشی بیت‌پی) به مرحله‌ی «تأیید پرداخت» درگاه بیت‌پی اضافه شد تا وقتی درخواست پرداخت همان ابتدا (قبل از رسیدن به صفحه‌ی بیت‌پی) رد می‌شود، دلیل دقیق آن قابل بررسی باشد.",
+     "en": "Fixed the card number showing in reversed digit-group order on the Card to Card payment method: on the right-to-left page, the browser could visually reverse the space-separated 4-digit groups (e.g. showing 5678 1234 8610 6219 instead of 6219 8610 1234 5678), risking a customer transferring money using the wrong number; the card number now always displays in the correct order. Also added a sandbox-only diagnostic to BitPay's payment-request step (before the customer ever reaches BitPay's page) so the exact reason for an immediate rejection can be found without server log access."
++  },
++  {
++    "version": "5.6.34",
++    "fa": "امکان تعیین کارمزد یا تخفیف بر اساس روش پرداخت اضافه شد: از منوی «افزونه‌ها > مجموع سفارش‌ها > کارمزد/تخفیف بر اساس روش پرداخت» می‌توانید برای هر درگاه یک درصد وارد کنید - عدد مثبت باعث افزوده شدن آن درصد به مبلغ نهایی سفارش هنگام انتخاب آن روش پرداخت می‌شود (مثلا برای دیجی‌پی 10 درصد اضافه) و عدد منفی باعث تخفیف می‌شود (مثلا برای کارت به کارت 5 درصد تخفیف). این مبلغ در صفحه‌ی نهایی خرید همزمان با تغییر روش پرداخت توسط مشتری به‌صورت لحظه‌ای به‌روز می‌شود و دقیقا همان مقداری که در لحظه‌ی ثبت سفارش محاسبه شده در فاکتور سفارش ذخیره می‌گردد. این ویژگی به‌صورت پیش‌فرض غیرفعال است و باید از تنظیمات همان صفحه فعال شود.",
++    "en": "Added the ability to add a surcharge or discount based on the customer's chosen payment method: from Extensions > Order Totals > Payment Method Fee/Discount, enter a percentage for any gateway - a positive number adds that percentage to the order total when the customer pays with it (e.g. +10% for DigiPay), a negative number gives a discount (e.g. -5% for card-to-card). The amount updates live on the checkout confirmation page as the customer switches payment methods, and the exact value calculated at the moment the order is placed is saved on the order. This feature is off by default and must be enabled from that same settings page."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 65a710c..d9ce55f 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.33
++5.6.34
+diff --git a/extension/payment_fee/admin/controller/total/payment_fee.php b/extension/payment_fee/admin/controller/total/payment_fee.php
+new file mode 100644
+index 0000000..21f8357
+--- /dev/null
++++ b/extension/payment_fee/admin/controller/total/payment_fee.php
+@@ -0,0 +1,201 @@
++<?php
++namespace MDcart\Admin\Controller\Extension\PaymentFee\Total;
++/**
++ * Class PaymentFee
++ *
++ * Settings page for the per-payment-method surcharge/discount total. Lists
++ * every installed payment method (regardless of whether it is currently
++ * enabled, so a rate can be prepared ahead of time) and lets the admin
++ * enter a percentage for each: positive adds a surcharge, negative gives
++ * a discount, zero (or blank) leaves that payment method unaffected.
++ *
++ * @package MDcart\Admin\Controller\Extension\PaymentFee\Total
++ */
++class PaymentFee extends \MDcart\System\Engine\Controller {
++	/**
++	 * Index
++	 *
++	 * @return void
++	 */
++	public function index(): void {
++		$this->load->language('extension/payment_fee/total/payment_fee');
++
++		$this->document->setTitle($this->language->get('heading_title'));
++
++		$data['breadcrumbs'] = [];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_home'),
++			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_extension'),
++			'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=total')
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('heading_title'),
++			'href' => $this->url->link('extension/payment_fee/total/payment_fee', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['save'] = $this->url->link('extension/payment_fee/total/payment_fee.save', 'user_token=' . $this->session->data['user_token']);
++		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=total');
++
++		$data['payment_methods'] = $this->getPaymentMethods();
++
++		$rates = (array)$this->config->get('total_payment_fee_rates');
++
++		$data['total_payment_fee_rates'] = [];
++
++		foreach ($data['payment_methods'] as $payment_method) {
++			$data['total_payment_fee_rates'][$payment_method['code']] = $rates[$payment_method['code']] ?? '';
++		}
++
++		$data['total_payment_fee_status'] = $this->config->get('total_payment_fee_status');
++		$data['total_payment_fee_sort_order'] = $this->config->get('total_payment_fee_sort_order') ?: 8;
++
++		$data['header'] = $this->load->controller('common/header');
++		$data['column_left'] = $this->load->controller('common/column_left');
++		$data['footer'] = $this->load->controller('common/footer');
++
++		$this->response->setOutput($this->load->view('extension/payment_fee/total/payment_fee', $data));
++	}
++
++	/**
++	 * Save
++	 *
++	 * @return void
++	 */
++	public function save(): void {
++		$this->load->language('extension/payment_fee/total/payment_fee');
++
++		$json = [];
++
++		if (!$this->user->hasPermission('modify', 'extension/payment_fee/total/payment_fee')) {
++			$json['error']['warning'] = $this->language->get('error_permission');
++		}
++
++		$rates = [];
++
++		$posted_rates = $this->request->post['total_payment_fee_rates'] ?? [];
++
++		$valid_codes = array_column($this->getPaymentMethods(), 'code');
++
++		foreach ($posted_rates as $code => $value) {
++			// Only accept codes for payment methods that actually exist -
++			// posted data is otherwise trusted only as far as this list.
++			if (!in_array($code, $valid_codes, true)) {
++				continue;
++			}
++
++			$value = trim((string)$value);
++
++			if ($value === '') {
++				continue;
++			}
++
++			if (!is_numeric($value)) {
++				$json['error']['rate_' . $code] = $this->language->get('error_rate');
++
++				continue;
++			}
++
++			if ((float)$value <= -100) {
++				$json['error']['rate_' . $code] = $this->language->get('error_rate_min');
++
++				continue;
++			}
++
++			$rates[$code] = (float)$value;
++		}
++
++		if (!$json) {
++			$post_data = $this->request->post;
++			$post_data['total_payment_fee_rates'] = $rates;
++
++			// Setting
++			$this->load->model('setting/setting');
++
++			$this->model_setting_setting->editSetting('total_payment_fee', $post_data);
++
++			$json['success'] = $this->language->get('text_success');
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++
++	/**
++	 * Every installed payment method (extension row of type "payment"),
++	 * with a best-effort display name pulled from that extension's own
++	 * admin language file. Falls back to a readable version of the code
++	 * itself if the language file for the current admin language is
++	 * missing (a pre-existing gap in a few of this store's older payment
++	 * extensions) so the list is never blank.
++	 *
++	 * Note: $this->load->language() returns the FULL cumulative merged
++	 * language data on every call, not just the keys the just-loaded file
++	 * defines, so checking its return value directly can't tell a missing
++	 * file apart from one that simply repeats the previous iteration's
++	 * heading_title. Instead, a unique sentinel is written to 'heading_title'
++	 * immediately before each load - if the load doesn't overwrite it, the
++	 * file (or that key within it) doesn't exist for the current language.
++	 *
++	 * Loading a payment method's own admin language file also merges ALL of
++	 * its keys (button_save, entry_status, help_*, etc.) into the shared
++	 * Language object, which would otherwise silently clobber this settings
++	 * page's own strings (already loaded by index()/save()) with whichever
++	 * payment method happened to load last. A snapshot of the language data
++	 * is restored after every iteration to keep each payment method's file
++	 * isolated and to leave this page's own language data untouched once
++	 * the loop is done.
++	 *
++	 * @return array<int, array{code: string, name: string}>
++	 */
++	private function getPaymentMethods(): array {
++		$this->load->model('setting/extension');
++
++		$results = $this->model_setting_extension->getExtensionsByType('payment');
++
++		$methods = [];
++
++		$snapshot = $this->language->all();
++
++		foreach ($results as $result) {
++			$sentinel = "\0missing\0" . $result['code'];
++
++			$this->language->set('heading_title', $sentinel);
++
++			try {
++				$this->load->language('extension/' . $result['extension'] . '/payment/' . $result['code']);
++			} catch (\Throwable $e) {
++				// Ignore - handled by the sentinel check below.
++			}
++
++			$name = $this->language->get('heading_title');
++
++			if ($name === $sentinel) {
++				$name = ucwords(str_replace(['_', '-'], ' ', $result['code']));
++			}
++
++			$methods[] = [
++				'code' => $result['code'],
++				'name' => $name
++			];
++
++			// Restore before the next iteration (and before returning) so
++			// no payment method's language file can leak keys into another
++			// method's lookup, or into the rest of this page's render.
++			$this->language->clear();
++
++			foreach ($snapshot as $key => $value) {
++				$this->language->set($key, $value);
++			}
++		}
++
++		usort($methods, fn($a, $b) => strcmp($a['name'], $b['name']));
++
++		return $methods;
++	}
++}
+diff --git a/extension/payment_fee/admin/language/fa/total/payment_fee.php b/extension/payment_fee/admin/language/fa/total/payment_fee.php
+new file mode 100644
+index 0000000..4a696a9
+--- /dev/null
++++ b/extension/payment_fee/admin/language/fa/total/payment_fee.php
+@@ -0,0 +1,27 @@
++<?php
++// Heading
++$_['heading_title']          = 'کارمزد/تخفیف بر اساس روش پرداخت';
++
++// Text
++$_['text_home']              = 'خانه';
++$_['text_extension']         = 'افزونه‌ها';
++$_['text_success']           = 'با موفقیت انجام شد: کارمزد/تخفیف بر اساس روش پرداخت ویرایش شد!';
++$_['text_edit']               = 'ویرایش کارمزد/تخفیف بر اساس روش پرداخت';
++$_['text_payment_fee_help']  = 'برای هر روش پرداخت یک درصد وارد کنید. عدد مثبت باعث اضافه شدن آن درصد به مبلغ نهایی سفارش می‌شود (مثلا 10 یعنی 10 درصد اضافه)، و عدد منفی باعث تخفیف می‌شود (مثلا 5- یعنی 5 درصد تخفیف). برای روش‌هایی که نباید تغییری کنند، فیلد را خالی بگذارید یا صفر بگذارید. این درصد روی مبلغ سفارش تا همان مرحله (پس از اعمال کد تخفیف، امتیاز و هزینه ارسال) محاسبه می‌شود و با تغییر روش پرداخت توسط مشتری در صفحه پرداخت، به‌صورت لحظه‌ای به‌روز می‌شود.';
++
++// Column
++$_['column_payment_method']  = 'روش پرداخت';
++$_['column_rate']            = 'درصد';
++
++// Entry
++$_['entry_rate']              = 'درصد';
++$_['entry_status']            = 'وضعیت';
++$_['entry_sort_order']       = 'ترتیب';
++
++// Error
++$_['error_permission']       = 'هشدار: شما اجازه ویرایش کارمزد/تخفیف بر اساس روش پرداخت را ندارید!';
++$_['error_rate']              = 'درصد باید یک عدد باشد!';
++$_['error_rate_min']         = 'درصد نمی‌تواند 100- یا کمتر باشد (باعث می‌شود مبلغ سفارش صفر یا منفی شود)!';
++
++// Text (list)
++$_['text_no_results']        = 'هنوز هیچ روش پرداختی نصب نشده است.';
+diff --git a/extension/payment_fee/admin/language/us/total/payment_fee.php b/extension/payment_fee/admin/language/us/total/payment_fee.php
+new file mode 100644
+index 0000000..1702166
+--- /dev/null
++++ b/extension/payment_fee/admin/language/us/total/payment_fee.php
+@@ -0,0 +1,27 @@
++<?php
++// Heading
++$_['heading_title']          = 'Payment Method Fee/Discount';
++
++// Text
++$_['text_home']              = 'Home';
++$_['text_extension']         = 'Extensions';
++$_['text_success']           = 'Success: You have modified payment method fee/discount total!';
++$_['text_edit']               = 'Edit Payment Method Fee/Discount';
++$_['text_payment_fee_help']  = 'Enter a percentage for any payment method below. A positive number adds a surcharge to the order total when the customer pays with it (e.g. 10 adds 10%); a negative number gives a discount (e.g. -5 takes off 5%). Leave a field blank or at 0 to leave that payment method unaffected. The percentage is calculated on the order total as it stands at that point (after any coupon, reward or shipping), and updates live as the customer switches payment method at checkout.';
++
++// Column
++$_['column_payment_method']  = 'Payment Method';
++$_['column_rate']            = 'Percentage';
++
++// Entry
++$_['entry_rate']              = 'Percentage';
++$_['entry_status']            = 'Status';
++$_['entry_sort_order']       = 'Sort Order';
++
++// Error
++$_['error_permission']       = 'Warning: You do not have permission to modify payment method fee/discount total!';
++$_['error_rate']              = 'Percentage must be a number!';
++$_['error_rate_min']         = 'Percentage cannot be -100 or lower (that would make the order total zero or negative)!';
++
++// Text (list)
++$_['text_no_results']        = 'There are no payment methods installed yet.';
+diff --git a/extension/payment_fee/admin/view/template/total/payment_fee.twig b/extension/payment_fee/admin/view/template/total/payment_fee.twig
+new file mode 100644
+index 0000000..7705cf9
+--- /dev/null
++++ b/extension/payment_fee/admin/view/template/total/payment_fee.twig
+@@ -0,0 +1,70 @@
++{{ header }}{{ column_left }}
++<div id="content">
++  <div class="page-header">
++    <div class="container-fluid">
++      <div class="float-end">
++        <button type="submit" form="form-total" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-save"></i></button>
++        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
++      <h1>{{ heading_title }}</h1>
++      <ol class="breadcrumb">
++        {% for breadcrumb in breadcrumbs %}
++          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
++        {% endfor %}
++      </ol>
++    </div>
++  </div>
++  <div class="container-fluid">
++    <div class="card">
++      <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_edit }}</div>
++      <div class="card-body">
++        <div class="alert alert-info alert-dismissible"><i class="fa-solid fa-circle-info"></i> {{ text_payment_fee_help }}
++          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
++        </div>
++        <form id="form-total" action="{{ save }}" method="post" data-oc-toggle="ajax">
++          {% if payment_methods %}
++            <table class="table table-bordered">
++              <thead>
++                <tr>
++                  <td>{{ column_payment_method }}</td>
++                  <td>{{ column_rate }}</td>
++                </tr>
++              </thead>
++              <tbody>
++                {% for payment_method in payment_methods %}
++                  <tr>
++                    <td class="align-middle">{{ payment_method.name }}</td>
++                    <td>
++                      <div class="input-group">
++                        <input type="text" name="total_payment_fee_rates[{{ payment_method.code }}]" value="{{ total_payment_fee_rates[payment_method.code] }}" placeholder="{{ entry_rate }}" id="input-rate-{{ payment_method.code }}" class="form-control"/>
++                        <span class="input-group-text">%</span>
++                      </div>
++                      <div id="error-rate-{{ payment_method.code|replace({'_': '-'}) }}" class="invalid-feedback"></div>
++                    </td>
++                  </tr>
++                {% endfor %}
++              </tbody>
++            </table>
++          {% else %}
++            <div class="text-center">{{ text_no_results }}</div>
++          {% endif %}
++          <div class="row mb-3">
++            <label class="col-sm-2 col-form-label">{{ entry_status }}</label>
++            <div class="col-sm-10">
++              <div class="form-check form-switch form-switch-lg">
++                <input type="hidden" name="total_payment_fee_status" value="0"/>
++                <input type="checkbox" name="total_payment_fee_status" value="1" id="input-status" class="form-check-input"{% if total_payment_fee_status %} checked{% endif %}/>
++              </div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label for="input-sort-order" class="col-sm-2 col-form-label">{{ entry_sort_order }}</label>
++            <div class="col-sm-10">
++              <input type="text" name="total_payment_fee_sort_order" value="{{ total_payment_fee_sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control"/>
++            </div>
++          </div>
++        </form>
++      </div>
++    </div>
++  </div>
++</div>
++{{ footer }}
+diff --git a/extension/payment_fee/catalog/language/fa/total/payment_fee.php b/extension/payment_fee/catalog/language/fa/total/payment_fee.php
+new file mode 100644
+index 0000000..5adcaf7
+--- /dev/null
++++ b/extension/payment_fee/catalog/language/fa/total/payment_fee.php
+@@ -0,0 +1,4 @@
++<?php
++// Text
++$_['text_surcharge'] = 'افزایش قیمت به دلیل پرداخت با %s (%s%%)';
++$_['text_discount']  = 'تخفیف به دلیل پرداخت با %s (%s%%)';
+diff --git a/extension/payment_fee/catalog/language/us/total/payment_fee.php b/extension/payment_fee/catalog/language/us/total/payment_fee.php
+new file mode 100644
+index 0000000..67e7398
+--- /dev/null
++++ b/extension/payment_fee/catalog/language/us/total/payment_fee.php
+@@ -0,0 +1,4 @@
++<?php
++// Text
++$_['text_surcharge'] = 'Surcharge for paying with %s (%s%%)';
++$_['text_discount']  = 'Discount for paying with %s (%s%%)';
+diff --git a/extension/payment_fee/catalog/model/total/payment_fee.php b/extension/payment_fee/catalog/model/total/payment_fee.php
+new file mode 100644
+index 0000000..ea7c8a8
+--- /dev/null
++++ b/extension/payment_fee/catalog/model/total/payment_fee.php
+@@ -0,0 +1,78 @@
++<?php
++namespace MDcart\Catalog\Model\Extension\PaymentFee\Total;
++/**
++ * Class PaymentFee
++ *
++ * Adds a surcharge or discount line to the order totals based on which
++ * payment method the customer has selected, e.g. "+10% when paying with
++ * BitPay" or "-5% for card-to-card". Configured per payment method in
++ * Extensions > Totals > Payment Method Fee/Discount.
++ *
++ * Can be called from $this->load->model('extension/payment_fee/total/payment_fee');
++ *
++ * @package MDcart\Catalog\Model\Extension\PaymentFee\Total
++ */
++class PaymentFee extends \MDcart\System\Engine\Model {
++	/**
++	 * Get Total
++	 *
++	 * Runs whenever order totals are calculated (checkout/confirm, and
++	 * again at the moment the order is actually placed), so it always
++	 * reflects whichever payment method is currently selected in session
++	 * - switching payment methods live-updates this line, and the order
++	 * is saved with whichever rate applied at the moment of purchase.
++	 *
++	 * @param array<int, array<string, mixed>> $totals
++	 * @param array<int, float>                $taxes
++	 * @param float                            $total
++	 *
++	 * @return void
++	 */
++	public function getTotal(array &$totals, array &$taxes, float &$total): void {
++		if (!isset($this->session->data['payment_method']['code'])) {
++			return;
++		}
++
++		// The stored code is "{extension_code}.{option_code}" (e.g.
++		// "bitpay.bitpay", "card_to_card.card_to_card") - rates are
++		// configured per extension, not per option, since almost every
++		// gateway here only ever offers a single option.
++		[$payment_code] = explode('.', $this->session->data['payment_method']['code']);
++
++		$rates = (array)$this->config->get('total_payment_fee_rates');
++
++		if (!isset($rates[$payment_code]) || (float)$rates[$payment_code] == 0) {
++			return;
++		}
++
++		$rate = (float)$rates[$payment_code];
++
++		// The rate applies to the order as calculated so far (products,
++		// shipping, tax, any coupon/reward/credit already applied) - not
++		// to the original sub-total - so a coupon or discount is honoured
++		// before the payment surcharge/discount is layered on top.
++		$value = round($total * ($rate / 100), 2);
++
++		if ($value == 0) {
++			return;
++		}
++
++		$this->load->language('extension/payment_fee/total/payment_fee');
++
++		if ($rate > 0) {
++			$title = sprintf($this->language->get('text_surcharge'), $this->session->data['payment_method']['name'], $rate);
++		} else {
++			$title = sprintf($this->language->get('text_discount'), $this->session->data['payment_method']['name'], abs($rate));
++		}
++
++		$totals[] = [
++			'extension'  => 'payment_fee',
++			'code'       => 'payment_fee',
++			'title'      => $title,
++			'value'      => $value,
++			'sort_order' => (int)$this->config->get('total_payment_fee_sort_order')
++		];
++
++		$total += $value;
++	}
++}
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index ea8e86e..bd5517c 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -791,6 +791,43 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 					"UPDATE `" . DB_PREFIX . "extension_install` SET `description` = '" . $this->db->escape('ZarinPal, PayPing, IDPay, SizPay, card-to-card, Aghaye Pardakht and BitPay payment methods for Iranian stores.') . "' WHERE `code` = 'iranian_gateways'"
+ 				);
+ 			},
++
++			// Registers the new `payment_fee` total extension (Extensions >
++			// Totals > Payment Method Fee/Discount): lets the admin add a
++			// surcharge or discount to the order total based on which
++			// payment method the customer picked. Same "grant permission +
++			// seed extension/extension_install rows" pattern as
++			// notification_and_payment_extensions above. Left disabled
++			// (`total_payment_fee_status` is simply never set here, so
++			// getTotals() skips it) until the admin visits the settings
++			// page and turns it on - installing this update must never
++			// silently change anyone's order totals.
++			'payment_fee_extension' => function (): void {
++				$this->grantAdministratorPermissions([
++					'extension/payment_fee/total/payment_fee',
++				]);
++
++				$query = $this->db->query(
++					"SELECT `extension_id` FROM `" . DB_PREFIX . "extension`"
++					. " WHERE `extension` = 'payment_fee' AND `type` = 'total' AND `code` = 'payment_fee'"
++				);
++
++				if (!$query->num_rows) {
++					$this->db->query(
++						"INSERT INTO `" . DB_PREFIX . "extension` SET `extension` = 'payment_fee', `type` = 'total', `code` = 'payment_fee'"
++					);
++				}
++
++				$query = $this->db->query("SELECT `extension_install_id` FROM `" . DB_PREFIX . "extension_install` WHERE `code` = 'payment_fee'");
++
++				if (!$query->num_rows) {
++					$this->db->query(
++						"INSERT INTO `" . DB_PREFIX . "extension_install` SET `extension_id` = '0', `extension_download_id` = '0',"
++						. " `name` = 'Payment Method Fee/Discount', `description` = '" . $this->db->escape('Adds a surcharge or gives a discount on the order total based on which payment method the customer chooses (e.g. +10% for one gateway, -5% for another).') . "',"
++						. " `code` = 'payment_fee', `version` = '1.0', `author` = '', `link` = '', `status` = '1', `date_added` = NOW()"
++					);
++				}
++			},
+ 		];
+ 	}
+ 

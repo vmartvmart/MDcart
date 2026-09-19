@@ -791,6 +791,43 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 					"UPDATE `" . DB_PREFIX . "extension_install` SET `description` = '" . $this->db->escape('ZarinPal, PayPing, IDPay, SizPay, card-to-card, Aghaye Pardakht and BitPay payment methods for Iranian stores.') . "' WHERE `code` = 'iranian_gateways'"
 				);
 			},
+
+			// Registers the new `payment_fee` total extension (Extensions >
+			// Totals > Payment Method Fee/Discount): lets the admin add a
+			// surcharge or discount to the order total based on which
+			// payment method the customer picked. Same "grant permission +
+			// seed extension/extension_install rows" pattern as
+			// notification_and_payment_extensions above. Left disabled
+			// (`total_payment_fee_status` is simply never set here, so
+			// getTotals() skips it) until the admin visits the settings
+			// page and turns it on - installing this update must never
+			// silently change anyone's order totals.
+			'payment_fee_extension' => function (): void {
+				$this->grantAdministratorPermissions([
+					'extension/payment_fee/total/payment_fee',
+				]);
+
+				$query = $this->db->query(
+					"SELECT `extension_id` FROM `" . DB_PREFIX . "extension`"
+					. " WHERE `extension` = 'payment_fee' AND `type` = 'total' AND `code` = 'payment_fee'"
+				);
+
+				if (!$query->num_rows) {
+					$this->db->query(
+						"INSERT INTO `" . DB_PREFIX . "extension` SET `extension` = 'payment_fee', `type` = 'total', `code` = 'payment_fee'"
+					);
+				}
+
+				$query = $this->db->query("SELECT `extension_install_id` FROM `" . DB_PREFIX . "extension_install` WHERE `code` = 'payment_fee'");
+
+				if (!$query->num_rows) {
+					$this->db->query(
+						"INSERT INTO `" . DB_PREFIX . "extension_install` SET `extension_id` = '0', `extension_download_id` = '0',"
+						. " `name` = 'Payment Method Fee/Discount', `description` = '" . $this->db->escape('Adds a surcharge or gives a discount on the order total based on which payment method the customer chooses (e.g. +10% for one gateway, -5% for another).') . "',"
+						. " `code` = 'payment_fee', `version` = '1.0', `author` = '', `link` = '', `status` = '1', `date_added` = NOW()"
+					);
+				}
+			},
 		];
 	}
 
