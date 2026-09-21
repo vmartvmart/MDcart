@@ -1,0 +1,132 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 1c92d99..720259d 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -253,5 +253,10 @@
+     "version": "5.6.36",
+     "fa": "بخش «نمادها و مجوزهای اعتماد» در تنظیمات > عمومی بازطراحی شد: قبلاً یک کادر متنی بود که باید کد همه‌ی نمادها (اینماد، مجوزها، درگاه‌های پرداخت) را پشت سر هم در آن می‌چسباندید؛ حالا هر نماد یک ردیف جداگانه دارد با یک فیلد «اسم» (فقط برای شناسایی خودتان، مثلاً «اینماد») و جلوی آن فیلد «کد HTML» همان نماد. با دکمه‌ی «افزودن نماد» می‌توانید ردیف تازه اضافه کنید، هر ردیف را مستقیماً ویرایش کنید، و با دکمه‌ی قرمز کنار هر ردیف آن را حذف کنید. نمادهایی که قبلاً در کادر متنی قدیمی ثبت کرده بودید، خودکار و بدون از دست رفتن به یک ردیف با نام «نمادهای قبلی» منتقل می‌شوند - کافی است بعد از بروزرسانی سر بزنید و در صورت تمایل آن‌ها را به ردیف‌های جداگانه تفکیک کنید. نمایش نمادها در فوتر سایت هیچ تغییری نکرده است.",
+     "en": "Redesigned the \"Trust Badges & License Seals\" section under Settings > General: it used to be a single textarea where you had to paste every badge's code (Enamad, licenses, payment gateway logos) concatenated together; now each badge has its own row with a \"Name\" field (for your own reference, e.g. \"Enamad\") next to its \"HTML Code\" field. Use the \"Add Badge\" button to add a new row, edit any row directly, and remove one with the red button next to it. Any badges already saved in the old textarea are automatically carried over - with nothing lost - into a single row named \"Previous badges\"; after updating, just open the settings page and split them into separate rows if you'd like. How badges are displayed on the storefront footer is unchanged."
++  },
++  {
++    "version": "5.6.37",
++    "fa": "به بخش «نمادها و مجوزهای اعتماد» در تنظیمات > عمومی، امکان جابجایی با درگ‌اند‌دراپ اضافه شد: کنار هر ردیف یک آیکون چندنقطه‌ای (⋮⋮) است - با نگه‌داشتن و کشیدن آن، می‌توانید ترتیب ردیف‌ها را عوض کنید. نمادها دقیقاً به همان ترتیبی که این‌جا می‌چینید، در فوتر سایت نمایش داده می‌شوند. برای اعمال نهایی ترتیب تازه، مثل همیشه دکمه ذخیره فرم را بزنید.",
++    "en": "Added drag-and-drop reordering to the \"Trust Badges & License Seals\" list under Settings > General: each row now has a grip icon (⋮⋮) on its left - press and drag it to change that row's position. Badges are shown on the storefront footer in exactly the order you arrange them here. As always, click the form's save button to apply the new order."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 155ad3c..842898a 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.36
++5.6.37
+diff --git a/panel/language/fa/setting/setting.php b/panel/language/fa/setting/setting.php
+index 7fa3e1f..89e0ca8 100644
+--- a/panel/language/fa/setting/setting.php
++++ b/panel/language/fa/setting/setting.php
+@@ -64,6 +64,7 @@ $_['entry_name']                          = 'نام فروشگاه';
+ $_['entry_trust_badge_name']              = 'اسم نماد (مثلاً اینماد)';
+ $_['entry_trust_badge_html']              = 'کد HTML نماد';
+ $_['entry_trust_badge_add']               = 'افزودن نماد';
++$_['entry_trust_badge_sort']              = 'برای جابجایی و تغییر ترتیب نمایش، بکشید';
+ $_['entry_owner']                         = 'مالک فروشگاه';
+ $_['entry_address']                       = 'آدرس';
+ $_['entry_geocode']                       = 'ژئوکد';
+@@ -203,7 +204,7 @@ $_['entry_status']                        = 'وضعیت';
+ $_['help_geocode']                        = 'لطفاً ژئوکد موقعیت فروشگاه خود را به‌صورت دستی وارد کنید.';
+ $_['help_google_places_key']              = 'اختیاری. با وارد کردن این کلید، تکمیل خودکار آدرس بر پایه گوگل (شامل نام محله) در فرم‌های تسویه‌حساب و دفترچه آدرس فعال می‌شود. این کلید را با فعال‌سازی Places API از Google Cloud Console دریافت کنید (بعد از سقف رایگان ماهانه هزینه دارد). در صورت خالی گذاشتن، فقط از انتخابگر استان/شهرستان/شهر داخلی فروشگاه استفاده خواهد شد.';
+ $_['help_icon']                           = 'آیکون باید یک فایل PNG با اندازه ۱۶ در ۱۶ پیکسل باشد.';
+-$_['help_trust_badges_html']              = 'برای هر نماد (مثل اینماد، مجوز کسب‌وکار مجازی، لوگوی درگاه پرداخت) با دکمه «افزودن نماد» یک ردیف جدید بسازید: یک اسم دلخواه (فقط برای شناسایی خودتون این‌جا) و کد HTML اصلی همون نماد را دقیقاً همون‌جوری که هست کپی/پیست کنید - نه اسکرین‌شات یا عکسش رو. هر ردیف دقیقاً همین‌طوری که هست پایین سایت (فوتر) نمایش داده می‌شه. با دکمه قرمز کنار هر ردیف می‌تونید همون نماد رو حذف کنید.';
++$_['help_trust_badges_html']              = 'برای هر نماد (مثل اینماد، مجوز کسب‌وکار مجازی، لوگوی درگاه پرداخت) با دکمه «افزودن نماد» یک ردیف جدید بسازید: یک اسم دلخواه (فقط برای شناسایی خودتون این‌جا) و کد HTML اصلی همون نماد را دقیقاً همون‌جوری که هست کپی/پیست کنید - نه اسکرین‌شات یا عکسش رو. هر ردیف دقیقاً همین‌طوری که هست پایین سایت (فوتر) نمایش داده می‌شه. با دکمه قرمز کنار هر ردیف می‌تونید همون نماد رو حذف کنید. با نگه‌داشتن و کشیدن آیکون چندنقطه‌ای سمت هر ردیف، می‌تونید ترتیب نمایش نمادها در فوتر را هم عوض کنید - همون ترتیبی که این‌جا می‌چینید، در سایت هم به همون شکل نمایش داده می‌شه.';
+ $_['help_logo_admin']                     = 'فقط بالای همین پنل مدیریت نمایش داده می‌شود (جدا از لوگوی فروشگاه). با بروزرسانی‌های بعدی سایت از بین نمی‌رود.';
+ $_['help_open']                           = 'ساعات کاری فروشگاه خود را وارد کنید.';
+ $_['help_comment']                        = 'این فیلد برای یادداشت‌های ویژه‌ای است که می‌خواهید به مشتری بگویید، مثلاً: فروشگاه چک قبول نمی‌کند.';
+diff --git a/panel/language/us/setting/setting.php b/panel/language/us/setting/setting.php
+index f492d43..9682e46 100644
+--- a/panel/language/us/setting/setting.php
++++ b/panel/language/us/setting/setting.php
+@@ -64,6 +64,7 @@ $_['entry_name']                          = 'Store Name';
+ $_['entry_trust_badge_name']              = 'Badge Name (e.g. Enamad)';
+ $_['entry_trust_badge_html']              = 'Badge HTML Code';
+ $_['entry_trust_badge_add']               = 'Add Badge';
++$_['entry_trust_badge_sort']              = 'Drag to reorder';
+ $_['entry_owner']                         = 'Store Owner';
+ $_['entry_address']                       = 'Address';
+ $_['entry_geocode']                       = 'Geocode';
+@@ -203,7 +204,7 @@ $_['entry_status']                        = 'Status';
+ $_['help_geocode']                        = 'Please enter your store location geocode manually.';
+ $_['help_google_places_key']              = 'Optional. Enables Google-powered address autocomplete (including neighbourhood names) on the checkout and address book forms. Get a key with the Places API enabled from the Google Cloud Console (billable beyond the free monthly quota). Leave empty to keep using only the built-in province/county/city picker.';
+ $_['help_icon']                           = 'The icon should be a PNG that is 16px x 16px.';
+-$_['help_trust_badges_html']              = 'Click "Add Badge" for each badge (Enamad, business license, payment gateway logos, etc.): give it a name (for your own reference only) and paste the exact HTML code that badge issuer gave you - not a screenshot or a downloaded copy of the image. Each row is shown at the bottom of the site (footer) exactly as pasted. Use the red button next to a row to remove that badge.';
++$_['help_trust_badges_html']              = 'Click "Add Badge" for each badge (Enamad, business license, payment gateway logos, etc.): give it a name (for your own reference only) and paste the exact HTML code that badge issuer gave you - not a screenshot or a downloaded copy of the image. Each row is shown at the bottom of the site (footer) exactly as pasted. Use the red button next to a row to remove that badge. Drag a row by the grip icon on its left to reorder it - badges are shown on the storefront footer in the same order you arrange them here.';
+ $_['help_logo_admin']                     = 'Shown only at the top of this admin panel (separate from the store logo). Survives future site updates.';
+ $_['help_open']                           = 'Fill in your store\'s opening times.';
+ $_['help_comment']                        = 'This field is for any special notes you would like to tell the customer i.e. Store does not accept cheques.';
+diff --git a/panel/view/template/setting/setting.twig b/panel/view/template/setting/setting.twig
+index 01ba659..82cc8ff 100644
+--- a/panel/view/template/setting/setting.twig
++++ b/panel/view/template/setting/setting.twig
+@@ -105,6 +105,7 @@
+                 <table id="table-trust-badge" class="table table-bordered">
+                   <thead>
+                     <tr>
++                      <td style="width: 1px;"></td>
+                       <td>{{ entry_trust_badge_name }}</td>
+                       <td>{{ entry_trust_badge_html }}</td>
+                       <td style="width: 1px;"></td>
+@@ -113,6 +114,9 @@
+                   <tbody>
+                     {% for uid, badge in config_trust_badges %}
+                       <tr>
++                        <td class="text-center" style="width: 1px; cursor: move;">
++                          <span class="drag-handle" draggable="true" data-bs-toggle="tooltip" title="{{ entry_trust_badge_sort }}"><i class="fa-solid fa-grip-vertical text-muted"></i></span>
++                        </td>
+                         <td style="width: 220px;">
+                           <input type="text" name="config_trust_badges[{{ uid }}][name]" value="{{ badge.name }}" placeholder="{{ entry_trust_badge_name }}" class="form-control"/>
+                         </td>
+@@ -1615,6 +1619,9 @@
+ </div>
+ <template id="template-trust-badge-row">
+   <tr>
++    <td class="text-center" style="width: 1px; cursor: move;">
++      <span class="drag-handle" draggable="true" data-bs-toggle="tooltip" title="{{ entry_trust_badge_sort }}"><i class="fa-solid fa-grip-vertical text-muted"></i></span>
++    </td>
+     <td style="width: 220px;">
+       <input type="text" name="" class="form-control" data-oc-field="name"/>
+     </td>
+@@ -1709,5 +1716,35 @@ $(document).on('click', '#button-trust-badge-add', function() {
+ $(document).on('click', '[data-oc-toggle=\'remove-trust-badge\']', function() {
+     $(this).closest('tr').remove();
+ });
++
++// Drag-to-reorder trust badge rows (plain HTML5 drag-and-drop - no
++// library needed). Only the grip handle itself is draggable="true" (not
++// the whole row), so dragging text inside the name/HTML fields still
++// works as normal text selection. Saving the form submits the inputs in
++// their current DOM order, and that same order is what the storefront
++// footer loops over - so no extra "sort order" field is needed, moving
++// the rows here is the entire feature.
++var trustBadgeDragged = null;
++
++$(document).on('dragstart', '#table-trust-badge .drag-handle', function() {
++    trustBadgeDragged = $(this).closest('tr').get(0);
++});
++
++$(document).on('dragover', '#table-trust-badge tbody tr', function(e) {
++    if (!trustBadgeDragged || trustBadgeDragged === this) {
++        return;
++    }
++
++    e.preventDefault();
++
++    var rect = this.getBoundingClientRect();
++    var before = (e.originalEvent.clientY - rect.top) < (rect.height / 2);
++
++    $(this)[before ? 'before' : 'after'](trustBadgeDragged);
++});
++
++$(document).on('dragend', '#table-trust-badge .drag-handle', function() {
++    trustBadgeDragged = null;
++});
+ //--></script>
+ {{ footer }}
