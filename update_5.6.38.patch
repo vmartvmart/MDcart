@@ -1,0 +1,1359 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 720259d..f636bfc 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -258,5 +258,10 @@
+     "version": "5.6.37",
+     "fa": "به بخش «نمادها و مجوزهای اعتماد» در تنظیمات > عمومی، امکان جابجایی با درگ‌اند‌دراپ اضافه شد: کنار هر ردیف یک آیکون چندنقطه‌ای (⋮⋮) است - با نگه‌داشتن و کشیدن آن، می‌توانید ترتیب ردیف‌ها را عوض کنید. نمادها دقیقاً به همان ترتیبی که این‌جا می‌چینید، در فوتر سایت نمایش داده می‌شوند. برای اعمال نهایی ترتیب تازه، مثل همیشه دکمه ذخیره فرم را بزنید.",
+     "en": "Added drag-and-drop reordering to the \"Trust Badges & License Seals\" list under Settings > General: each row now has a grip icon (⋮⋮) on its left - press and drag it to change that row's position. Badges are shown on the storefront footer in exactly the order you arrange them here. As always, click the form's save button to apply the new order."
++  },
++  {
++    "version": "5.6.38",
++    "fa": "امکان «تایید شماره موبایل هنگام ثبت‌نام» و «ورود با شماره موبایل و کد یکبار مصرف (OTP)» اضافه شد. این قابلیت به‌صورت پیش‌فرض غیرفعال است و برای فعال‌سازی باید در پنل ادمین به مسیر افزونه‌ها ← سایر ← پیامک آی‌پی‌پنل رفته، کلید API و شماره فرستنده را تنظیم کنید و گزینه جدید «فعال‌سازی تایید موبایل و ورود با کد یکبار مصرف» را روشن کنید. پس از فعال‌سازی: مشتریانی که هنگام ثبت‌نام شماره موبایل وارد می‌کنند، یک کد ۶ رقمی از طریق پیامک آی‌پی‌پنل دریافت کرده و باید پیش از فعال شدن حساب‌شان آن را تایید کنند (این فقط برای ثبت‌نام‌های جدید است؛ مشتریان قدیمی نیازی به تایید مجدد ندارند و روش ورود با ایمیل و رمز عبور برای همه دست‌نخورده باقی مانده است). همچنین یک لینک «ورود با شماره موبایل و کد یکبار مصرف» به صفحه ورود اضافه شد که امکان ورود بدون رمز عبور با دریافت کد پیامکی را فراهم می‌کند.",
++    "en": "Added \"mobile number verification at registration\" and \"login with mobile number + OTP\" as an additional login method. This is disabled by default - to turn it on, go to Extensions > Other > IPPanel SMS in the admin panel, set the API key and sender number, and switch on the new \"Enable mobile verification & OTP login\" option. Once enabled: customers who enter a mobile number at registration receive a 6-digit code by SMS through IPPanel and must confirm it before their account is activated (this only applies to new registrations - existing customers are not required to re-verify, and the existing email+password login is untouched for everyone). A \"Login with mobile number & OTP\" link was also added to the login page, letting customers sign in with an SMS code instead of a password."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 842898a..ab8d3a1 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.37
++5.6.38
+diff --git a/catalog/controller/account/login.php b/catalog/controller/account/login.php
+index eab647a..ec0743e 100644
+--- a/catalog/controller/account/login.php
++++ b/catalog/controller/account/login.php
+@@ -90,6 +90,12 @@ class Login extends \MDcart\System\Engine\Controller {
+ 		$data['register'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language'));
+ 		$data['forgotten'] = $this->url->link('account/forgotten', 'language=' . $this->config->get('config_language'));
+ 
++		if ($this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender')) {
++			$data['login_otp'] = $this->url->link('account/login_otp', 'language=' . $this->config->get('config_language') . ($data['redirect'] ? '&redirect=' . urlencode((string)$data['redirect']) : ''));
++		} else {
++			$data['login_otp'] = '';
++		}
++
+ 		$data['column_left'] = $this->load->controller('common/column_left');
+ 		$data['column_right'] = $this->load->controller('common/column_right');
+ 		$data['content_top'] = $this->load->controller('common/content_top');
+diff --git a/catalog/controller/account/login_otp.php b/catalog/controller/account/login_otp.php
+new file mode 100644
+index 0000000..e896ba5
+--- /dev/null
++++ b/catalog/controller/account/login_otp.php
+@@ -0,0 +1,309 @@
++<?php
++namespace MDcart\Catalog\Controller\Account;
++/**
++ * Class LoginOtp
++ *
++ * Passwordless "login with mobile number" flow, additive to the existing
++ * email+password login in Login. Only available while other_ippanel_otp_status
++ * (and the IPPanel credentials it depends on) are configured.
++ *
++ * @package MDcart\Catalog\Controller\Account
++ */
++class LoginOtp extends \MDcart\System\Engine\Controller {
++	/**
++	 * Maximum wrong-code attempts before the code must be resent.
++	 */
++	private const MAX_ATTEMPTS = 5;
++
++	/**
++	 * Whether the feature is currently enabled and usable.
++	 *
++	 * @return bool
++	 */
++	private function isEnabled(): bool {
++		return (bool)($this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender'));
++	}
++
++	/**
++	 * Index
++	 *
++	 * Step 1: enter mobile number.
++	 *
++	 * @return void
++	 */
++	public function index(): void {
++		$this->load->language('account/login_otp');
++
++		if ($this->customer->isLogged() && isset($this->request->get['customer_token']) && isset($this->session->data['customer_token']) && ($this->request->get['customer_token'] == $this->session->data['customer_token'])) {
++			$this->response->redirect($this->url->link('account/account', 'language=' . $this->config->get('config_language') . '&customer_token=' . $this->session->data['customer_token'], true));
++		}
++
++		if (!$this->isEnabled()) {
++			$this->response->redirect($this->url->link('account/login', 'language=' . $this->config->get('config_language'), true));
++		}
++
++		$this->document->setTitle($this->language->get('heading_title'));
++
++		$data['breadcrumbs'] = [];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_home'),
++			'href' => $this->url->link('common/home', 'language=' . $this->config->get('config_language'))
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_account'),
++			'href' => $this->url->link('account/account', 'language=' . $this->config->get('config_language'))
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('heading_title'),
++			'href' => $this->url->link('account/login_otp', 'language=' . $this->config->get('config_language'))
++		];
++
++		if (isset($this->session->data['error'])) {
++			$data['error_warning'] = $this->session->data['error'];
++
++			unset($this->session->data['error']);
++		} else {
++			$data['error_warning'] = '';
++		}
++
++		if (isset($this->request->get['redirect'])) {
++			$data['redirect'] = $this->request->get['redirect'];
++		} else {
++			$data['redirect'] = '';
++		}
++
++		$data['confirm'] = $this->url->link('account/login_otp.confirm', 'language=' . $this->config->get('config_language'));
++		$data['login'] = $this->url->link('account/login', 'language=' . $this->config->get('config_language'));
++
++		$data['column_left'] = $this->load->controller('common/column_left');
++		$data['column_right'] = $this->load->controller('common/column_right');
++		$data['content_top'] = $this->load->controller('common/content_top');
++		$data['content_bottom'] = $this->load->controller('common/content_bottom');
++		$data['footer'] = $this->load->controller('common/footer');
++		$data['header'] = $this->load->controller('common/header');
++
++		$this->response->setOutput($this->load->view('account/login_otp', $data));
++	}
++
++	/**
++	 * Confirm
++	 *
++	 * Step 1 submit: looks up the number, sends the SMS code.
++	 *
++	 * @return void
++	 */
++	public function confirm(): void {
++		$this->load->language('account/login_otp');
++
++		$json = [];
++
++		if (!$this->isEnabled()) {
++			$json['redirect'] = $this->url->link('account/login', 'language=' . $this->config->get('config_language'), true);
++		}
++
++		if (!$json) {
++			$post_info = $this->request->post + ['telephone' => '', 'redirect' => ''];
++
++			$this->load->model('account/customer');
++
++			$customer_info = $this->model_account_customer->getCustomerByTelephone((string)$post_info['telephone']);
++
++			if (!$customer_info || !$customer_info['status']) {
++				$json['error']['telephone'] = $this->language->get('error_not_found');
++			}
++		}
++
++		if (!$json) {
++			$telephone = $this->model_account_customer->normalizeTelephone((string)$post_info['telephone']);
++
++			$code = (string)random_int(100000, 999999);
++
++			$this->model_account_customer->addOtp($telephone, 'login', $code, (int)$customer_info['customer_id']);
++
++			$this->load->library('extension/ippanel/ippanel');
++
++			$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
++				(string)$this->config->get('other_ippanel_api_key'),
++				(string)$this->config->get('other_ippanel_sender')
++			);
++
++			$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code));
++
++			$this->session->data['login_otp'] = [
++				'telephone'   => $telephone,
++				'customer_id' => (int)$customer_info['customer_id'],
++				'redirect'    => (string)$post_info['redirect']
++			];
++
++			$json['redirect'] = $this->url->link('account/login_otp.code', 'language=' . $this->config->get('config_language'), true);
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++
++	/**
++	 * Code
++	 *
++	 * Step 2: enter the SMS code.
++	 *
++	 * @return void
++	 */
++	public function code(): void {
++		$this->load->language('account/login_otp');
++
++		if ($this->customer->isLogged()) {
++			$this->response->redirect($this->url->link('account/account', 'language=' . $this->config->get('config_language') . '&customer_token=' . $this->session->data['customer_token'], true));
++		}
++
++		if (empty($this->session->data['login_otp']['customer_id']) || empty($this->session->data['login_otp']['telephone'])) {
++			$this->response->redirect($this->url->link('account/login_otp', 'language=' . $this->config->get('config_language'), true));
++		}
++
++		$this->document->setTitle($this->language->get('heading_title'));
++
++		$data['breadcrumbs'] = [];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_home'),
++			'href' => $this->url->link('common/home', 'language=' . $this->config->get('config_language'))
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_account'),
++			'href' => $this->url->link('account/account', 'language=' . $this->config->get('config_language'))
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('heading_title'),
++			'href' => $this->url->link('account/login_otp', 'language=' . $this->config->get('config_language'))
++		];
++
++		if (isset($this->session->data['error'])) {
++			$data['error_warning'] = $this->session->data['error'];
++
++			unset($this->session->data['error']);
++		} else {
++			$data['error_warning'] = '';
++		}
++
++		$data['telephone'] = $this->session->data['login_otp']['telephone'];
++		$data['text_sent'] = sprintf($this->language->get('text_sent'), $data['telephone']);
++
++		$this->session->data['login_otp_token'] = oc_token(26);
++
++		$data['verify'] = $this->url->link('account/login_otp.verify', 'language=' . $this->config->get('config_language') . '&login_otp_token=' . $this->session->data['login_otp_token']);
++
++		$data['column_left'] = $this->load->controller('common/column_left');
++		$data['column_right'] = $this->load->controller('common/column_right');
++		$data['content_top'] = $this->load->controller('common/content_top');
++		$data['content_bottom'] = $this->load->controller('common/content_bottom');
++		$data['footer'] = $this->load->controller('common/footer');
++		$data['header'] = $this->load->controller('common/header');
++
++		$this->response->setOutput($this->load->view('account/login_otp_code', $data));
++	}
++
++	/**
++	 * Verify
++	 *
++	 * Step 2 submit: validates the code and logs the customer in.
++	 *
++	 * @return void
++	 */
++	public function verify(): void {
++		$this->load->language('account/login_otp');
++
++		$json = [];
++
++		if (empty($this->session->data['login_otp']['customer_id']) || empty($this->session->data['login_otp']['telephone'])) {
++			$json['redirect'] = $this->url->link('account/login_otp', 'language=' . $this->config->get('config_language'), true);
++		}
++
++		if (!$json && (!isset($this->request->get['login_otp_token']) || !isset($this->session->data['login_otp_token']) || ($this->request->get['login_otp_token'] != $this->session->data['login_otp_token']))) {
++			$json['redirect'] = $this->url->link('account/login_otp', 'language=' . $this->config->get('config_language'), true);
++		}
++
++		if (!$json) {
++			$post_info = $this->request->post + ['code' => ''];
++
++			$telephone = (string)$this->session->data['login_otp']['telephone'];
++
++			$this->load->model('account/customer');
++
++			$otp_info = $this->model_account_customer->getOtp($telephone, 'login');
++
++			if (!$otp_info) {
++				$json['error']['warning'] = $this->language->get('error_expired');
++			} elseif ((int)$otp_info['attempts'] >= self::MAX_ATTEMPTS) {
++				$this->model_account_customer->deleteOtp($telephone, 'login');
++
++				$json['error']['warning'] = $this->language->get('error_attempts');
++			} elseif (!oc_validate_length((string)$post_info['code'], 1, 6) || ((string)$post_info['code'] !== $otp_info['code'])) {
++				$this->model_account_customer->incrementOtpAttempts($telephone, 'login');
++
++				$json['error']['code'] = $this->language->get('error_code');
++			}
++		}
++
++		if (!$json) {
++			$customer_info = $this->model_account_customer->getCustomerByTelephone($telephone);
++
++			if (!$customer_info || !$customer_info['status'] || !$this->customer->login($customer_info['email'], '', true)) {
++				$json['error']['warning'] = $this->language->get('error_login');
++			}
++		}
++
++		if (!$json) {
++			$this->model_account_customer->deleteOtp($telephone, 'login');
++
++			// Remove form token
++			unset($this->session->data['login_otp_token']);
++
++			$redirect = (string)($this->session->data['login_otp']['redirect'] ?? '');
++
++			unset($this->session->data['login_otp']);
++
++			// Add customer details into session
++			$this->session->data['customer'] = $customer_info;
++
++			// Unset any previous data stored in the session.
++			unset($this->session->data['order_id']);
++			unset($this->session->data['shipping_method']);
++			unset($this->session->data['shipping_methods']);
++			unset($this->session->data['payment_method']);
++			unset($this->session->data['payment_methods']);
++
++			// Wishlist
++			if (isset($this->session->data['wishlist']) && is_array($this->session->data['wishlist'])) {
++				$this->load->model('account/wishlist');
++
++				foreach ($this->session->data['wishlist'] as $key => $product_id) {
++					$this->model_account_wishlist->addWishlist($this->customer->getId(), $product_id);
++
++					unset($this->session->data['wishlist'][$key]);
++				}
++			}
++
++			// Log the IP info
++			$this->model_account_customer->addLogin($this->customer->getId(), oc_get_ip());
++
++			// Create customer token
++			$this->session->data['customer_token'] = oc_token(26);
++
++			$this->model_account_customer->deleteLoginAttempts($customer_info['email']);
++
++			if ($redirect && str_starts_with($redirect, $this->config->get('config_url'))) {
++				$json['redirect'] = $redirect . '&customer_token=' . $this->session->data['customer_token'];
++			} else {
++				$json['redirect'] = $this->url->link('account/account', 'language=' . $this->config->get('config_language') . '&customer_token=' . $this->session->data['customer_token'], true);
++			}
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++}
+diff --git a/catalog/controller/account/register.php b/catalog/controller/account/register.php
+index 0098d4f..03123c7 100644
+--- a/catalog/controller/account/register.php
++++ b/catalog/controller/account/register.php
+@@ -253,46 +253,113 @@ class Register extends \MDcart\System\Engine\Controller {
+ 		if (!$json) {
+ 			$customer_id = $this->model_account_customer->addCustomer($post_info);
+ 
+-			// Login if requires approval
+-			if (!$customer_group_info['approval']) {
+-				$this->customer->login($post_info['email'], html_entity_decode($post_info['password'], ENT_QUOTES, 'UTF-8'));
+-
+-				// Add customer details into session
+-				$this->session->data['customer'] = [
+-					'customer_id'       => $customer_id,
+-					'customer_group_id' => $customer_group_id,
+-					'firstname'         => $post_info['firstname'],
+-					'lastname'          => $post_info['lastname'],
+-					'email'             => $post_info['email'],
+-					'telephone'         => $post_info['telephone'],
+-					'custom_field'      => $post_info['custom_field']
++			$otp_enabled = $this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender');
++
++			$normalized_telephone = ($post_info['telephone'] !== '') ? $this->model_account_customer->normalizeTelephone($post_info['telephone']) : '';
++
++			if ($otp_enabled && ($normalized_telephone !== '')) {
++				// Phone verification is required before this account can be
++				// used - keep it pending (status = 0) regardless of the
++				// approval branch below, until the customer verifies the
++				// SMS code sent to $normalized_telephone. Also store the
++				// normalized number so later lookups by telephone (OTP
++				// login, admin) match reliably regardless of the format the
++				// customer originally typed it in.
++				$this->db->query("UPDATE `" . DB_PREFIX . "customer` SET `status` = '0', `telephone` = '" . $this->db->escape($normalized_telephone) . "' WHERE `customer_id` = '" . (int)$customer_id . "'");
++
++				$code = (string)random_int(100000, 999999);
++
++				$this->model_account_customer->addOtp($normalized_telephone, 'register', $code, $customer_id);
++
++				$this->sendOtpSms($normalized_telephone, $code);
++
++				$this->session->data['register_otp'] = [
++					'customer_id' => $customer_id,
++					'telephone'   => $normalized_telephone,
++					'approval'    => !empty($customer_group_info['approval'])
+ 				];
+ 
+-				// Log the IP info
+-				$this->model_account_customer->addLogin($this->customer->getId(), oc_get_ip());
++				// Remove form token
++				unset($this->session->data['register_token']);
+ 
+-				// Create customer token
+-				$this->session->data['customer_token'] = oc_token(26);
+-			}
++				// Clear any previous login attempts for unregistered accounts.
++				$this->model_account_customer->deleteLoginAttempts($post_info['email']);
++
++				// Clear old session data
++				unset($this->session->data['order_id']);
++				unset($this->session->data['guest']);
++				unset($this->session->data['shipping_method']);
++				unset($this->session->data['shipping_methods']);
++				unset($this->session->data['payment_method']);
++				unset($this->session->data['payment_methods']);
++
++				$json['redirect'] = $this->url->link('account/register_otp', 'language=' . $this->config->get('config_language'), true);
++			} else {
++				// Login if requires approval
++				if (!$customer_group_info['approval']) {
++					$this->customer->login($post_info['email'], html_entity_decode($post_info['password'], ENT_QUOTES, 'UTF-8'));
++
++					// Add customer details into session
++					$this->session->data['customer'] = [
++						'customer_id'       => $customer_id,
++						'customer_group_id' => $customer_group_id,
++						'firstname'         => $post_info['firstname'],
++						'lastname'          => $post_info['lastname'],
++						'email'             => $post_info['email'],
++						'telephone'         => $post_info['telephone'],
++						'custom_field'      => $post_info['custom_field']
++					];
++
++					// Log the IP info
++					$this->model_account_customer->addLogin($this->customer->getId(), oc_get_ip());
++
++					// Create customer token
++					$this->session->data['customer_token'] = oc_token(26);
++				}
+ 
+-			// Remove form token
+-			unset($this->session->data['register_token']);
++				// Remove form token
++				unset($this->session->data['register_token']);
+ 
+-			// Clear any previous login attempts for unregistered accounts.
+-			$this->model_account_customer->deleteLoginAttempts($post_info['email']);
++				// Clear any previous login attempts for unregistered accounts.
++				$this->model_account_customer->deleteLoginAttempts($post_info['email']);
+ 
+-			// Clear old session data
+-			unset($this->session->data['order_id']);
+-			unset($this->session->data['guest']);
+-			unset($this->session->data['shipping_method']);
+-			unset($this->session->data['shipping_methods']);
+-			unset($this->session->data['payment_method']);
+-			unset($this->session->data['payment_methods']);
++				// Clear old session data
++				unset($this->session->data['order_id']);
++				unset($this->session->data['guest']);
++				unset($this->session->data['shipping_method']);
++				unset($this->session->data['shipping_methods']);
++				unset($this->session->data['payment_method']);
++				unset($this->session->data['payment_methods']);
+ 
+-			$json['redirect'] = $this->url->link('account/success', 'language=' . $this->config->get('config_language') . (isset($this->session->data['customer_token']) ? '&customer_token=' . $this->session->data['customer_token'] : ''), true);
++				$json['redirect'] = $this->url->link('account/success', 'language=' . $this->config->get('config_language') . (isset($this->session->data['customer_token']) ? '&customer_token=' . $this->session->data['customer_token'] : ''), true);
++			}
+ 		}
+ 
+ 		$this->response->addHeader('Content-Type: application/json');
+ 		$this->response->setOutput(json_encode($json));
+ 	}
++
++	/**
++	 * Send Otp Sms
++	 *
++	 * Sends a registration OTP code through the IPPanel SMS integration.
++	 * Caller must have already confirmed IPPanel + OTP are enabled and
++	 * configured.
++	 *
++	 * @param string $telephone normalized telephone number
++	 * @param string $code      numeric OTP code
++	 *
++	 * @return void
++	 */
++	private function sendOtpSms(string $telephone, string $code): void {
++		$this->load->language('account/register_otp');
++		$this->load->library('extension/ippanel/ippanel');
++
++		$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
++			(string)$this->config->get('other_ippanel_api_key'),
++			(string)$this->config->get('other_ippanel_sender')
++		);
++
++		$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code));
++	}
+ }
+diff --git a/catalog/controller/account/register_otp.php b/catalog/controller/account/register_otp.php
+new file mode 100644
+index 0000000..0a4b778
+--- /dev/null
++++ b/catalog/controller/account/register_otp.php
+@@ -0,0 +1,207 @@
++<?php
++namespace MDcart\Catalog\Controller\Account;
++/**
++ * Class RegisterOtp
++ *
++ * Second step of registration when mobile verification is enabled
++ * (other_ippanel_otp_status): the customer record already exists but is
++ * held pending (status = 0) until the SMS code sent by
++ * Register::register() is confirmed here.
++ *
++ * @package MDcart\Catalog\Controller\Account
++ */
++class RegisterOtp extends \MDcart\System\Engine\Controller {
++	/**
++	 * Maximum wrong-code attempts before the code must be resent.
++	 */
++	private const MAX_ATTEMPTS = 5;
++
++	/**
++	 * Index
++	 *
++	 * @return void
++	 */
++	public function index(): void {
++		$this->load->language('account/register_otp');
++
++		if ($this->customer->isLogged()) {
++			$this->response->redirect($this->url->link('account/account', 'language=' . $this->config->get('config_language') . '&customer_token=' . $this->session->data['customer_token'], true));
++		}
++
++		if (empty($this->session->data['register_otp']['customer_id']) || empty($this->session->data['register_otp']['telephone'])) {
++			$this->response->redirect($this->url->link('account/register', 'language=' . $this->config->get('config_language'), true));
++		}
++
++		$this->document->setTitle($this->language->get('heading_title'));
++
++		$data['breadcrumbs'] = [];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_home'),
++			'href' => $this->url->link('common/home', 'language=' . $this->config->get('config_language'))
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_account'),
++			'href' => $this->url->link('account/account', 'language=' . $this->config->get('config_language'))
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('heading_title'),
++			'href' => $this->url->link('account/register_otp', 'language=' . $this->config->get('config_language'))
++		];
++
++		if (isset($this->session->data['error'])) {
++			$data['error_warning'] = $this->session->data['error'];
++
++			unset($this->session->data['error']);
++		} else {
++			$data['error_warning'] = '';
++		}
++
++		$data['telephone'] = $this->session->data['register_otp']['telephone'];
++		$data['text_sent'] = sprintf($this->language->get('text_sent'), $data['telephone']);
++
++		$this->session->data['register_otp_token'] = oc_token(26);
++
++		$data['verify'] = $this->url->link('account/register_otp.verify', 'language=' . $this->config->get('config_language') . '&register_otp_token=' . $this->session->data['register_otp_token']);
++		$data['resend'] = $this->url->link('account/register_otp.resend', 'language=' . $this->config->get('config_language') . '&register_otp_token=' . $this->session->data['register_otp_token']);
++
++		$data['column_left'] = $this->load->controller('common/column_left');
++		$data['column_right'] = $this->load->controller('common/column_right');
++		$data['content_top'] = $this->load->controller('common/content_top');
++		$data['content_bottom'] = $this->load->controller('common/content_bottom');
++		$data['footer'] = $this->load->controller('common/footer');
++		$data['header'] = $this->load->controller('common/header');
++
++		$this->response->setOutput($this->load->view('account/register_otp', $data));
++	}
++
++	/**
++	 * Verify
++	 *
++	 * @return void
++	 */
++	public function verify(): void {
++		$this->load->language('account/register_otp');
++
++		$json = [];
++
++		if (empty($this->session->data['register_otp']['customer_id']) || empty($this->session->data['register_otp']['telephone'])) {
++			$json['redirect'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language'), true);
++		}
++
++		if (!$json && (!isset($this->request->get['register_otp_token']) || !isset($this->session->data['register_otp_token']) || ($this->request->get['register_otp_token'] != $this->session->data['register_otp_token']))) {
++			$json['redirect'] = $this->url->link('account/register_otp', 'language=' . $this->config->get('config_language'), true);
++		}
++
++		if (!$json) {
++			$post_info = $this->request->post + ['code' => ''];
++
++			$customer_id = (int)$this->session->data['register_otp']['customer_id'];
++			$telephone = (string)$this->session->data['register_otp']['telephone'];
++			$approval = !empty($this->session->data['register_otp']['approval']);
++
++			$this->load->model('account/customer');
++
++			$otp_info = $this->model_account_customer->getOtp($telephone, 'register');
++
++			if (!$otp_info) {
++				$json['error']['warning'] = $this->language->get('error_expired');
++			} elseif ((int)$otp_info['attempts'] >= self::MAX_ATTEMPTS) {
++				$this->model_account_customer->deleteOtp($telephone, 'register');
++
++				$json['error']['warning'] = $this->language->get('error_attempts');
++			} elseif (!oc_validate_length((string)$post_info['code'], 1, 6) || ((string)$post_info['code'] !== $otp_info['code'])) {
++				$this->model_account_customer->incrementOtpAttempts($telephone, 'register');
++
++				$json['error']['code'] = $this->language->get('error_code');
++			}
++		}
++
++		if (!$json) {
++			$this->model_account_customer->deleteOtp($telephone, 'register');
++			$this->model_account_customer->verifyTelephone($customer_id);
++
++			$customer_info = $this->model_account_customer->getCustomerByTelephone($telephone);
++
++			unset($this->session->data['register_otp']);
++			unset($this->session->data['register_otp_token']);
++
++			if (!$approval) {
++				$this->model_account_customer->activateCustomer($customer_id);
++
++				if ($this->customer->login((string)($customer_info['email'] ?? ''), '', true)) {
++					$this->session->data['customer'] = $customer_info;
++
++					$this->model_account_customer->addLogin($this->customer->getId(), oc_get_ip());
++
++					$this->session->data['customer_token'] = oc_token(26);
++				}
++
++				$json['redirect'] = $this->url->link('account/success', 'language=' . $this->config->get('config_language') . (isset($this->session->data['customer_token']) ? '&customer_token=' . $this->session->data['customer_token'] : ''), true);
++			} else {
++				// Phone verified, but this customer group still requires
++				// admin approval before the account can log in.
++				$this->session->data['success'] = $this->language->get('text_verified_pending_approval');
++
++				$json['redirect'] = $this->url->link('account/login', 'language=' . $this->config->get('config_language'), true);
++			}
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++
++	/**
++	 * Resend
++	 *
++	 * @return void
++	 */
++	public function resend(): void {
++		$this->load->language('account/register_otp');
++
++		$json = [];
++
++		if (empty($this->session->data['register_otp']['customer_id']) || empty($this->session->data['register_otp']['telephone'])) {
++			$json['redirect'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language'), true);
++		}
++
++		if (!$json && (!isset($this->request->get['register_otp_token']) || !isset($this->session->data['register_otp_token']) || ($this->request->get['register_otp_token'] != $this->session->data['register_otp_token']))) {
++			$json['redirect'] = $this->url->link('account/register_otp', 'language=' . $this->config->get('config_language'), true);
++		}
++
++		if (!$json) {
++			$otp_enabled = $this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender');
++
++			if (!$otp_enabled) {
++				$json['error']['warning'] = $this->language->get('error_expired');
++			}
++		}
++
++		if (!$json) {
++			$telephone = (string)$this->session->data['register_otp']['telephone'];
++			$customer_id = (int)$this->session->data['register_otp']['customer_id'];
++
++			$code = (string)random_int(100000, 999999);
++
++			$this->load->model('account/customer');
++
++			$this->model_account_customer->addOtp($telephone, 'register', $code, $customer_id);
++
++			$this->load->library('extension/ippanel/ippanel');
++
++			$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
++				(string)$this->config->get('other_ippanel_api_key'),
++				(string)$this->config->get('other_ippanel_sender')
++			);
++
++			$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code));
++
++			$json['success'] = $this->language->get('text_resent');
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++}
+diff --git a/catalog/language/fa/account/login.php b/catalog/language/fa/account/login.php
+index b8f615b..393289c 100644
+--- a/catalog/language/fa/account/login.php
++++ b/catalog/language/fa/account/login.php
+@@ -11,6 +11,7 @@ $_['text_register_account']        = 'با ایجاد یک حساب کاربری
+ $_['text_returning_customer']      = 'مشتری قدیمی';
+ $_['text_i_am_returning_customer'] = 'من مشتری قدیمی هستم';
+ $_['text_forgotten']               = 'فراموشی رمز عبور';
++$_['text_login_otp']               = 'ورود با شماره موبایل و کد یکبار مصرف';
+ 
+ // Entry
+ $_['entry_email']                  = 'آدرس ایمیل';
+diff --git a/catalog/language/fa/account/login_otp.php b/catalog/language/fa/account/login_otp.php
+new file mode 100644
+index 0000000..5aaa86f
+--- /dev/null
++++ b/catalog/language/fa/account/login_otp.php
+@@ -0,0 +1,24 @@
++<?php
++// Heading
++$_['heading_title'] = 'ورود با شماره موبایل';
++
++// Text
++$_['text_home']     = 'خانه';
++$_['text_account']  = 'حساب کاربری';
++$_['text_sent']     = 'یک کد تایید ۶ رقمی به شماره %s پیامک شد.';
++$_['text_sms_otp']  = 'کد ورود شما: %s';
++
++// Entry
++$_['entry_telephone'] = 'شماره موبایل';
++$_['entry_code']      = 'کد تایید';
++
++// Button
++$_['button_continue'] = 'ادامه';
++$_['button_back']     = 'بازگشت';
++
++// Error
++$_['error_not_found'] = 'حساب کاربری فعالی با این شماره موبایل یافت نشد!';
++$_['error_expired']   = 'کد تایید منقضی شده یا یافت نشد. لطفاً دوباره تلاش کنید.';
++$_['error_attempts']  = 'تعداد تلاش‌های نادرست بیش از حد مجاز است. لطفاً دوباره تلاش کنید.';
++$_['error_code']      = 'کد تایید وارد شده صحیح نیست!';
++$_['error_login']     = 'هشدار: امکان ورود وجود ندارد. لطفاً دوباره تلاش کنید.';
+diff --git a/catalog/language/fa/account/register_otp.php b/catalog/language/fa/account/register_otp.php
+new file mode 100644
+index 0000000..8c62e5f
+--- /dev/null
++++ b/catalog/language/fa/account/register_otp.php
+@@ -0,0 +1,24 @@
++<?php
++// Heading
++$_['heading_title']                = 'تایید شماره موبایل';
++
++// Text
++$_['text_home']                    = 'خانه';
++$_['text_account']                 = 'حساب کاربری';
++$_['text_sent']                    = 'یک کد تایید ۶ رقمی به شماره %s پیامک شد. کد را وارد کنید تا ثبت‌نام شما تکمیل شود.';
++$_['text_verify']                  = 'کد تایید';
++$_['text_resend']                  = 'ارسال مجدد کد';
++$_['text_resent']                  = 'کد تایید دوباره پیامک شد.';
++$_['text_sms_otp']                 = 'کد تایید ثبت‌نام شما: %s';
++$_['text_verified_pending_approval'] = 'شماره موبایل شما با موفقیت تایید شد. حساب کاربری شما پس از تایید مدیر فعال خواهد شد.';
++
++// Entry
++$_['entry_code']                   = 'کد تایید';
++
++// Button
++$_['button_continue']              = 'تایید';
++
++// Error
++$_['error_expired']                = 'کد تایید منقضی شده یا یافت نشد. لطفاً کد جدید درخواست کنید.';
++$_['error_attempts']               = 'تعداد تلاش‌های نادرست بیش از حد مجاز است. لطفاً کد جدید درخواست کنید.';
++$_['error_code']                   = 'کد تایید وارد شده صحیح نیست!';
+diff --git a/catalog/language/us/account/login.php b/catalog/language/us/account/login.php
+index 5710709..f094b00 100644
+--- a/catalog/language/us/account/login.php
++++ b/catalog/language/us/account/login.php
+@@ -11,6 +11,7 @@ $_['text_register_account']        = 'By creating an account you will be able to
+ $_['text_returning_customer']      = 'Returning Customer';
+ $_['text_i_am_returning_customer'] = 'I am a returning customer';
+ $_['text_forgotten']               = 'Forgotten Password';
++$_['text_login_otp']               = 'Login with mobile number & OTP';
+ 
+ // Entry
+ $_['entry_email']                  = 'E-Mail Address';
+diff --git a/catalog/language/us/account/login_otp.php b/catalog/language/us/account/login_otp.php
+new file mode 100644
+index 0000000..0f2b6a0
+--- /dev/null
++++ b/catalog/language/us/account/login_otp.php
+@@ -0,0 +1,24 @@
++<?php
++// Heading
++$_['heading_title'] = 'Login with Mobile Number';
++
++// Text
++$_['text_home']     = 'Home';
++$_['text_account']  = 'Account';
++$_['text_sent']     = 'A 6-digit verification code has been sent by SMS to %s.';
++$_['text_sms_otp']  = 'Your login code: %s';
++
++// Entry
++$_['entry_telephone'] = 'Mobile Number';
++$_['entry_code']      = 'Verification Code';
++
++// Button
++$_['button_continue'] = 'Continue';
++$_['button_back']     = 'Back';
++
++// Error
++$_['error_not_found'] = 'No active account was found for this mobile number!';
++$_['error_expired']   = 'The verification code has expired or could not be found. Please try again.';
++$_['error_attempts']  = 'Too many incorrect attempts. Please try again.';
++$_['error_code']      = 'Verification code is incorrect!';
++$_['error_login']     = 'Warning: Unable to log in. Please try again.';
+diff --git a/catalog/language/us/account/register_otp.php b/catalog/language/us/account/register_otp.php
+new file mode 100644
+index 0000000..a63b51c
+--- /dev/null
++++ b/catalog/language/us/account/register_otp.php
+@@ -0,0 +1,24 @@
++<?php
++// Heading
++$_['heading_title']                = 'Verify Mobile Number';
++
++// Text
++$_['text_home']                    = 'Home';
++$_['text_account']                 = 'Account';
++$_['text_sent']                    = 'A 6-digit verification code has been sent by SMS to %s. Enter it below to complete your registration.';
++$_['text_verify']                  = 'Verification Code';
++$_['text_resend']                  = 'Resend Code';
++$_['text_resent']                  = 'The verification code has been sent again.';
++$_['text_sms_otp']                 = 'Your registration verification code: %s';
++$_['text_verified_pending_approval'] = 'Your mobile number has been verified. Your account will be activated once approved by an administrator.';
++
++// Entry
++$_['entry_code']                   = 'Verification Code';
++
++// Button
++$_['button_continue']              = 'Continue';
++
++// Error
++$_['error_expired']                = 'The verification code has expired or could not be found. Please request a new code.';
++$_['error_attempts']               = 'Too many incorrect attempts. Please request a new code.';
++$_['error_code']                   = 'Verification code is incorrect!';
+diff --git a/catalog/model/account/customer.php b/catalog/model/account/customer.php
+index 8a52ece..96b3904 100644
+--- a/catalog/model/account/customer.php
++++ b/catalog/model/account/customer.php
+@@ -625,4 +625,203 @@ class Customer extends \MDcart\System\Engine\Model {
+ 
+ 		return $query->row;
+ 	}
++
++	/**
++	 * Normalize Telephone
++	 *
++	 * Best-effort normalization of a customer-entered mobile number to a
++	 * canonical local Iranian format (e.g. 09123456789), matching the
++	 * light-touch handling already used by the DigiPay gateway integration.
++	 *
++	 * @param string $telephone
++	 *
++	 * @return string
++	 */
++	public function normalizeTelephone(string $telephone): string {
++		$digits = preg_replace('/\D/', '', $telephone) ?? '';
++
++		if (str_starts_with($digits, '0098')) {
++			$digits = substr($digits, 4);
++		} elseif (str_starts_with($digits, '98') && strlen($digits) > 10) {
++			$digits = substr($digits, 2);
++		}
++
++		if ($digits !== '' && !str_starts_with($digits, '0')) {
++			$digits = '0' . $digits;
++		}
++
++		return $digits;
++	}
++
++	/**
++	 * Get Customer By Telephone
++	 *
++	 * Looks up a customer by mobile number. `telephone` is free text with
++	 * no enforced format, so this matches against a handful of common
++	 * stored variants of the normalized number rather than an exact string.
++	 *
++	 * @param string $telephone
++	 *
++	 * @return array<string, mixed>
++	 *
++	 * @example
++	 *
++	 * $this->load->model('account/customer');
++	 *
++	 * $customer_info = $this->model_account_customer->getCustomerByTelephone($telephone);
++	 */
++	public function getCustomerByTelephone(string $telephone): array {
++		$local = $this->normalizeTelephone($telephone);
++
++		if ($local === '') {
++			return [];
++		}
++
++		$national = ltrim($local, '0');
++
++		$variants = array_unique([$local, $national, '98' . $national, '+98' . $national, '0098' . $national]);
++
++		$escaped = [];
++
++		foreach ($variants as $variant) {
++			$escaped[] = "'" . $this->db->escape($variant) . "'";
++		}
++
++		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer` WHERE `telephone` != '' AND `telephone` IN (" . implode(',', $escaped) . ") ORDER BY `customer_id` ASC");
++
++		if ($query->num_rows) {
++			return ['custom_field' => $query->row['custom_field'] ? json_decode($query->row['custom_field'], true) : []] + $query->row;
++		} else {
++			return [];
++		}
++	}
++
++	/**
++	 * Add Otp
++	 *
++	 * Creates a new OTP code for a telephone number, replacing any
++	 * previous code of the same type so only one code is active at a time.
++	 *
++	 * @param string $telephone
++	 * @param string $type       e.g. 'register', 'login'
++	 * @param string $code       numeric SMS code
++	 * @param int    $customer_id
++	 * @param int    $expire     minutes until the code expires
++	 *
++	 * @return void
++	 *
++	 * @example
++	 *
++	 * $this->load->model('account/customer');
++	 *
++	 * $this->model_account_customer->addOtp($telephone, 'register', $code, $customer_id);
++	 */
++	public function addOtp(string $telephone, string $type, string $code, int $customer_id = 0, int $expire = 5): void {
++		$this->db->query("DELETE FROM `" . DB_PREFIX . "customer_otp` WHERE `telephone` = '" . $this->db->escape($telephone) . "' AND `type` = '" . $this->db->escape($type) . "'");
++
++		$this->db->query("INSERT INTO `" . DB_PREFIX . "customer_otp` SET `telephone` = '" . $this->db->escape($telephone) . "', `code` = '" . $this->db->escape($code) . "', `type` = '" . $this->db->escape($type) . "', `customer_id` = '" . (int)$customer_id . "', `attempts` = '0', `date_added` = NOW(), `date_expire` = DATE_ADD(NOW(), INTERVAL " . (int)$expire . " MINUTE)");
++	}
++
++	/**
++	 * Get Otp
++	 *
++	 * @param string $telephone
++	 * @param string $type
++	 *
++	 * @return array<string, mixed>
++	 *
++	 * @example
++	 *
++	 * $this->load->model('account/customer');
++	 *
++	 * $otp_info = $this->model_account_customer->getOtp($telephone, 'register');
++	 */
++	public function getOtp(string $telephone, string $type): array {
++		$this->db->query("DELETE FROM `" . DB_PREFIX . "customer_otp` WHERE `date_expire` < NOW()");
++
++		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer_otp` WHERE `telephone` = '" . $this->db->escape($telephone) . "' AND `type` = '" . $this->db->escape($type) . "'");
++
++		return $query->row ?: [];
++	}
++
++	/**
++	 * Increment Otp Attempts
++	 *
++	 * @param string $telephone
++	 * @param string $type
++	 *
++	 * @return void
++	 *
++	 * @example
++	 *
++	 * $this->load->model('account/customer');
++	 *
++	 * $this->model_account_customer->incrementOtpAttempts($telephone, 'register');
++	 */
++	public function incrementOtpAttempts(string $telephone, string $type): void {
++		$this->db->query("UPDATE `" . DB_PREFIX . "customer_otp` SET `attempts` = `attempts` + 1 WHERE `telephone` = '" . $this->db->escape($telephone) . "' AND `type` = '" . $this->db->escape($type) . "'");
++	}
++
++	/**
++	 * Delete Otp
++	 *
++	 * @param string $telephone
++	 * @param string $type
++	 *
++	 * @return void
++	 *
++	 * @example
++	 *
++	 * $this->load->model('account/customer');
++	 *
++	 * $this->model_account_customer->deleteOtp($telephone, 'register');
++	 */
++	public function deleteOtp(string $telephone, string $type): void {
++		$this->db->query("DELETE FROM `" . DB_PREFIX . "customer_otp` WHERE `telephone` = '" . $this->db->escape($telephone) . "' AND `type` = '" . $this->db->escape($type) . "'");
++	}
++
++	/**
++	 * Verify Telephone
++	 *
++	 * Marks a customer's mobile number as verified. Does not change
++	 * `status` - callers decide separately whether to also activate the
++	 * account (see activateCustomer()), since a customer group that
++	 * requires admin approval should stay pending even once the phone is
++	 * verified.
++	 *
++	 * @param int $customer_id
++	 *
++	 * @return void
++	 *
++	 * @example
++	 *
++	 * $this->load->model('account/customer');
++	 *
++	 * $this->model_account_customer->verifyTelephone($customer_id);
++	 */
++	public function verifyTelephone(int $customer_id): void {
++		$this->db->query("UPDATE `" . DB_PREFIX . "customer` SET `telephone_verified` = '1' WHERE `customer_id` = '" . (int)$customer_id . "'");
++	}
++
++	/**
++	 * Activate Customer
++	 *
++	 * Flips a customer record to active. Uses the same `status` column
++	 * already used by the existing customer-group-approval feature, so an
++	 * OTP-verified customer in an approval-required group still waits for
++	 * admin approval rather than being force-activated here.
++	 *
++	 * @param int $customer_id
++	 *
++	 * @return void
++	 *
++	 * @example
++	 *
++	 * $this->load->model('account/customer');
++	 *
++	 * $this->model_account_customer->activateCustomer($customer_id);
++	 */
++	public function activateCustomer(int $customer_id): void {
++		$this->db->query("UPDATE `" . DB_PREFIX . "customer` SET `status` = '1' WHERE `customer_id` = '" . (int)$customer_id . "'");
++	}
+ }
+diff --git a/catalog/view/template/account/login.twig b/catalog/view/template/account/login.twig
+index 5014726..cffa44a 100644
+--- a/catalog/view/template/account/login.twig
++++ b/catalog/view/template/account/login.twig
+@@ -46,6 +46,11 @@
+               <div class="text-end">
+                 <button type="submit" class="btn btn-primary">{{ button_login }}</button>
+               </div>
++              {% if login_otp %}
++                <div class="text-end mt-2">
++                  <a href="{{ login_otp }}">{{ text_login_otp }}</a>
++                </div>
++              {% endif %}
+             </form>
+           </div>
+         </div>
+diff --git a/catalog/view/template/account/login_otp.twig b/catalog/view/template/account/login_otp.twig
+new file mode 100644
+index 0000000..3680bb4
+--- /dev/null
++++ b/catalog/view/template/account/login_otp.twig
+@@ -0,0 +1,39 @@
++{{ header }}
++<div id="account-login-otp" class="container">
++  <ul class="breadcrumb">
++    {% for breadcrumb in breadcrumbs %}
++      <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
++    {% endfor %}
++  </ul>
++  {% if error_warning %}
++    <div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> {{ error_warning }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
++  {% endif %}
++  <div class="row">{{ column_left }}
++    <div id="content" class="col">{{ content_top }}
++      <h1>{{ heading_title }}</h1>
++      <div class="row">
++        <div class="col-md-6">
++          <form id="form-login-otp" action="{{ confirm }}" method="post" data-oc-toggle="ajax">
++            <div class="mb-3">
++              <label for="input-telephone" class="col-form-label">{{ entry_telephone }}</label>
++              <input type="text" name="telephone" value="" placeholder="{{ entry_telephone }}" id="input-telephone" class="form-control" inputmode="tel" dir="ltr"/>
++              <div id="error-telephone" class="invalid-feedback"></div>
++            </div>
++            {% if redirect %}
++              <input type="hidden" name="redirect" value="{{ redirect }}"/>
++            {% endif %}
++            <div class="row">
++              <div class="col">
++                <a href="{{ login }}" class="btn btn-light">{{ button_back }}</a>
++              </div>
++              <div class="col text-end">
++                <button type="submit" class="btn btn-primary">{{ button_continue }}</button>
++              </div>
++            </div>
++          </form>
++        </div>
++      </div>
++      {{ content_bottom }}</div>
++    {{ column_right }}</div>
++</div>
++{{ footer }}
+diff --git a/catalog/view/template/account/login_otp_code.twig b/catalog/view/template/account/login_otp_code.twig
+new file mode 100644
+index 0000000..4a44f99
+--- /dev/null
++++ b/catalog/view/template/account/login_otp_code.twig
+@@ -0,0 +1,31 @@
++{{ header }}
++<div id="account-login-otp-code" class="container">
++  <ul class="breadcrumb">
++    {% for breadcrumb in breadcrumbs %}
++      <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
++    {% endfor %}
++  </ul>
++  {% if error_warning %}
++    <div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> {{ error_warning }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
++  {% endif %}
++  <div class="row">{{ column_left }}
++    <div id="content" class="col">{{ content_top }}
++      <h1>{{ heading_title }}</h1>
++      <p>{{ text_sent }}</p>
++      <form id="form-login-otp-code" action="{{ verify }}" method="post" data-oc-toggle="ajax">
++        <div class="mb-3">
++          <label for="input-code" class="col-form-label">{{ entry_code }}</label>
++          <input type="text" name="code" value="" placeholder="{{ entry_code }}" id="input-code" class="form-control" inputmode="numeric" maxlength="6" dir="ltr" autocomplete="one-time-code"/>
++          <div id="error-code" class="invalid-feedback"></div>
++        </div>
++        <div class="row">
++          <div class="col"></div>
++          <div class="col text-end">
++            <button type="submit" class="btn btn-primary">{{ button_continue }}</button>
++          </div>
++        </div>
++      </form>
++      {{ content_bottom }}</div>
++    {{ column_right }}</div>
++</div>
++{{ footer }}
+diff --git a/catalog/view/template/account/register_otp.twig b/catalog/view/template/account/register_otp.twig
+new file mode 100644
+index 0000000..92a0bf6
+--- /dev/null
++++ b/catalog/view/template/account/register_otp.twig
+@@ -0,0 +1,39 @@
++{{ header }}
++<div id="account-register-otp" class="container">
++  <ul class="breadcrumb">
++    {% for breadcrumb in breadcrumbs %}
++      <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
++    {% endfor %}
++  </ul>
++  {% if error_warning %}
++    <div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> {{ error_warning }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
++  {% endif %}
++  <div class="row">{{ column_left }}
++    <div id="content" class="col">{{ content_top }}
++      <h1>{{ heading_title }}</h1>
++      <p>{{ text_sent }}</p>
++      <form id="form-register-otp" action="{{ verify }}" method="post" data-oc-toggle="ajax">
++        <fieldset>
++          <legend>{{ text_verify }}</legend>
++          <div class="row mb-3">
++            <label for="input-code" class="col-sm-2 col-form-label">{{ entry_code }}</label>
++            <div class="col-sm-10">
++              <input type="text" name="code" value="" placeholder="{{ entry_code }}" id="input-code" class="form-control" inputmode="numeric" maxlength="6" dir="ltr" autocomplete="one-time-code"/>
++              <div id="error-code" class="invalid-feedback"></div>
++            </div>
++          </div>
++        </fieldset>
++        <div class="row">
++          <div class="col"></div>
++          <div class="col text-end">
++            <button type="submit" class="btn btn-primary">{{ button_continue }}</button>
++          </div>
++        </div>
++      </form>
++      <form id="form-register-otp-resend" action="{{ resend }}" method="post" data-oc-toggle="ajax" class="mt-2">
++        <button type="submit" class="btn btn-link p-0">{{ text_resend }}</button>
++      </form>
++      {{ content_bottom }}</div>
++    {{ column_right }}</div>
++</div>
++{{ footer }}
+diff --git a/extension/ippanel/admin/controller/other/ippanel.php b/extension/ippanel/admin/controller/other/ippanel.php
+index 4bf4aed..2b50d39 100644
+--- a/extension/ippanel/admin/controller/other/ippanel.php
++++ b/extension/ippanel/admin/controller/other/ippanel.php
+@@ -36,7 +36,7 @@ class Ippanel extends \MDcart\System\Engine\Controller {
+ 		$data['save'] = $this->url->link('extension/ippanel/other/ippanel.save', 'user_token=' . $this->session->data['user_token']);
+ 		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=other');
+ 
+-		foreach (['status', 'api_key', 'sender', 'order_add_status', 'order_status_status', 'admin_status', 'admin_telephone'] as $key) {
++		foreach (['status', 'api_key', 'sender', 'order_add_status', 'order_status_status', 'admin_status', 'admin_telephone', 'otp_status'] as $key) {
+ 			$data['other_ippanel_' . $key] = $this->config->get('other_ippanel_' . $key);
+ 		}
+ 
+@@ -69,6 +69,10 @@ class Ippanel extends \MDcart\System\Engine\Controller {
+ 			$json['error']['sender'] = $this->language->get('error_sender');
+ 		}
+ 
++		if (!empty($this->request->post['other_ippanel_otp_status']) && empty($this->request->post['other_ippanel_status'])) {
++			$json['error']['otp_status'] = $this->language->get('error_otp_status');
++		}
++
+ 		if (!empty($json['error'])) {
+ 			$json['error']['warning'] = $json['error']['warning'] ?? $this->language->get('error_warning');
+ 		}
+diff --git a/extension/ippanel/admin/language/en-gb/other/ippanel.php b/extension/ippanel/admin/language/en-gb/other/ippanel.php
+index 242b329..b513784 100644
+--- a/extension/ippanel/admin/language/en-gb/other/ippanel.php
++++ b/extension/ippanel/admin/language/en-gb/other/ippanel.php
+@@ -10,6 +10,7 @@ $_['text_edit']              = 'Edit IPPanel SMS';
+ $_['text_success']           = 'Success: You have modified IPPanel SMS settings!';
+ $_['text_general']           = 'General';
+ $_['text_notifications']     = 'Notifications';
++$_['text_otp']                = 'Mobile Verification & OTP Login';
+ 
+ // Entry
+ $_['entry_status']           = 'Status';
+@@ -19,14 +20,17 @@ $_['entry_order_add_status'] = 'SMS to customer on new order';
+ $_['entry_order_status_status'] = 'SMS to customer on order status change';
+ $_['entry_admin_status']     = 'SMS to admin on new order';
+ $_['entry_admin_telephone']  = 'Admin Mobile Number';
++$_['entry_otp_status']        = 'Enable mobile verification & OTP login';
+ 
+ // Help
+ $_['help_api_key']           = 'Generate a permanent API key from User Panel > Developers > Access Keys on ippanel.com.';
+ $_['help_sender']            = 'The sender/originator number assigned to your IPPanel account (e.g. +983000505).';
+ $_['help_admin_telephone']   = 'Mobile number (Iranian format) to receive an SMS whenever a new order is placed.';
++$_['help_otp_status']         = 'When enabled, new customers must verify their mobile number with an SMS code during registration, and a "login with mobile number + OTP" option is added to the login page. Requires Status to be enabled and the API Key / Sender Number above to be set.';
+ 
+ // Error
+ $_['error_permission']       = 'Warning: You do not have permission to modify IPPanel SMS!';
+ $_['error_warning']          = 'Warning: Please check the form carefully for errors!';
+ $_['error_api_key']          = 'API Key is required when status is enabled!';
+ $_['error_sender']           = 'Sender Number is required when status is enabled!';
++$_['error_otp_status']        = 'You must enable IPPanel Status before enabling mobile verification!';
+diff --git a/extension/ippanel/admin/language/fa/other/ippanel.php b/extension/ippanel/admin/language/fa/other/ippanel.php
+index 93a44b2..acd4600 100644
+--- a/extension/ippanel/admin/language/fa/other/ippanel.php
++++ b/extension/ippanel/admin/language/fa/other/ippanel.php
+@@ -10,6 +10,7 @@ $_['text_edit']              = 'ویرایش پیامک آی‌پی‌پنل';
+ $_['text_success']           = 'موفق: تنظیمات پیامک آی‌پی‌پنل ویرایش شد!';
+ $_['text_general']           = 'عمومی';
+ $_['text_notifications']     = 'اعلان‌ها';
++$_['text_otp']                = 'تایید موبایل و ورود با کد یکبار مصرف';
+ 
+ // Entry
+ $_['entry_status']           = 'وضعیت';
+@@ -19,14 +20,17 @@ $_['entry_order_add_status'] = 'پیامک به مشتری هنگام ثبت س
+ $_['entry_order_status_status'] = 'پیامک به مشتری هنگام تغییر وضعیت سفارش';
+ $_['entry_admin_status']     = 'پیامک به مدیر هنگام ثبت سفارش جدید';
+ $_['entry_admin_telephone']  = 'شماره موبایل مدیر';
++$_['entry_otp_status']        = 'فعال‌سازی تایید موبایل و ورود با کد یکبار مصرف';
+ 
+ // Help
+ $_['help_api_key']           = 'یک کلید API دائمی از مسیر پنل کاربری ← توسعه‌دهندگان ← کلیدهای دسترسی در سایت ippanel.com بسازید.';
+ $_['help_sender']            = 'شماره فرستنده‌ای که به حساب آی‌پی‌پنل شما اختصاص داده شده (مثلاً +983000505).';
+ $_['help_admin_telephone']   = 'شماره موبایل (فرمت ایران) که هنگام ثبت هر سفارش جدید یک پیامک دریافت می‌کند.';
++$_['help_otp_status']         = 'در صورت فعال بودن، مشتریان جدید هنگام ثبت‌نام باید شماره موبایل خود را با کد پیامکی تایید کنند و امکان ورود با شماره موبایل و کد یکبار مصرف نیز به صفحه ورود اضافه می‌شود. این گزینه نیازمند فعال بودن وضعیت و تنظیم کلید API و شماره فرستنده در بالا است.';
+ 
+ // Error
+ $_['error_permission']       = 'هشدار: شما اجازه ویرایش پیامک آی‌پی‌پنل را ندارید!';
+ $_['error_warning']          = 'هشدار: لطفاً فرم را از نظر خطا بررسی کنید!';
+ $_['error_api_key']          = 'در صورت فعال بودن وضعیت، وارد کردن کلید API الزامی است!';
+ $_['error_sender']           = 'در صورت فعال بودن وضعیت، وارد کردن شماره فرستنده الزامی است!';
++$_['error_otp_status']        = 'برای فعال‌سازی تایید موبایل، ابتدا باید وضعیت آی‌پی‌پنل را فعال کنید!';
+diff --git a/extension/ippanel/admin/view/template/other/ippanel.twig b/extension/ippanel/admin/view/template/other/ippanel.twig
+index 434fdf4..d97463c 100644
+--- a/extension/ippanel/admin/view/template/other/ippanel.twig
++++ b/extension/ippanel/admin/view/template/other/ippanel.twig
+@@ -83,6 +83,20 @@
+               </div>
+             </div>
+           </fieldset>
++          <fieldset>
++            <legend>{{ text_otp }}</legend>
++            <div class="row mb-3">
++              <label class="col-sm-2 col-form-label">{{ entry_otp_status }}</label>
++              <div class="col-sm-10">
++                <div class="form-check form-switch form-switch-lg">
++                  <input type="hidden" name="other_ippanel_otp_status" value="0"/>
++                  <input type="checkbox" name="other_ippanel_otp_status" value="1" id="input-otp-status" class="form-check-input"{% if other_ippanel_otp_status %} checked{% endif %}/>
++                </div>
++                <div id="error-otp-status" class="invalid-feedback"></div>
++                <div class="form-text">{{ help_otp_status }}</div>
++              </div>
++            </div>
++          </fieldset>
+         </form>
+       </div>
+     </div>
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index c93a249..7899b33 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -924,6 +924,35 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 					);
+ 				}
+ 			},
++
++			'customer_otp_verification' => function (): void {
++				$this->db->query(
++					"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "customer_otp` ("
++					. "`customer_otp_id` int(11) NOT NULL AUTO_INCREMENT,"
++					. "`telephone` varchar(32) NOT NULL,"
++					. "`code` varchar(6) NOT NULL,"
++					. "`type` varchar(10) NOT NULL,"
++					. "`customer_id` int(11) NOT NULL DEFAULT 0,"
++					. "`attempts` int(11) NOT NULL DEFAULT 0,"
++					. "`date_added` datetime NOT NULL,"
++					. "`date_expire` datetime NOT NULL,"
++					. "PRIMARY KEY (`customer_otp_id`),"
++					. "KEY `telephone_type` (`telephone`, `type`)"
++					. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
++				);
++
++				if (!$this->columnExists('customer', 'telephone_verified')) {
++					$this->db->query(
++						"ALTER TABLE `" . DB_PREFIX . "customer` ADD COLUMN `telephone_verified` tinyint(1) NOT NULL DEFAULT 0"
++					);
++				}
++
++				if (!$this->keyExists('customer', 'telephone')) {
++					$this->db->query(
++						"ALTER TABLE `" . DB_PREFIX . "customer` ADD KEY `telephone` (`telephone`)"
++					);
++				}
++			},
+ 		];
+ 	}
+ 

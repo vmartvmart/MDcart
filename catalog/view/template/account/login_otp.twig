@@ -1,0 +1,39 @@
+{{ header }}
+<div id="account-login-otp" class="container">
+  <ul class="breadcrumb">
+    {% for breadcrumb in breadcrumbs %}
+      <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+    {% endfor %}
+  </ul>
+  {% if error_warning %}
+    <div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> {{ error_warning }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endif %}
+  <div class="row">{{ column_left }}
+    <div id="content" class="col">{{ content_top }}
+      <h1>{{ heading_title }}</h1>
+      <div class="row">
+        <div class="col-md-6">
+          <form id="form-login-otp" action="{{ confirm }}" method="post" data-oc-toggle="ajax">
+            <div class="mb-3">
+              <label for="input-telephone" class="col-form-label">{{ entry_telephone }}</label>
+              <input type="text" name="telephone" value="" placeholder="{{ entry_telephone }}" id="input-telephone" class="form-control" inputmode="tel" dir="ltr"/>
+              <div id="error-telephone" class="invalid-feedback"></div>
+            </div>
+            {% if redirect %}
+              <input type="hidden" name="redirect" value="{{ redirect }}"/>
+            {% endif %}
+            <div class="row">
+              <div class="col">
+                <a href="{{ login }}" class="btn btn-light">{{ button_back }}</a>
+              </div>
+              <div class="col text-end">
+                <button type="submit" class="btn btn-primary">{{ button_continue }}</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      {{ content_bottom }}</div>
+    {{ column_right }}</div>
+</div>
+{{ footer }}

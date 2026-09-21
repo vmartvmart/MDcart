@@ -36,7 +36,7 @@ class Ippanel extends \MDcart\System\Engine\Controller {
 		$data['save'] = $this->url->link('extension/ippanel/other/ippanel.save', 'user_token=' . $this->session->data['user_token']);
 		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=other');
 
-		foreach (['status', 'api_key', 'sender', 'order_add_status', 'order_status_status', 'admin_status', 'admin_telephone'] as $key) {
+		foreach (['status', 'api_key', 'sender', 'order_add_status', 'order_status_status', 'admin_status', 'admin_telephone', 'otp_status'] as $key) {
 			$data['other_ippanel_' . $key] = $this->config->get('other_ippanel_' . $key);
 		}
 
@@ -67,6 +67,10 @@ class Ippanel extends \MDcart\System\Engine\Controller {
 
 		if (!empty($this->request->post['other_ippanel_status']) && empty($this->request->post['other_ippanel_sender'])) {
 			$json['error']['sender'] = $this->language->get('error_sender');
+		}
+
+		if (!empty($this->request->post['other_ippanel_otp_status']) && empty($this->request->post['other_ippanel_status'])) {
+			$json['error']['otp_status'] = $this->language->get('error_otp_status');
 		}
 
 		if (!empty($json['error'])) {

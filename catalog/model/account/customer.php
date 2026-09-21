@@ -625,4 +625,203 @@ class Customer extends \MDcart\System\Engine\Model {
 
 		return $query->row;
 	}
+
+	/**
+	 * Normalize Telephone
+	 *
+	 * Best-effort normalization of a customer-entered mobile number to a
+	 * canonical local Iranian format (e.g. 09123456789), matching the
+	 * light-touch handling already used by the DigiPay gateway integration.
+	 *
+	 * @param string $telephone
+	 *
+	 * @return string
+	 */
+	public function normalizeTelephone(string $telephone): string {
+		$digits = preg_replace('/\D/', '', $telephone) ?? '';
+
+		if (str_starts_with($digits, '0098')) {
+			$digits = substr($digits, 4);
+		} elseif (str_starts_with($digits, '98') && strlen($digits) > 10) {
+			$digits = substr($digits, 2);
+		}
+
+		if ($digits !== '' && !str_starts_with($digits, '0')) {
+			$digits = '0' . $digits;
+		}
+
+		return $digits;
+	}
+
+	/**
+	 * Get Customer By Telephone
+	 *
+	 * Looks up a customer by mobile number. `telephone` is free text with
+	 * no enforced format, so this matches against a handful of common
+	 * stored variants of the normalized number rather than an exact string.
+	 *
+	 * @param string $telephone
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @example
+	 *
+	 * $this->load->model('account/customer');
+	 *
+	 * $customer_info = $this->model_account_customer->getCustomerByTelephone($telephone);
+	 */
+	public function getCustomerByTelephone(string $telephone): array {
+		$local = $this->normalizeTelephone($telephone);
+
+		if ($local === '') {
+			return [];
+		}
+
+		$national = ltrim($local, '0');
+
+		$variants = array_unique([$local, $national, '98' . $national, '+98' . $national, '0098' . $national]);
+
+		$escaped = [];
+
+		foreach ($variants as $variant) {
+			$escaped[] = "'" . $this->db->escape($variant) . "'";
+		}
+
+		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer` WHERE `telephone` != '' AND `telephone` IN (" . implode(',', $escaped) . ") ORDER BY `customer_id` ASC");
+
+		if ($query->num_rows) {
+			return ['custom_field' => $query->row['custom_field'] ? json_decode($query->row['custom_field'], true) : []] + $query->row;
+		} else {
+			return [];
+		}
+	}
+
+	/**
+	 * Add Otp
+	 *
+	 * Creates a new OTP code for a telephone number, replacing any
+	 * previous code of the same type so only one code is active at a time.
+	 *
+	 * @param string $telephone
+	 * @param string $type       e.g. 'register', 'login'
+	 * @param string $code       numeric SMS code
+	 * @param int    $customer_id
+	 * @param int    $expire     minutes until the code expires
+	 *
+	 * @return void
+	 *
+	 * @example
+	 *
+	 * $this->load->model('account/customer');
+	 *
+	 * $this->model_account_customer->addOtp($telephone, 'register', $code, $customer_id);
+	 */
+	public function addOtp(string $telephone, string $type, string $code, int $customer_id = 0, int $expire = 5): void {
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "customer_otp` WHERE `telephone` = '" . $this->db->escape($telephone) . "' AND `type` = '" . $this->db->escape($type) . "'");
+
+		$this->db->query("INSERT INTO `" . DB_PREFIX . "customer_otp` SET `telephone` = '" . $this->db->escape($telephone) . "', `code` = '" . $this->db->escape($code) . "', `type` = '" . $this->db->escape($type) . "', `customer_id` = '" . (int)$customer_id . "', `attempts` = '0', `date_added` = NOW(), `date_expire` = DATE_ADD(NOW(), INTERVAL " . (int)$expire . " MINUTE)");
+	}
+
+	/**
+	 * Get Otp
+	 *
+	 * @param string $telephone
+	 * @param string $type
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @example
+	 *
+	 * $this->load->model('account/customer');
+	 *
+	 * $otp_info = $this->model_account_customer->getOtp($telephone, 'register');
+	 */
+	public function getOtp(string $telephone, string $type): array {
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "customer_otp` WHERE `date_expire` < NOW()");
+
+		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "customer_otp` WHERE `telephone` = '" . $this->db->escape($telephone) . "' AND `type` = '" . $this->db->escape($type) . "'");
+
+		return $query->row ?: [];
+	}
+
+	/**
+	 * Increment Otp Attempts
+	 *
+	 * @param string $telephone
+	 * @param string $type
+	 *
+	 * @return void
+	 *
+	 * @example
+	 *
+	 * $this->load->model('account/customer');
+	 *
+	 * $this->model_account_customer->incrementOtpAttempts($telephone, 'register');
+	 */
+	public function incrementOtpAttempts(string $telephone, string $type): void {
+		$this->db->query("UPDATE `" . DB_PREFIX . "customer_otp` SET `attempts` = `attempts` + 1 WHERE `telephone` = '" . $this->db->escape($telephone) . "' AND `type` = '" . $this->db->escape($type) . "'");
+	}
+
+	/**
+	 * Delete Otp
+	 *
+	 * @param string $telephone
+	 * @param string $type
+	 *
+	 * @return void
+	 *
+	 * @example
+	 *
+	 * $this->load->model('account/customer');
+	 *
+	 * $this->model_account_customer->deleteOtp($telephone, 'register');
+	 */
+	public function deleteOtp(string $telephone, string $type): void {
+		$this->db->query("DELETE FROM `" . DB_PREFIX . "customer_otp` WHERE `telephone` = '" . $this->db->escape($telephone) . "' AND `type` = '" . $this->db->escape($type) . "'");
+	}
+
+	/**
+	 * Verify Telephone
+	 *
+	 * Marks a customer's mobile number as verified. Does not change
+	 * `status` - callers decide separately whether to also activate the
+	 * account (see activateCustomer()), since a customer group that
+	 * requires admin approval should stay pending even once the phone is
+	 * verified.
+	 *
+	 * @param int $customer_id
+	 *
+	 * @return void
+	 *
+	 * @example
+	 *
+	 * $this->load->model('account/customer');
+	 *
+	 * $this->model_account_customer->verifyTelephone($customer_id);
+	 */
+	public function verifyTelephone(int $customer_id): void {
+		$this->db->query("UPDATE `" . DB_PREFIX . "customer` SET `telephone_verified` = '1' WHERE `customer_id` = '" . (int)$customer_id . "'");
+	}
+
+	/**
+	 * Activate Customer
+	 *
+	 * Flips a customer record to active. Uses the same `status` column
+	 * already used by the existing customer-group-approval feature, so an
+	 * OTP-verified customer in an approval-required group still waits for
+	 * admin approval rather than being force-activated here.
+	 *
+	 * @param int $customer_id
+	 *
+	 * @return void
+	 *
+	 * @example
+	 *
+	 * $this->load->model('account/customer');
+	 *
+	 * $this->model_account_customer->activateCustomer($customer_id);
+	 */
+	public function activateCustomer(int $customer_id): void {
+		$this->db->query("UPDATE `" . DB_PREFIX . "customer` SET `status` = '1' WHERE `customer_id` = '" . (int)$customer_id . "'");
+	}
 }

@@ -46,6 +46,11 @@
               <div class="text-end">
                 <button type="submit" class="btn btn-primary">{{ button_login }}</button>
               </div>
+              {% if login_otp %}
+                <div class="text-end mt-2">
+                  <a href="{{ login_otp }}">{{ text_login_otp }}</a>
+                </div>
+              {% endif %}
             </form>
           </div>
         </div>

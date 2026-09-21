@@ -253,46 +253,113 @@ class Register extends \MDcart\System\Engine\Controller {
 		if (!$json) {
 			$customer_id = $this->model_account_customer->addCustomer($post_info);
 
-			// Login if requires approval
-			if (!$customer_group_info['approval']) {
-				$this->customer->login($post_info['email'], html_entity_decode($post_info['password'], ENT_QUOTES, 'UTF-8'));
+			$otp_enabled = $this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender');
 
-				// Add customer details into session
-				$this->session->data['customer'] = [
-					'customer_id'       => $customer_id,
-					'customer_group_id' => $customer_group_id,
-					'firstname'         => $post_info['firstname'],
-					'lastname'          => $post_info['lastname'],
-					'email'             => $post_info['email'],
-					'telephone'         => $post_info['telephone'],
-					'custom_field'      => $post_info['custom_field']
+			$normalized_telephone = ($post_info['telephone'] !== '') ? $this->model_account_customer->normalizeTelephone($post_info['telephone']) : '';
+
+			if ($otp_enabled && ($normalized_telephone !== '')) {
+				// Phone verification is required before this account can be
+				// used - keep it pending (status = 0) regardless of the
+				// approval branch below, until the customer verifies the
+				// SMS code sent to $normalized_telephone. Also store the
+				// normalized number so later lookups by telephone (OTP
+				// login, admin) match reliably regardless of the format the
+				// customer originally typed it in.
+				$this->db->query("UPDATE `" . DB_PREFIX . "customer` SET `status` = '0', `telephone` = '" . $this->db->escape($normalized_telephone) . "' WHERE `customer_id` = '" . (int)$customer_id . "'");
+
+				$code = (string)random_int(100000, 999999);
+
+				$this->model_account_customer->addOtp($normalized_telephone, 'register', $code, $customer_id);
+
+				$this->sendOtpSms($normalized_telephone, $code);
+
+				$this->session->data['register_otp'] = [
+					'customer_id' => $customer_id,
+					'telephone'   => $normalized_telephone,
+					'approval'    => !empty($customer_group_info['approval'])
 				];
 
-				// Log the IP info
-				$this->model_account_customer->addLogin($this->customer->getId(), oc_get_ip());
+				// Remove form token
+				unset($this->session->data['register_token']);
 
-				// Create customer token
-				$this->session->data['customer_token'] = oc_token(26);
+				// Clear any previous login attempts for unregistered accounts.
+				$this->model_account_customer->deleteLoginAttempts($post_info['email']);
+
+				// Clear old session data
+				unset($this->session->data['order_id']);
+				unset($this->session->data['guest']);
+				unset($this->session->data['shipping_method']);
+				unset($this->session->data['shipping_methods']);
+				unset($this->session->data['payment_method']);
+				unset($this->session->data['payment_methods']);
+
+				$json['redirect'] = $this->url->link('account/register_otp', 'language=' . $this->config->get('config_language'), true);
+			} else {
+				// Login if requires approval
+				if (!$customer_group_info['approval']) {
+					$this->customer->login($post_info['email'], html_entity_decode($post_info['password'], ENT_QUOTES, 'UTF-8'));
+
+					// Add customer details into session
+					$this->session->data['customer'] = [
+						'customer_id'       => $customer_id,
+						'customer_group_id' => $customer_group_id,
+						'firstname'         => $post_info['firstname'],
+						'lastname'          => $post_info['lastname'],
+						'email'             => $post_info['email'],
+						'telephone'         => $post_info['telephone'],
+						'custom_field'      => $post_info['custom_field']
+					];
+
+					// Log the IP info
+					$this->model_account_customer->addLogin($this->customer->getId(), oc_get_ip());
+
+					// Create customer token
+					$this->session->data['customer_token'] = oc_token(26);
+				}
+
+				// Remove form token
+				unset($this->session->data['register_token']);
+
+				// Clear any previous login attempts for unregistered accounts.
+				$this->model_account_customer->deleteLoginAttempts($post_info['email']);
+
+				// Clear old session data
+				unset($this->session->data['order_id']);
+				unset($this->session->data['guest']);
+				unset($this->session->data['shipping_method']);
+				unset($this->session->data['shipping_methods']);
+				unset($this->session->data['payment_method']);
+				unset($this->session->data['payment_methods']);
+
+				$json['redirect'] = $this->url->link('account/success', 'language=' . $this->config->get('config_language') . (isset($this->session->data['customer_token']) ? '&customer_token=' . $this->session->data['customer_token'] : ''), true);
 			}
-
-			// Remove form token
-			unset($this->session->data['register_token']);
-
-			// Clear any previous login attempts for unregistered accounts.
-			$this->model_account_customer->deleteLoginAttempts($post_info['email']);
-
-			// Clear old session data
-			unset($this->session->data['order_id']);
-			unset($this->session->data['guest']);
-			unset($this->session->data['shipping_method']);
-			unset($this->session->data['shipping_methods']);
-			unset($this->session->data['payment_method']);
-			unset($this->session->data['payment_methods']);
-
-			$json['redirect'] = $this->url->link('account/success', 'language=' . $this->config->get('config_language') . (isset($this->session->data['customer_token']) ? '&customer_token=' . $this->session->data['customer_token'] : ''), true);
 		}
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
+	}
+
+	/**
+	 * Send Otp Sms
+	 *
+	 * Sends a registration OTP code through the IPPanel SMS integration.
+	 * Caller must have already confirmed IPPanel + OTP are enabled and
+	 * configured.
+	 *
+	 * @param string $telephone normalized telephone number
+	 * @param string $code      numeric OTP code
+	 *
+	 * @return void
+	 */
+	private function sendOtpSms(string $telephone, string $code): void {
+		$this->load->language('account/register_otp');
+		$this->load->library('extension/ippanel/ippanel');
+
+		$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
+			(string)$this->config->get('other_ippanel_api_key'),
+			(string)$this->config->get('other_ippanel_sender')
+		);
+
+		$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code));
 	}
 }

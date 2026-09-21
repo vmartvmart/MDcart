@@ -11,6 +11,7 @@ $_['text_register_account']        = 'با ایجاد یک حساب کاربری
 $_['text_returning_customer']      = 'مشتری قدیمی';
 $_['text_i_am_returning_customer'] = 'من مشتری قدیمی هستم';
 $_['text_forgotten']               = 'فراموشی رمز عبور';
+$_['text_login_otp']               = 'ورود با شماره موبایل و کد یکبار مصرف';
 
 // Entry
 $_['entry_email']                  = 'آدرس ایمیل';

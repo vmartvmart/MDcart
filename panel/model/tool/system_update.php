@@ -924,6 +924,35 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 					);
 				}
 			},
+
+			'customer_otp_verification' => function (): void {
+				$this->db->query(
+					"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "customer_otp` ("
+					. "`customer_otp_id` int(11) NOT NULL AUTO_INCREMENT,"
+					. "`telephone` varchar(32) NOT NULL,"
+					. "`code` varchar(6) NOT NULL,"
+					. "`type` varchar(10) NOT NULL,"
+					. "`customer_id` int(11) NOT NULL DEFAULT 0,"
+					. "`attempts` int(11) NOT NULL DEFAULT 0,"
+					. "`date_added` datetime NOT NULL,"
+					. "`date_expire` datetime NOT NULL,"
+					. "PRIMARY KEY (`customer_otp_id`),"
+					. "KEY `telephone_type` (`telephone`, `type`)"
+					. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+				);
+
+				if (!$this->columnExists('customer', 'telephone_verified')) {
+					$this->db->query(
+						"ALTER TABLE `" . DB_PREFIX . "customer` ADD COLUMN `telephone_verified` tinyint(1) NOT NULL DEFAULT 0"
+					);
+				}
+
+				if (!$this->keyExists('customer', 'telephone')) {
+					$this->db->query(
+						"ALTER TABLE `" . DB_PREFIX . "customer` ADD KEY `telephone` (`telephone`)"
+					);
+				}
+			},
 		];
 	}
 

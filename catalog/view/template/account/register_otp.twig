@@ -1,0 +1,39 @@
+{{ header }}
+<div id="account-register-otp" class="container">
+  <ul class="breadcrumb">
+    {% for breadcrumb in breadcrumbs %}
+      <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+    {% endfor %}
+  </ul>
+  {% if error_warning %}
+    <div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> {{ error_warning }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endif %}
+  <div class="row">{{ column_left }}
+    <div id="content" class="col">{{ content_top }}
+      <h1>{{ heading_title }}</h1>
+      <p>{{ text_sent }}</p>
+      <form id="form-register-otp" action="{{ verify }}" method="post" data-oc-toggle="ajax">
+        <fieldset>
+          <legend>{{ text_verify }}</legend>
+          <div class="row mb-3">
+            <label for="input-code" class="col-sm-2 col-form-label">{{ entry_code }}</label>
+            <div class="col-sm-10">
+              <input type="text" name="code" value="" placeholder="{{ entry_code }}" id="input-code" class="form-control" inputmode="numeric" maxlength="6" dir="ltr" autocomplete="one-time-code"/>
+              <div id="error-code" class="invalid-feedback"></div>
+            </div>
+          </div>
+        </fieldset>
+        <div class="row">
+          <div class="col"></div>
+          <div class="col text-end">
+            <button type="submit" class="btn btn-primary">{{ button_continue }}</button>
+          </div>
+        </div>
+      </form>
+      <form id="form-register-otp-resend" action="{{ resend }}" method="post" data-oc-toggle="ajax" class="mt-2">
+        <button type="submit" class="btn btn-link p-0">{{ text_resend }}</button>
+      </form>
+      {{ content_bottom }}</div>
+    {{ column_right }}</div>
+</div>
+{{ footer }}

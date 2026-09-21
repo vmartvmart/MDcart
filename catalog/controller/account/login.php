@@ -90,6 +90,12 @@ class Login extends \MDcart\System\Engine\Controller {
 		$data['register'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language'));
 		$data['forgotten'] = $this->url->link('account/forgotten', 'language=' . $this->config->get('config_language'));
 
+		if ($this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender')) {
+			$data['login_otp'] = $this->url->link('account/login_otp', 'language=' . $this->config->get('config_language') . ($data['redirect'] ? '&redirect=' . urlencode((string)$data['redirect']) : ''));
+		} else {
+			$data['login_otp'] = '';
+		}
+
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['column_right'] = $this->load->controller('common/column_right');
 		$data['content_top'] = $this->load->controller('common/content_top');
