@@ -102,13 +102,32 @@
               </fieldset>
               <fieldset>
                 <legend>{{ text_trust_badges }}</legend>
-                <div class="row mb-3">
-                  <label for="input-trust-badges-html" class="col-sm-2 col-form-label">{{ entry_trust_badges_html }}</label>
-                  <div class="col-sm-10">
-                    <textarea name="config_trust_badges_html" placeholder="{{ entry_trust_badges_html }}" id="input-trust-badges-html" rows="6" class="form-control" style="direction:ltr;text-align:left;font-family:monospace;font-size:12px">{{ config_trust_badges_html }}</textarea>
-                    <div class="form-text">{{ help_trust_badges_html }}</div>
-                  </div>
-                </div>
+                <table id="table-trust-badge" class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <td>{{ entry_trust_badge_name }}</td>
+                      <td>{{ entry_trust_badge_html }}</td>
+                      <td style="width: 1px;"></td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for uid, badge in config_trust_badges %}
+                      <tr>
+                        <td style="width: 220px;">
+                          <input type="text" name="config_trust_badges[{{ uid }}][name]" value="{{ badge.name }}" placeholder="{{ entry_trust_badge_name }}" class="form-control"/>
+                        </td>
+                        <td>
+                          <textarea name="config_trust_badges[{{ uid }}][html]" placeholder="{{ entry_trust_badge_html }}" rows="3" class="form-control" style="direction:ltr;text-align:left;font-family:monospace;font-size:12px">{{ badge.html }}</textarea>
+                        </td>
+                        <td class="text-center">
+                          <button type="button" data-oc-toggle="remove-trust-badge" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+                <button type="button" id="button-trust-badge-add" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i> {{ entry_trust_badge_add }}</button>
+                <div class="form-text">{{ help_trust_badges_html }}</div>
               </fieldset>
               <fieldset>
                 <legend>{{ text_meta }}</legend>
@@ -1594,6 +1613,19 @@
     </div>
   </div>
 </div>
+<template id="template-trust-badge-row">
+  <tr>
+    <td style="width: 220px;">
+      <input type="text" name="" class="form-control" data-oc-field="name"/>
+    </td>
+    <td>
+      <textarea name="" rows="3" class="form-control" style="direction:ltr;text-align:left;font-family:monospace;font-size:12px" data-oc-field="html"></textarea>
+    </td>
+    <td class="text-center">
+      <button type="button" data-oc-toggle="remove-trust-badge" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
+    </td>
+  </tr>
+</template>
 <script type="text/javascript"><!--
 $('#input-theme').on('change', function() {
     var element = this;
@@ -1660,5 +1692,22 @@ $('#input-country').on('change', function() {
 });
 
 $('#input-country').trigger('change');
+
+$(document).on('click', '#button-trust-badge-add', function() {
+    var uid = 'badge_' + Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(36);
+    var template = document.getElementById('template-trust-badge-row');
+    var row = template.content.cloneNode(true);
+
+    $(row).find('[data-oc-field]').each(function() {
+        var field = $(this).attr('data-oc-field');
+        $(this).attr('name', 'config_trust_badges[' + uid + '][' + field + ']');
+    });
+
+    $('#table-trust-badge tbody').append(row);
+});
+
+$(document).on('click', '[data-oc-toggle=\'remove-trust-badge\']', function() {
+    $(this).closest('tr').remove();
+});
 //--></script>
 {{ footer }}

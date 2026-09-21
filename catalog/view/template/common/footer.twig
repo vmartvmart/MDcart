@@ -1,7 +1,7 @@
 </main>
 <footer>
   <div class="container">
-    {% if trust_badges_html %}
+    {% if trust_badges %}
       <style>
         /* Scoped rules for the admin-pasted trust/license badge codes
            (Settings > General > "نمادها و مجوزهای اعتماد"). Kept inline
@@ -61,11 +61,13 @@
           <li><a href="{{ newsletter }}">{{ text_newsletter }}</a></li>
         </ul>
       </div>
-      {% if trust_badges_html %}
+      {% if trust_badges %}
         <div class="col-sm-auto">
           <h5>{{ text_trust_badges }}</h5>
           <div class="footer-trust-badges d-flex flex-wrap gap-2">
-            {{ trust_badges_html }}
+            {% for badge in trust_badges %}
+              {{ badge.html }}
+            {% endfor %}
           </div>
         </div>
       {% endif %}

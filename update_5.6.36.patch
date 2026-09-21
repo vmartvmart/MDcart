@@ -1,0 +1,312 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 399e7bb..1c92d99 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -248,5 +248,10 @@
+     "version": "5.6.35",
+     "fa": "درگاه پرداخت دیجی‌پی اضافه شد: از منوی «افزونه‌ها > پرداخت» بخش «دیجی‌پی» را فعال و اطلاعات اتصال (Client ID، Client Secret، نام‌کاربری و رمز عبور دیجی‌پی) را وارد کنید. مشتری برای تکمیل خرید به صفحه‌ی دیجی‌پی منتقل می‌شود و همان‌جا، بسته به آنچه دیجی‌پی برای حساب شما فعال کرده باشد، می‌تواند با کارت بانکی، کیف پول دیجی‌پی یا اعتبار خرید/اقساط (BNPL) پرداخت کند - نیازی به تنظیم جداگانه برای هر کدام نیست. برای خریدهای اعتباری/اقساطی، دیجی‌پی نیاز دارد جداگانه از تحویل کالا مطلع شود؛ برای این کار یک «وضعیت سفارش» در تنظیمات دیجی‌پی مشخص کنید - وقتی سفارشی که با این روش پرداخت شده به آن وضعیت برسد (چه از پنل و چه خودکار)، این اطلاع‌رسانی به‌طور خودکار انجام می‌شود. یک حالت تست (Sandbox) هم مثل بیت‌پی و زرین‌پال اضافه شده تا بتوانید قبل از فعال‌سازی واقعی، درگاه را با محیط آزمایشی دیجی‌پی امتحان کنید. توجه: امکانات بازگشت وجه/ابطال خرید دیجی‌پی در این نسخه پیاده‌سازی نشده‌اند (مشابه سایر درگاه‌های این فروشگاه).",
+     "en": "Added DigiPay as a new payment gateway: enable it from Extensions > Payment and enter your DigiPay connection details (Client ID, Client Secret, username and password). The customer is redirected to DigiPay's own page to finish paying - depending on what your DigiPay merchant account has enabled, they can pay by bank card, DigiPay wallet, or buy-now-pay-later/installment credit, all from the same gateway with no separate setup needed. Credit/BNPL purchases require DigiPay to be separately told once the goods are delivered - set a trigger order status in DigiPay's settings, and this is reported automatically the moment an order paid that way reaches that status (whether changed from the admin panel or automatically). A sandbox/test mode was also added, matching BitPay and ZarinPal, so the gateway can be tried against DigiPay's staging environment before going live. Note: DigiPay's refund/reversal actions are not implemented in this version (consistent with every other gateway in this store)."
++  },
++  {
++    "version": "5.6.36",
++    "fa": "بخش «نمادها و مجوزهای اعتماد» در تنظیمات > عمومی بازطراحی شد: قبلاً یک کادر متنی بود که باید کد همه‌ی نمادها (اینماد، مجوزها، درگاه‌های پرداخت) را پشت سر هم در آن می‌چسباندید؛ حالا هر نماد یک ردیف جداگانه دارد با یک فیلد «اسم» (فقط برای شناسایی خودتان، مثلاً «اینماد») و جلوی آن فیلد «کد HTML» همان نماد. با دکمه‌ی «افزودن نماد» می‌توانید ردیف تازه اضافه کنید، هر ردیف را مستقیماً ویرایش کنید، و با دکمه‌ی قرمز کنار هر ردیف آن را حذف کنید. نمادهایی که قبلاً در کادر متنی قدیمی ثبت کرده بودید، خودکار و بدون از دست رفتن به یک ردیف با نام «نمادهای قبلی» منتقل می‌شوند - کافی است بعد از بروزرسانی سر بزنید و در صورت تمایل آن‌ها را به ردیف‌های جداگانه تفکیک کنید. نمایش نمادها در فوتر سایت هیچ تغییری نکرده است.",
++    "en": "Redesigned the \"Trust Badges & License Seals\" section under Settings > General: it used to be a single textarea where you had to paste every badge's code (Enamad, licenses, payment gateway logos) concatenated together; now each badge has its own row with a \"Name\" field (for your own reference, e.g. \"Enamad\") next to its \"HTML Code\" field. Use the \"Add Badge\" button to add a new row, edit any row directly, and remove one with the red button next to it. Any badges already saved in the old textarea are automatically carried over - with nothing lost - into a single row named \"Previous badges\"; after updating, just open the settings page and split them into separate rows if you'd like. How badges are displayed on the storefront footer is unchanged."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index d9b5a1e..155ad3c 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.35
++5.6.36
+diff --git a/catalog/controller/common/footer.php b/catalog/controller/common/footer.php
+index 8347733..9188b9a 100644
+--- a/catalog/controller/common/footer.php
++++ b/catalog/controller/common/footer.php
+@@ -88,14 +88,22 @@ class Footer extends \MDcart\System\Engine\Controller {
+ 		$data['cookie'] = $this->load->controller('common/cookie');
+ 
+ 		// Trust badges / license seals (Enamad, business license, payment
+-		// gateway logos, etc.), configured as one raw-HTML field under
+-		// Settings > General ("نمادها و مجوزهای اعتماد"). This is the
+-		// simple/recommended path - a badge issuer's code (a link+image, or
+-		// a script snippet) is only valid/verifiable when their exact
+-		// original code survives untouched, so this is stored and rendered
+-		// completely unescaped, exactly as pasted. See
++		// gateway logos, etc.), configured as a repeatable name+raw-HTML
++		// list under Settings > General ("نمادها و مجوزهای اعتماد"). This is
++		// the simple/recommended path - a badge issuer's code (a link+image,
++		// or a script snippet) is only valid/verifiable when their exact
++		// original code survives untouched, so each entry's html is stored
++		// and rendered completely unescaped, exactly as pasted. See
+ 		// panel/controller/setting/setting.php for where it's saved.
+-		$data['trust_badges_html'] = html_entity_decode((string)$this->config->get('config_trust_badges_html'), ENT_QUOTES, 'UTF-8');
++		$data['trust_badges'] = [];
++
++		foreach ((array)$this->config->get('config_trust_badges') as $badge) {
++			$html = html_entity_decode((string)($badge['html'] ?? ''), ENT_QUOTES, 'UTF-8');
++
++			if ($html !== '') {
++				$data['trust_badges'][] = ['html' => $html];
++			}
++		}
+ 
+ 		// Footer modules (e.g. a Banner module holding trust seals like
+ 		// Enamad, business licenses, or payment gateway logos - the admin
+diff --git a/catalog/view/template/common/footer.twig b/catalog/view/template/common/footer.twig
+index 169f031..72770ff 100644
+--- a/catalog/view/template/common/footer.twig
++++ b/catalog/view/template/common/footer.twig
+@@ -1,7 +1,7 @@
+ </main>
+ <footer>
+   <div class="container">
+-    {% if trust_badges_html %}
++    {% if trust_badges %}
+       <style>
+         /* Scoped rules for the admin-pasted trust/license badge codes
+            (Settings > General > "نمادها و مجوزهای اعتماد"). Kept inline
+@@ -61,11 +61,13 @@
+           <li><a href="{{ newsletter }}">{{ text_newsletter }}</a></li>
+         </ul>
+       </div>
+-      {% if trust_badges_html %}
++      {% if trust_badges %}
+         <div class="col-sm-auto">
+           <h5>{{ text_trust_badges }}</h5>
+           <div class="footer-trust-badges d-flex flex-wrap gap-2">
+-            {{ trust_badges_html }}
++            {% for badge in trust_badges %}
++              {{ badge.html }}
++            {% endfor %}
+           </div>
+         </div>
+       {% endif %}
+diff --git a/panel/controller/setting/setting.php b/panel/controller/setting/setting.php
+index c33d8d5..d3756f5 100644
+--- a/panel/controller/setting/setting.php
++++ b/panel/controller/setting/setting.php
+@@ -43,13 +43,26 @@ class Setting extends \MDcart\System\Engine\Controller {
+ 		$data['config_name'] = $this->config->get('config_name');
+ 
+ 		// Trust badges / license seals (Enamad, business license, payment
+-		// gateway logos, etc.) shown in the storefront footer. This is
+-		// intentionally a raw HTML field, not a rich-text editor, so
+-		// whatever code the badge issuer provides (a plain <a><img></a> or
+-		// a <script> snippet) is stored and rendered exactly as given -
+-		// these seals are only valid/verifiable when their original link
+-		// survives untouched. See catalog/controller/common/footer.php.
+-		$data['config_trust_badges_html'] = html_entity_decode((string)$this->config->get('config_trust_badges_html'), ENT_QUOTES, 'UTF-8');
++		// gateway logos, etc.) shown in the storefront footer, as a
++		// repeatable list of name + raw HTML entries (one per badge). This
++		// is intentionally a raw HTML field per entry, not a rich-text
++		// editor, so whatever code the badge issuer provides (a plain
++		// <a><img></a> or a <script> snippet) is stored and rendered
++		// exactly as given - these seals are only valid/verifiable when
++		// their original link survives untouched. See
++		// catalog/controller/common/footer.php. Each value went through
++		// Request::clean()'s recursive htmlspecialchars() on save (like
++		// every other posted field), so it is html_entity_decode()d back
++		// here for both display in this form and (in the footer
++		// controller) for output.
++		$data['config_trust_badges'] = [];
++
++		foreach ((array)$this->config->get('config_trust_badges') as $uid => $badge) {
++			$data['config_trust_badges'][$uid] = [
++				'name' => html_entity_decode((string)($badge['name'] ?? ''), ENT_QUOTES, 'UTF-8'),
++				'html' => html_entity_decode((string)($badge['html'] ?? ''), ENT_QUOTES, 'UTF-8')
++			];
++		}
+ 
+ 		$data['store_url'] = HTTP_CATALOG;
+ 
+diff --git a/panel/language/fa/setting/setting.php b/panel/language/fa/setting/setting.php
+index 447c024..7fa3e1f 100644
+--- a/panel/language/fa/setting/setting.php
++++ b/panel/language/fa/setting/setting.php
+@@ -61,7 +61,9 @@ $_['entry_meta_keyword']                  = 'کلمات کلیدی متا تگ';
+ $_['entry_layout']                        = 'چیدمان پیش‌فرض';
+ $_['entry_theme']                         = 'قالب';
+ $_['entry_name']                          = 'نام فروشگاه';
+-$_['entry_trust_badges_html']             = 'کد نمادها (اینماد، مجوزها، درگاه‌های پرداخت)';
++$_['entry_trust_badge_name']              = 'اسم نماد (مثلاً اینماد)';
++$_['entry_trust_badge_html']              = 'کد HTML نماد';
++$_['entry_trust_badge_add']               = 'افزودن نماد';
+ $_['entry_owner']                         = 'مالک فروشگاه';
+ $_['entry_address']                       = 'آدرس';
+ $_['entry_geocode']                       = 'ژئوکد';
+@@ -201,7 +203,7 @@ $_['entry_status']                        = 'وضعیت';
+ $_['help_geocode']                        = 'لطفاً ژئوکد موقعیت فروشگاه خود را به‌صورت دستی وارد کنید.';
+ $_['help_google_places_key']              = 'اختیاری. با وارد کردن این کلید، تکمیل خودکار آدرس بر پایه گوگل (شامل نام محله) در فرم‌های تسویه‌حساب و دفترچه آدرس فعال می‌شود. این کلید را با فعال‌سازی Places API از Google Cloud Console دریافت کنید (بعد از سقف رایگان ماهانه هزینه دارد). در صورت خالی گذاشتن، فقط از انتخابگر استان/شهرستان/شهر داخلی فروشگاه استفاده خواهد شد.';
+ $_['help_icon']                           = 'آیکون باید یک فایل PNG با اندازه ۱۶ در ۱۶ پیکسل باشد.';
+-$_['help_trust_badges_html']              = 'کد اصلی‌ای که هر نماد بهتون می‌ده (مثل اینماد، مجوز کسب‌وکار مجازی، لوگوی درگاه پرداخت) رو دقیقاً همون‌جوری که هست اینجا کپی/پیست کنید - نه اسکرین‌شات یا عکسش رو. این کد دقیقاً همین‌طوری که هست پایین سایت (فوتر) نمایش داده می‌شه. می‌تونید چند تا کد رو پشت سر هم بچسبونید.';
++$_['help_trust_badges_html']              = 'برای هر نماد (مثل اینماد، مجوز کسب‌وکار مجازی، لوگوی درگاه پرداخت) با دکمه «افزودن نماد» یک ردیف جدید بسازید: یک اسم دلخواه (فقط برای شناسایی خودتون این‌جا) و کد HTML اصلی همون نماد را دقیقاً همون‌جوری که هست کپی/پیست کنید - نه اسکرین‌شات یا عکسش رو. هر ردیف دقیقاً همین‌طوری که هست پایین سایت (فوتر) نمایش داده می‌شه. با دکمه قرمز کنار هر ردیف می‌تونید همون نماد رو حذف کنید.';
+ $_['help_logo_admin']                     = 'فقط بالای همین پنل مدیریت نمایش داده می‌شود (جدا از لوگوی فروشگاه). با بروزرسانی‌های بعدی سایت از بین نمی‌رود.';
+ $_['help_open']                           = 'ساعات کاری فروشگاه خود را وارد کنید.';
+ $_['help_comment']                        = 'این فیلد برای یادداشت‌های ویژه‌ای است که می‌خواهید به مشتری بگویید، مثلاً: فروشگاه چک قبول نمی‌کند.';
+diff --git a/panel/language/us/setting/setting.php b/panel/language/us/setting/setting.php
+index ef936b2..f492d43 100644
+--- a/panel/language/us/setting/setting.php
++++ b/panel/language/us/setting/setting.php
+@@ -61,7 +61,9 @@ $_['entry_meta_keyword']                  = 'Meta Tag Keywords';
+ $_['entry_layout']                        = 'Default Layout';
+ $_['entry_theme']                         = 'Theme';
+ $_['entry_name']                          = 'Store Name';
+-$_['entry_trust_badges_html']             = 'Badge Code (Enamad, licenses, payment gateways)';
++$_['entry_trust_badge_name']              = 'Badge Name (e.g. Enamad)';
++$_['entry_trust_badge_html']              = 'Badge HTML Code';
++$_['entry_trust_badge_add']               = 'Add Badge';
+ $_['entry_owner']                         = 'Store Owner';
+ $_['entry_address']                       = 'Address';
+ $_['entry_geocode']                       = 'Geocode';
+@@ -201,7 +203,7 @@ $_['entry_status']                        = 'Status';
+ $_['help_geocode']                        = 'Please enter your store location geocode manually.';
+ $_['help_google_places_key']              = 'Optional. Enables Google-powered address autocomplete (including neighbourhood names) on the checkout and address book forms. Get a key with the Places API enabled from the Google Cloud Console (billable beyond the free monthly quota). Leave empty to keep using only the built-in province/county/city picker.';
+ $_['help_icon']                           = 'The icon should be a PNG that is 16px x 16px.';
+-$_['help_trust_badges_html']              = 'Paste the exact code each badge issuer gives you (Enamad, business license, payment gateway logos, etc.) - not a screenshot or a downloaded copy of the image. It is shown at the bottom of the site (footer) exactly as pasted. You can paste more than one code here.';
++$_['help_trust_badges_html']              = 'Click "Add Badge" for each badge (Enamad, business license, payment gateway logos, etc.): give it a name (for your own reference only) and paste the exact HTML code that badge issuer gave you - not a screenshot or a downloaded copy of the image. Each row is shown at the bottom of the site (footer) exactly as pasted. Use the red button next to a row to remove that badge.';
+ $_['help_logo_admin']                     = 'Shown only at the top of this admin panel (separate from the store logo). Survives future site updates.';
+ $_['help_open']                           = 'Fill in your store\'s opening times.';
+ $_['help_comment']                        = 'This field is for any special notes you would like to tell the customer i.e. Store does not accept cheques.';
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index 804da22..c93a249 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -881,6 +881,49 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 					);
+ 				}
+ 			},
++
++			// Settings > General's trust badges field moved from one
++			// freeform textarea (config_trust_badges_html, where several
++			// badges' codes were pasted concatenated together with no
++			// name of their own) to a repeatable name+HTML list
++			// (config_trust_badges, an array keyed by a generated uid -
++			// see panel/view/template/setting/setting.twig). For every
++			// store that had a non-empty old textarea value and has not
++			// already been migrated, this seeds the new list with a
++			// single entry carrying the OLD value over verbatim (under a
++			// generic placeholder name), so none of the store's existing
++			// badge codes are lost. `value` is copied as-is (it is
++			// already Request::clean()-encoded exactly like a normal
++			// posted field, same as every other row in this table) and
++			// re-wrapped as a serialized array under the new key.
++			'trust_badges_list' => function (): void {
++				$query = $this->db->query(
++					"SELECT `store_id`, `value` FROM `" . DB_PREFIX . "setting`"
++					. " WHERE `code` = 'config' AND `key` = 'config_trust_badges_html' AND `value` != ''"
++				);
++
++				foreach ($query->rows as $result) {
++					$existing = $this->db->query(
++						"SELECT `setting_id` FROM `" . DB_PREFIX . "setting`"
++						. " WHERE `store_id` = '" . (int)$result['store_id'] . "' AND `code` = 'config' AND `key` = 'config_trust_badges'"
++					);
++
++					if ($existing->num_rows) {
++						continue;
++					}
++
++					$badges = [
++						'badge_legacy' => [
++							'name' => 'نمادهای قبلی',
++							'html' => $result['value'],
++						],
++					];
++
++					$this->db->query(
++						"INSERT INTO `" . DB_PREFIX . "setting` SET `store_id` = '" . (int)$result['store_id'] . "', `code` = 'config', `key` = 'config_trust_badges', `value` = '" . $this->db->escape(json_encode($badges)) . "', `serialized` = '1'"
++					);
++				}
++			},
+ 		];
+ 	}
+ 
+diff --git a/panel/view/template/setting/setting.twig b/panel/view/template/setting/setting.twig
+index 7f00157..01ba659 100644
+--- a/panel/view/template/setting/setting.twig
++++ b/panel/view/template/setting/setting.twig
+@@ -102,13 +102,32 @@
+               </fieldset>
+               <fieldset>
+                 <legend>{{ text_trust_badges }}</legend>
+-                <div class="row mb-3">
+-                  <label for="input-trust-badges-html" class="col-sm-2 col-form-label">{{ entry_trust_badges_html }}</label>
+-                  <div class="col-sm-10">
+-                    <textarea name="config_trust_badges_html" placeholder="{{ entry_trust_badges_html }}" id="input-trust-badges-html" rows="6" class="form-control" style="direction:ltr;text-align:left;font-family:monospace;font-size:12px">{{ config_trust_badges_html }}</textarea>
+-                    <div class="form-text">{{ help_trust_badges_html }}</div>
+-                  </div>
+-                </div>
++                <table id="table-trust-badge" class="table table-bordered">
++                  <thead>
++                    <tr>
++                      <td>{{ entry_trust_badge_name }}</td>
++                      <td>{{ entry_trust_badge_html }}</td>
++                      <td style="width: 1px;"></td>
++                    </tr>
++                  </thead>
++                  <tbody>
++                    {% for uid, badge in config_trust_badges %}
++                      <tr>
++                        <td style="width: 220px;">
++                          <input type="text" name="config_trust_badges[{{ uid }}][name]" value="{{ badge.name }}" placeholder="{{ entry_trust_badge_name }}" class="form-control"/>
++                        </td>
++                        <td>
++                          <textarea name="config_trust_badges[{{ uid }}][html]" placeholder="{{ entry_trust_badge_html }}" rows="3" class="form-control" style="direction:ltr;text-align:left;font-family:monospace;font-size:12px">{{ badge.html }}</textarea>
++                        </td>
++                        <td class="text-center">
++                          <button type="button" data-oc-toggle="remove-trust-badge" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
++                        </td>
++                      </tr>
++                    {% endfor %}
++                  </tbody>
++                </table>
++                <button type="button" id="button-trust-badge-add" class="btn btn-primary"><i class="fa-solid fa-plus-circle"></i> {{ entry_trust_badge_add }}</button>
++                <div class="form-text">{{ help_trust_badges_html }}</div>
+               </fieldset>
+               <fieldset>
+                 <legend>{{ text_meta }}</legend>
+@@ -1594,6 +1613,19 @@
+     </div>
+   </div>
+ </div>
++<template id="template-trust-badge-row">
++  <tr>
++    <td style="width: 220px;">
++      <input type="text" name="" class="form-control" data-oc-field="name"/>
++    </td>
++    <td>
++      <textarea name="" rows="3" class="form-control" style="direction:ltr;text-align:left;font-family:monospace;font-size:12px" data-oc-field="html"></textarea>
++    </td>
++    <td class="text-center">
++      <button type="button" data-oc-toggle="remove-trust-badge" class="btn btn-danger"><i class="fa-solid fa-minus-circle"></i></button>
++    </td>
++  </tr>
++</template>
+ <script type="text/javascript"><!--
+ $('#input-theme').on('change', function() {
+     var element = this;
+@@ -1660,5 +1692,22 @@ $('#input-country').on('change', function() {
+ });
+ 
+ $('#input-country').trigger('change');
++
++$(document).on('click', '#button-trust-badge-add', function() {
++    var uid = 'badge_' + Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(36);
++    var template = document.getElementById('template-trust-badge-row');
++    var row = template.content.cloneNode(true);
++
++    $(row).find('[data-oc-field]').each(function() {
++        var field = $(this).attr('data-oc-field');
++        $(this).attr('name', 'config_trust_badges[' + uid + '][' + field + ']');
++    });
++
++    $('#table-trust-badge tbody').append(row);
++});
++
++$(document).on('click', '[data-oc-toggle=\'remove-trust-badge\']', function() {
++    $(this).closest('tr').remove();
++});
+ //--></script>
+ {{ footer }}

@@ -43,13 +43,26 @@ class Setting extends \MDcart\System\Engine\Controller {
 		$data['config_name'] = $this->config->get('config_name');
 
 		// Trust badges / license seals (Enamad, business license, payment
-		// gateway logos, etc.) shown in the storefront footer. This is
-		// intentionally a raw HTML field, not a rich-text editor, so
-		// whatever code the badge issuer provides (a plain <a><img></a> or
-		// a <script> snippet) is stored and rendered exactly as given -
-		// these seals are only valid/verifiable when their original link
-		// survives untouched. See catalog/controller/common/footer.php.
-		$data['config_trust_badges_html'] = html_entity_decode((string)$this->config->get('config_trust_badges_html'), ENT_QUOTES, 'UTF-8');
+		// gateway logos, etc.) shown in the storefront footer, as a
+		// repeatable list of name + raw HTML entries (one per badge). This
+		// is intentionally a raw HTML field per entry, not a rich-text
+		// editor, so whatever code the badge issuer provides (a plain
+		// <a><img></a> or a <script> snippet) is stored and rendered
+		// exactly as given - these seals are only valid/verifiable when
+		// their original link survives untouched. See
+		// catalog/controller/common/footer.php. Each value went through
+		// Request::clean()'s recursive htmlspecialchars() on save (like
+		// every other posted field), so it is html_entity_decode()d back
+		// here for both display in this form and (in the footer
+		// controller) for output.
+		$data['config_trust_badges'] = [];
+
+		foreach ((array)$this->config->get('config_trust_badges') as $uid => $badge) {
+			$data['config_trust_badges'][$uid] = [
+				'name' => html_entity_decode((string)($badge['name'] ?? ''), ENT_QUOTES, 'UTF-8'),
+				'html' => html_entity_decode((string)($badge['html'] ?? ''), ENT_QUOTES, 'UTF-8')
+			];
+		}
 
 		$data['store_url'] = HTTP_CATALOG;
 

@@ -881,6 +881,49 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 					);
 				}
 			},
+
+			// Settings > General's trust badges field moved from one
+			// freeform textarea (config_trust_badges_html, where several
+			// badges' codes were pasted concatenated together with no
+			// name of their own) to a repeatable name+HTML list
+			// (config_trust_badges, an array keyed by a generated uid -
+			// see panel/view/template/setting/setting.twig). For every
+			// store that had a non-empty old textarea value and has not
+			// already been migrated, this seeds the new list with a
+			// single entry carrying the OLD value over verbatim (under a
+			// generic placeholder name), so none of the store's existing
+			// badge codes are lost. `value` is copied as-is (it is
+			// already Request::clean()-encoded exactly like a normal
+			// posted field, same as every other row in this table) and
+			// re-wrapped as a serialized array under the new key.
+			'trust_badges_list' => function (): void {
+				$query = $this->db->query(
+					"SELECT `store_id`, `value` FROM `" . DB_PREFIX . "setting`"
+					. " WHERE `code` = 'config' AND `key` = 'config_trust_badges_html' AND `value` != ''"
+				);
+
+				foreach ($query->rows as $result) {
+					$existing = $this->db->query(
+						"SELECT `setting_id` FROM `" . DB_PREFIX . "setting`"
+						. " WHERE `store_id` = '" . (int)$result['store_id'] . "' AND `code` = 'config' AND `key` = 'config_trust_badges'"
+					);
+
+					if ($existing->num_rows) {
+						continue;
+					}
+
+					$badges = [
+						'badge_legacy' => [
+							'name' => 'نمادهای قبلی',
+							'html' => $result['value'],
+						],
+					];
+
+					$this->db->query(
+						"INSERT INTO `" . DB_PREFIX . "setting` SET `store_id` = '" . (int)$result['store_id'] . "', `code` = 'config', `key` = 'config_trust_badges', `value` = '" . $this->db->escape(json_encode($badges)) . "', `serialized` = '1'"
+					);
+				}
+			},
 		];
 	}
 
