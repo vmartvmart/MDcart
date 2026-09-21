@@ -828,6 +828,59 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 					);
 				}
 			},
+
+			// Adds DigiPay as an eighth gateway in the existing
+			// `iranian_gateways` package - same "grant permission + seed
+			// extension row" pattern as aqayepardakht_bitpay_extensions
+			// above. DigiPay also needs its own small table (tracking info
+			// needed later to report credit/BNPL purchases as delivered -
+			// see extension/iranian_gateways/catalog/controller/event/digipay_deliver.php)
+			// and an `oc_event` row so that event actually runs; both use
+			// the same "CREATE TABLE IF NOT EXISTS" / SELECT-then-INSERT
+			// safe-to-rerun style already used elsewhere in this file.
+			'digipay_extension' => function (): void {
+				$this->grantAdministratorPermissions([
+					'extension/iranian_gateways/payment/digipay',
+				]);
+
+				$query = $this->db->query(
+					"SELECT `extension_id` FROM `" . DB_PREFIX . "extension`"
+					. " WHERE `extension` = 'iranian_gateways' AND `type` = 'payment' AND `code` = 'digipay'"
+				);
+
+				if (!$query->num_rows) {
+					$this->db->query(
+						"INSERT INTO `" . DB_PREFIX . "extension` SET `extension` = 'iranian_gateways', `type` = 'payment', `code` = 'digipay'"
+					);
+				}
+
+				$this->db->query(
+					"UPDATE `" . DB_PREFIX . "extension_install` SET `description` = '" . $this->db->escape('ZarinPal, PayPing, IDPay, SizPay, card-to-card, Aghaye Pardakht, BitPay and DigiPay payment methods for Iranian stores.') . "' WHERE `code` = 'iranian_gateways'"
+				);
+
+				$this->db->query(
+					"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "digipay_purchase` ("
+					. "`order_id` int(11) NOT NULL,"
+					. "`provider_id` varchar(64) NOT NULL DEFAULT '',"
+					. "`tracking_code` varchar(64) NOT NULL DEFAULT '',"
+					. "`type` int(11) NOT NULL DEFAULT 0,"
+					. "`delivered` tinyint(1) NOT NULL DEFAULT 0,"
+					. "`deliver_attempts` int(11) NOT NULL DEFAULT 0,"
+					. "`deliver_error` text,"
+					. "`date_added` datetime NOT NULL,"
+					. "PRIMARY KEY (`order_id`)"
+					. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
+				);
+
+				$query = $this->db->query("SELECT `event_id` FROM `" . DB_PREFIX . "event` WHERE `code` = 'digipay_deliver'");
+
+				if (!$query->num_rows) {
+					$this->db->query(
+						"INSERT INTO `" . DB_PREFIX . "event` SET `code` = 'digipay_deliver', `description` = '" . $this->db->escape('Reports a DigiPay credit/BNPL purchase as delivered once its order reaches the configured status.') . "',"
+						. " `trigger` = 'model/checkout/order.addHistory/before', `action` = 'extension/iranian_gateways/event/digipay_deliver', `status` = '1', `sort_order` = '1'"
+					);
+				}
+			},
 		];
 	}
 

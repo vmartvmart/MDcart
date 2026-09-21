@@ -1,0 +1,1320 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index bfbec3c..399e7bb 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -243,5 +243,10 @@
+     "version": "5.6.34",
+     "fa": "امکان تعیین کارمزد یا تخفیف بر اساس روش پرداخت اضافه شد: از منوی «افزونه‌ها > مجموع سفارش‌ها > کارمزد/تخفیف بر اساس روش پرداخت» می‌توانید برای هر درگاه یک درصد وارد کنید - عدد مثبت باعث افزوده شدن آن درصد به مبلغ نهایی سفارش هنگام انتخاب آن روش پرداخت می‌شود (مثلا برای دیجی‌پی 10 درصد اضافه) و عدد منفی باعث تخفیف می‌شود (مثلا برای کارت به کارت 5 درصد تخفیف). این مبلغ در صفحه‌ی نهایی خرید همزمان با تغییر روش پرداخت توسط مشتری به‌صورت لحظه‌ای به‌روز می‌شود و دقیقا همان مقداری که در لحظه‌ی ثبت سفارش محاسبه شده در فاکتور سفارش ذخیره می‌گردد. این ویژگی به‌صورت پیش‌فرض غیرفعال است و باید از تنظیمات همان صفحه فعال شود.",
+     "en": "Added the ability to add a surcharge or discount based on the customer's chosen payment method: from Extensions > Order Totals > Payment Method Fee/Discount, enter a percentage for any gateway - a positive number adds that percentage to the order total when the customer pays with it (e.g. +10% for DigiPay), a negative number gives a discount (e.g. -5% for card-to-card). The amount updates live on the checkout confirmation page as the customer switches payment methods, and the exact value calculated at the moment the order is placed is saved on the order. This feature is off by default and must be enabled from that same settings page."
++  },
++  {
++    "version": "5.6.35",
++    "fa": "درگاه پرداخت دیجی‌پی اضافه شد: از منوی «افزونه‌ها > پرداخت» بخش «دیجی‌پی» را فعال و اطلاعات اتصال (Client ID، Client Secret، نام‌کاربری و رمز عبور دیجی‌پی) را وارد کنید. مشتری برای تکمیل خرید به صفحه‌ی دیجی‌پی منتقل می‌شود و همان‌جا، بسته به آنچه دیجی‌پی برای حساب شما فعال کرده باشد، می‌تواند با کارت بانکی، کیف پول دیجی‌پی یا اعتبار خرید/اقساط (BNPL) پرداخت کند - نیازی به تنظیم جداگانه برای هر کدام نیست. برای خریدهای اعتباری/اقساطی، دیجی‌پی نیاز دارد جداگانه از تحویل کالا مطلع شود؛ برای این کار یک «وضعیت سفارش» در تنظیمات دیجی‌پی مشخص کنید - وقتی سفارشی که با این روش پرداخت شده به آن وضعیت برسد (چه از پنل و چه خودکار)، این اطلاع‌رسانی به‌طور خودکار انجام می‌شود. یک حالت تست (Sandbox) هم مثل بیت‌پی و زرین‌پال اضافه شده تا بتوانید قبل از فعال‌سازی واقعی، درگاه را با محیط آزمایشی دیجی‌پی امتحان کنید. توجه: امکانات بازگشت وجه/ابطال خرید دیجی‌پی در این نسخه پیاده‌سازی نشده‌اند (مشابه سایر درگاه‌های این فروشگاه).",
++    "en": "Added DigiPay as a new payment gateway: enable it from Extensions > Payment and enter your DigiPay connection details (Client ID, Client Secret, username and password). The customer is redirected to DigiPay's own page to finish paying - depending on what your DigiPay merchant account has enabled, they can pay by bank card, DigiPay wallet, or buy-now-pay-later/installment credit, all from the same gateway with no separate setup needed. Credit/BNPL purchases require DigiPay to be separately told once the goods are delivered - set a trigger order status in DigiPay's settings, and this is reported automatically the moment an order paid that way reaches that status (whether changed from the admin panel or automatically). A sandbox/test mode was also added, matching BitPay and ZarinPal, so the gateway can be tried against DigiPay's staging environment before going live. Note: DigiPay's refund/reversal actions are not implemented in this version (consistent with every other gateway in this store)."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index d9ce55f..d9b5a1e 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.34
++5.6.35
+diff --git a/extension/iranian_gateways/admin/controller/payment/digipay.php b/extension/iranian_gateways/admin/controller/payment/digipay.php
+new file mode 100644
+index 0000000..87e5dfd
+--- /dev/null
++++ b/extension/iranian_gateways/admin/controller/payment/digipay.php
+@@ -0,0 +1,114 @@
++<?php
++namespace MDcart\Admin\Controller\Extension\IranianGateways\Payment;
++/**
++ * Class Digipay
++ *
++ * @package MDcart\Admin\Controller\Extension\IranianGateways\Payment
++ */
++class Digipay extends \MDcart\System\Engine\Controller {
++	/**
++	 * Index
++	 *
++	 * @return void
++	 */
++	public function index(): void {
++		$this->load->language('extension/iranian_gateways/payment/digipay');
++
++		$this->document->setTitle($this->language->get('heading_title'));
++
++		$data['breadcrumbs'] = [];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_home'),
++			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('text_extension'),
++			'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment')
++		];
++
++		$data['breadcrumbs'][] = [
++			'text' => $this->language->get('heading_title'),
++			'href' => $this->url->link('extension/iranian_gateways/payment/digipay', 'user_token=' . $this->session->data['user_token'])
++		];
++
++		$data['save'] = $this->url->link('extension/iranian_gateways/payment/digipay.save', 'user_token=' . $this->session->data['user_token']);
++		$data['back'] = $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=payment');
++
++		$data['payment_digipay_client_id'] = $this->config->get('payment_digipay_client_id');
++		$data['payment_digipay_client_secret'] = $this->config->get('payment_digipay_client_secret');
++		$data['payment_digipay_username'] = $this->config->get('payment_digipay_username');
++		$data['payment_digipay_password'] = $this->config->get('payment_digipay_password');
++		$data['payment_digipay_sandbox'] = $this->config->get('payment_digipay_sandbox');
++
++		// Order Status
++		$data['payment_digipay_order_status_id'] = (int)$this->config->get('payment_digipay_order_status_id');
++		$data['payment_digipay_deliver_order_status_id'] = (int)$this->config->get('payment_digipay_deliver_order_status_id');
++
++		$this->load->model('localisation/order_status');
++
++		$data['order_statuses'] = $this->model_localisation_order_status->getOrderStatuses();
++
++		// Geo Zone
++		$data['payment_digipay_geo_zone_id'] = $this->config->get('payment_digipay_geo_zone_id');
++
++		$this->load->model('localisation/geo_zone');
++
++		$data['geo_zones'] = $this->model_localisation_geo_zone->getGeoZones();
++
++		$data['payment_digipay_status'] = $this->config->get('payment_digipay_status');
++		$data['payment_digipay_sort_order'] = $this->config->get('payment_digipay_sort_order');
++
++		$data['callback_url'] = $this->url->link('extension/iranian_gateways/payment/digipay.callback', '', true);
++
++		$data['header'] = $this->load->controller('common/header');
++		$data['column_left'] = $this->load->controller('common/column_left');
++		$data['footer'] = $this->load->controller('common/footer');
++
++		$this->response->setOutput($this->load->view('extension/iranian_gateways/payment/digipay', $data));
++	}
++
++	/**
++	 * Save
++	 *
++	 * @return void
++	 */
++	public function save(): void {
++		$this->load->language('extension/iranian_gateways/payment/digipay');
++
++		$json = [];
++
++		if (!$this->user->hasPermission('modify', 'extension/iranian_gateways/payment/digipay')) {
++			$json['error']['warning'] = $this->language->get('error_permission');
++		}
++
++		if (empty($this->request->post['payment_digipay_client_id'])) {
++			$json['error']['client_id'] = $this->language->get('error_client_id');
++		}
++
++		if (empty($this->request->post['payment_digipay_client_secret'])) {
++			$json['error']['client_secret'] = $this->language->get('error_client_secret');
++		}
++
++		if (empty($this->request->post['payment_digipay_username'])) {
++			$json['error']['username'] = $this->language->get('error_username');
++		}
++
++		if (empty($this->request->post['payment_digipay_password'])) {
++			$json['error']['password'] = $this->language->get('error_password');
++		}
++
++		if (!$json) {
++			// Setting
++			$this->load->model('setting/setting');
++
++			$this->model_setting_setting->editSetting('payment_digipay', $this->request->post);
++
++			$json['success'] = $this->language->get('text_success');
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++}
+diff --git a/extension/iranian_gateways/admin/language/fa/payment/digipay.php b/extension/iranian_gateways/admin/language/fa/payment/digipay.php
+new file mode 100644
+index 0000000..34a26d0
+--- /dev/null
++++ b/extension/iranian_gateways/admin/language/fa/payment/digipay.php
+@@ -0,0 +1,35 @@
++<?php
++// Heading
++$_['heading_title']              = 'دیجی‌پی';
++
++// Text
++$_['text_extension']             = 'افزونه‌ها';
++$_['text_success']               = 'موفق: اطلاعات دیجی‌پی با موفقیت ویرایش شد!';
++$_['text_edit']                  = 'ویرایش دیجی‌پی';
++$_['text_all_zones']             = 'همه مناطق';
++$_['text_none']                  = '--- هیچ‌کدام ---';
++$_['text_callback_url']          = 'آدرس بازگشت (Callback URL)';
++
++// Entry
++$_['entry_client_id']            = 'شناسه کلاینت (Client ID)';
++$_['entry_client_secret']        = 'کلید کلاینت (Client Secret)';
++$_['entry_username']             = 'نام کاربری';
++$_['entry_password']             = 'رمز عبور';
++$_['entry_sandbox']              = 'حالت تست (Sandbox)';
++$_['entry_order_status']         = 'وضعیت سفارش (پرداخت موفق)';
++$_['entry_deliver_order_status'] = 'وضعیت سفارش (تحویل کالا - فقط اعتباری/اقساطی)';
++$_['entry_geo_zone']             = 'منطقه جغرافیایی';
++$_['entry_status']               = 'وضعیت';
++$_['entry_sort_order']           = 'ترتیب نمایش';
++
++// Help
++$_['help_sandbox']               = 'استفاده از محیط تست دیجی‌پی (uat.mydigipay.info) — پول واقعی جابه‌جا نمی‌شود. قبل از فعال شدن واقعی سایت برای مشتری‌ها، این گزینه را خاموش کنید.';
++$_['help_callback_url']          = 'اگر پنل دیجی‌پی آدرس بازگشت (Callback) درخواست کرد، از این آدرس استفاده کنید.';
++$_['help_deliver_order_status']  = 'فقط برای سفارش‌هایی که با اعتبار خرید یا اقساط (BNPL) دیجی‌پی پرداخت شده‌اند کاربرد دارد — دیجی‌پی نیاز دارد جداگانه تایید کنید که کالا تحویل داده شده تا آن خرید نهایی/تسویه شود. وقتی سفارشی که با این روش پرداخت شده به وضعیت انتخاب‌شده در اینجا تغییر کند، این تایید به‌صورت خودکار به دیجی‌پی ارسال می‌شود. برای غیرفعال کردن ارسال خودکار، «هیچ‌کدام» را انتخاب کنید.';
++
++// Error
++$_['error_permission']           = 'هشدار: شما اجازه ویرایش تنظیمات دیجی‌پی را ندارید!';
++$_['error_client_id']            = 'وارد کردن شناسه کلاینت الزامی است!';
++$_['error_client_secret']        = 'وارد کردن کلید کلاینت الزامی است!';
++$_['error_username']             = 'وارد کردن نام کاربری الزامی است!';
++$_['error_password']             = 'وارد کردن رمز عبور الزامی است!';
+diff --git a/extension/iranian_gateways/admin/language/us/payment/digipay.php b/extension/iranian_gateways/admin/language/us/payment/digipay.php
+new file mode 100644
+index 0000000..c632d64
+--- /dev/null
++++ b/extension/iranian_gateways/admin/language/us/payment/digipay.php
+@@ -0,0 +1,35 @@
++<?php
++// Heading
++$_['heading_title']              = 'DigiPay';
++
++// Text
++$_['text_extension']             = 'Extensions';
++$_['text_success']               = 'Success: You have modified DigiPay details!';
++$_['text_edit']                  = 'Edit DigiPay';
++$_['text_all_zones']             = 'All Zones';
++$_['text_none']                  = '--- None ---';
++$_['text_callback_url']          = 'Callback URL';
++
++// Entry
++$_['entry_client_id']            = 'Client ID';
++$_['entry_client_secret']        = 'Client Secret';
++$_['entry_username']             = 'Username';
++$_['entry_password']             = 'Password';
++$_['entry_sandbox']              = 'Sandbox Mode';
++$_['entry_order_status']         = 'Order Status (Payment Successful)';
++$_['entry_deliver_order_status'] = 'Order Status (Delivered - Credit/BNPL only)';
++$_['entry_geo_zone']             = 'Geo Zone';
++$_['entry_status']               = 'Status';
++$_['entry_sort_order']           = 'Sort Order';
++
++// Help
++$_['help_sandbox']               = 'Use DigiPay\'s staging/test environment (uat.mydigipay.info) - no real money moves. Turn this off before going live with real customers.';
++$_['help_callback_url']          = 'If DigiPay\'s panel asks for a callback/redirect URL, use this one.';
++$_['help_deliver_order_status']  = 'Only applies to purchases paid with DigiPay\'s credit or buy-now-pay-later (BNPL) options - DigiPay requires the merchant to separately confirm the goods were delivered before that purchase is finalized. When an order paid this way is changed to the status selected here, DigiPay is automatically notified. Leave as "None" to never send this automatically.';
++
++// Error
++$_['error_permission']           = 'Warning: You do not have permission to modify DigiPay settings!';
++$_['error_client_id']            = 'Client ID is required!';
++$_['error_client_secret']        = 'Client Secret is required!';
++$_['error_username']             = 'Username is required!';
++$_['error_password']             = 'Password is required!';
+diff --git a/extension/iranian_gateways/admin/view/template/payment/digipay.twig b/extension/iranian_gateways/admin/view/template/payment/digipay.twig
+new file mode 100644
+index 0000000..7230269
+--- /dev/null
++++ b/extension/iranian_gateways/admin/view/template/payment/digipay.twig
+@@ -0,0 +1,119 @@
++{{ header }}{{ column_left }}
++<div id="content">
++  <div class="page-header">
++    <div class="container-fluid">
++      <div class="float-end">
++        <button type="submit" form="form-payment" data-bs-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa-solid fa-save"></i></button>
++        <a href="{{ back }}" data-bs-toggle="tooltip" title="{{ button_back }}" class="btn btn-light"><i class="fa-solid fa-reply"></i></a></div>
++      <h1>{{ heading_title }}</h1>
++      <ol class="breadcrumb">
++        {% for breadcrumb in breadcrumbs %}
++          <li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
++        {% endfor %}
++      </ol>
++    </div>
++  </div>
++  <div class="container-fluid">
++    <div class="card">
++      <div class="card-header"><i class="fa-solid fa-pencil"></i> {{ text_edit }}</div>
++      <div class="card-body">
++        <form id="form-payment" action="{{ save }}" method="post" data-oc-toggle="ajax">
++          <div class="row mb-3 required">
++            <label for="input-client-id" class="col-sm-2 col-form-label">{{ entry_client_id }}</label>
++            <div class="col-sm-10">
++              <input type="text" name="payment_digipay_client_id" value="{{ payment_digipay_client_id }}" id="input-client-id" class="form-control"/>
++              <div id="error-client-id" class="invalid-feedback"></div>
++            </div>
++          </div>
++          <div class="row mb-3 required">
++            <label for="input-client-secret" class="col-sm-2 col-form-label">{{ entry_client_secret }}</label>
++            <div class="col-sm-10">
++              <input type="text" name="payment_digipay_client_secret" value="{{ payment_digipay_client_secret }}" id="input-client-secret" class="form-control"/>
++              <div id="error-client-secret" class="invalid-feedback"></div>
++            </div>
++          </div>
++          <div class="row mb-3 required">
++            <label for="input-username" class="col-sm-2 col-form-label">{{ entry_username }}</label>
++            <div class="col-sm-10">
++              <input type="text" name="payment_digipay_username" value="{{ payment_digipay_username }}" id="input-username" class="form-control" autocomplete="off"/>
++              <div id="error-username" class="invalid-feedback"></div>
++            </div>
++          </div>
++          <div class="row mb-3 required">
++            <label for="input-password" class="col-sm-2 col-form-label">{{ entry_password }}</label>
++            <div class="col-sm-10">
++              <input type="password" name="payment_digipay_password" value="{{ payment_digipay_password }}" id="input-password" class="form-control" autocomplete="new-password"/>
++              <div id="error-password" class="invalid-feedback"></div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label class="col-sm-2 col-form-label">{{ entry_sandbox }}</label>
++            <div class="col-sm-10">
++              <div class="form-check form-switch form-switch-lg">
++                <input type="hidden" name="payment_digipay_sandbox" value="0"/>
++                <input type="checkbox" name="payment_digipay_sandbox" value="1" id="input-sandbox" class="form-check-input"{% if payment_digipay_sandbox %} checked{% endif %}/>
++              </div>
++              <div class="form-text">{{ help_sandbox }}</div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label class="col-sm-2 col-form-label">{{ text_callback_url }}</label>
++            <div class="col-sm-10">
++              <input type="text" value="{{ callback_url }}" class="form-control" readonly="readonly"/>
++              <div class="form-text">{{ help_callback_url }}</div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label for="input-order-status" class="col-sm-2 col-form-label">{{ entry_order_status }}</label>
++            <div class="col-sm-10">
++              <select name="payment_digipay_order_status_id" id="input-order-status" class="form-select">
++                {% for order_status in order_statuses %}
++                  <option value="{{ order_status.order_status_id }}"{% if order_status.order_status_id == payment_digipay_order_status_id %} selected{% endif %}>{{ order_status.name }}</option>
++                {% endfor %}
++              </select>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label for="input-deliver-order-status" class="col-sm-2 col-form-label">{{ entry_deliver_order_status }}</label>
++            <div class="col-sm-10">
++              <select name="payment_digipay_deliver_order_status_id" id="input-deliver-order-status" class="form-select">
++                <option value="0">{{ text_none }}</option>
++                {% for order_status in order_statuses %}
++                  <option value="{{ order_status.order_status_id }}"{% if order_status.order_status_id == payment_digipay_deliver_order_status_id %} selected{% endif %}>{{ order_status.name }}</option>
++                {% endfor %}
++              </select>
++              <div class="form-text">{{ help_deliver_order_status }}</div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label for="input-geo-zone" class="col-sm-2 col-form-label">{{ entry_geo_zone }}</label>
++            <div class="col-sm-10">
++              <select name="payment_digipay_geo_zone_id" id="input-geo-zone" class="form-select">
++                <option value="0">{{ text_all_zones }}</option>
++                {% for geo_zone in geo_zones %}
++                  <option value="{{ geo_zone.geo_zone_id }}"{% if geo_zone.geo_zone_id == payment_digipay_geo_zone_id %} selected{% endif %}>{{ geo_zone.name }}</option>
++                {% endfor %}
++              </select>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label class="col-sm-2 col-form-label">{{ entry_status }}</label>
++            <div class="col-sm-10">
++              <div class="form-check form-switch form-switch-lg">
++                <input type="hidden" name="payment_digipay_status" value="0"/>
++                <input type="checkbox" name="payment_digipay_status" value="1" id="input-status" class="form-check-input"{% if payment_digipay_status %} checked{% endif %}/>
++              </div>
++            </div>
++          </div>
++          <div class="row mb-3">
++            <label for="input-sort-order" class="col-sm-2 col-form-label">{{ entry_sort_order }}</label>
++            <div class="col-sm-10">
++              <input type="text" name="payment_digipay_sort_order" value="{{ payment_digipay_sort_order }}" placeholder="{{ entry_sort_order }}" id="input-sort-order" class="form-control"/>
++            </div>
++          </div>
++        </form>
++      </div>
++    </div>
++  </div>
++</div>
++{{ footer }}
+diff --git a/extension/iranian_gateways/catalog/controller/event/digipay_deliver.php b/extension/iranian_gateways/catalog/controller/event/digipay_deliver.php
+new file mode 100644
+index 0000000..347dd41
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/controller/event/digipay_deliver.php
+@@ -0,0 +1,136 @@
++<?php
++namespace MDcart\Catalog\Controller\Extension\IranianGateways\Event;
++/**
++ * Class DigipayDeliver
++ *
++ * DigiPay requires the merchant to separately confirm delivery for
++ * purchases paid with its credit or buy-now-pay-later (BNPL) options
++ * before that purchase is finalized/settled (see "تحویل خرید" in DigiPay's
++ * documentation) - IPG and Wallet purchases need no such step. This event
++ * fires it automatically the moment an order paid that way is moved to the
++ * admin-configured "delivered" order status.
++ *
++ * Registered on the same event this store already uses for order
++ * notifications (telegram_order, bale_order, etc.), which fires for BOTH
++ * storefront and admin-panel order-status changes - the admin "add
++ * history" action internally routes through this same catalog checkout
++ * order model (see panel/controller/sale/order.php's call() method, which
++ * spins up a catalog-context store instance to call api/order), so no
++ * separate admin-side event is needed.
++ *
++ * model/checkout/order.addHistory/before
++ *
++ * IMPORTANT: this handler must never call
++ * $this->model_checkout_order->addHistory() itself (directly or
++ * indirectly) - that is the exact call this event fires around, so doing
++ * so would recurse. Any record of what happened here is written with a
++ * plain $this->db->query() instead.
++ *
++ * @package MDcart\Catalog\Controller\Extension\IranianGateways\Event
++ */
++class DigipayDeliver extends \MDcart\System\Engine\Controller {
++	// Ticket/payment-result "type" codes (see DigiPay's documentation) -
++	// deliver() is only required for these two.
++	private const TYPE_CREDIT = 5;
++	private const TYPE_BNPL = 13;
++
++	/**
++	 * @param string            $route
++	 * @param array<int, mixed> $args
++	 *
++	 * @return void
++	 */
++	public function index(string &$route, array &$args): void {
++		$deliver_status_id = (int)$this->config->get('payment_digipay_deliver_order_status_id');
++
++		if (!$deliver_status_id) {
++			return;
++		}
++
++		$new_status_id = (int)($args[1] ?? 0);
++
++		if ($new_status_id !== $deliver_status_id) {
++			return;
++		}
++
++		$order_id = (int)($args[0] ?? 0);
++
++		if (!$order_id) {
++			return;
++		}
++
++		$query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "digipay_purchase` WHERE `order_id` = '" . $order_id . "'");
++
++		if (!$query->num_rows || $query->row['delivered']) {
++			// No DigiPay purchase on record for this order, or already
++			// reported delivered (idempotent - e.g. the order is moved
++			// through this status again later).
++			return;
++		}
++
++		$type = (int)$query->row['type'];
++
++		if ($type !== self::TYPE_CREDIT && $type !== self::TYPE_BNPL) {
++			return;
++		}
++
++		if (!$this->config->get('payment_digipay_client_id') || !$this->config->get('payment_digipay_client_secret') || !$this->config->get('payment_digipay_username') || !$this->config->get('payment_digipay_password')) {
++			return;
++		}
++
++		$this->load->model('checkout/order');
++
++		$order_info = $this->model_checkout_order->getOrder($order_id);
++
++		if (!$order_info) {
++			return;
++		}
++
++		$order_products = $this->model_checkout_order->getProducts($order_id);
++
++		$products = [];
++
++		foreach ($order_products as $order_product) {
++			$products[] = (string)$order_product['name'];
++		}
++
++		$this->load->library('extension/iranian_gateways/digipay');
++
++		$digipay = new \MDcart\System\Library\Extension\IranianGateways\Digipay(
++			(string)$this->config->get('payment_digipay_client_id'),
++			(string)$this->config->get('payment_digipay_client_secret'),
++			(string)$this->config->get('payment_digipay_username'),
++			(string)$this->config->get('payment_digipay_password'),
++			(bool)$this->config->get('payment_digipay_sandbox')
++		);
++
++		$token = $digipay->login();
++
++		if ($token === null) {
++			$this->recordAttempt($order_id, false, 'login: ' . $digipay->error);
++
++			return;
++		}
++
++		$success = $digipay->deliver($token, (string)$query->row['tracking_code'], $type, (string)$order_id, $products, (int)round(microtime(true) * 1000));
++
++		$this->recordAttempt($order_id, $success, $success ? null : $digipay->error);
++	}
++
++	/**
++	 * @param int         $order_id
++	 * @param bool        $success
++	 * @param string|null $error
++	 *
++	 * @return void
++	 */
++	private function recordAttempt(int $order_id, bool $success, ?string $error): void {
++		$this->db->query(
++			"UPDATE `" . DB_PREFIX . "digipay_purchase` SET"
++			. " `delivered` = '" . ($success ? '1' : '0') . "',"
++			. " `deliver_attempts` = `deliver_attempts` + 1,"
++			. " `deliver_error` = '" . $this->db->escape((string)$error) . "'"
++			. " WHERE `order_id` = '" . $order_id . "'"
++		);
++	}
++}
+diff --git a/extension/iranian_gateways/catalog/controller/payment/digipay.php b/extension/iranian_gateways/catalog/controller/payment/digipay.php
+new file mode 100644
+index 0000000..512812d
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/controller/payment/digipay.php
+@@ -0,0 +1,327 @@
++<?php
++namespace MDcart\Catalog\Controller\Extension\IranianGateways\Payment;
++/**
++ * Class Digipay
++ *
++ * DigiPay UPG (Unified Payment Gateway) checkout flow. A single ticket
++ * (type=11) is requested with no preferredGateway restriction, so DigiPay's
++ * own hosted page shows the customer whichever payment instruments (bank
++ * card / IPG, DigiPay wallet, buy-now-pay-later / installment credit) the
++ * merchant account has enabled - this store does not need to build its own
++ * instrument picker. See extension/iranian_gateways/system/library/digipay.php
++ * for the underlying API client and its scope notes (no refund/reverse).
++ *
++ * @package MDcart\Catalog\Controller\Extension\IranianGateways\Payment
++ */
++class Digipay extends \MDcart\System\Engine\Controller {
++	/**
++	 * Index
++	 *
++	 * @return string
++	 */
++	public function index(): string {
++		$this->load->language('extension/iranian_gateways/payment/digipay');
++
++		$data['language'] = $this->config->get('config_language');
++
++		return $this->load->view('extension/iranian_gateways/payment/digipay', $data);
++	}
++
++	/**
++	 * Confirm
++	 *
++	 * Called by the customer to start the DigiPay payment - logs in, opens a
++	 * purchase ticket, and returns the URL to redirect the browser to.
++	 *
++	 * @return void
++	 */
++	public function confirm(): void {
++		$this->load->language('extension/iranian_gateways/payment/digipay');
++
++		$json = [];
++
++		$order_info = $this->validateOrder($json);
++
++		if (!$json && $order_info) {
++			$amount = $this->getRialAmount($order_info, $json);
++
++			if (!$json) {
++				$digipay = $this->getClient();
++
++				$token = $digipay->login();
++
++				if ($token === null) {
++					$json['error'] = $this->language->get('error_gateway');
++
++					if ($this->config->get('payment_digipay_sandbox')) {
++						$json['error'] .= ' [digipay_debug: login:' . substr((string)$digipay->error, 0, 200) . ']';
++					}
++				} else {
++					// A fresh id per attempt (rather than reusing the order
++					// id) so a customer who retries after a failed/abandoned
++					// attempt gets a new providerId instead of possibly
++					// colliding with an old one DigiPay still has on file.
++					$provider_id = $order_info['order_id'] . '-' . substr(uniqid(), -8);
++
++					$callback_url = str_replace('&amp;', '&', $this->url->link('extension/iranian_gateways/payment/digipay.callback', '', true));
++
++					$result = $digipay->createTicket($token, $this->normalizeCellNumber($order_info['telephone']), $amount, $provider_id, $callback_url);
++
++					if (!empty($result['error']) || empty($result['redirect_url'])) {
++						$json['error'] = $this->language->get('error_gateway');
++
++						if ($this->config->get('payment_digipay_sandbox')) {
++							$json['error'] .= ' [digipay_debug: ticket:' . substr((string)($result['error'] ?? ''), 0, 200) . ']';
++						}
++					} else {
++						$this->session->data['digipay_provider_id'] = $provider_id;
++
++						$json['redirect'] = $result['redirect_url'];
++					}
++				}
++			}
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++
++	/**
++	 * Callback
++	 *
++	 * DigiPay POSTs the payment result directly to this URL (see "نتیجه
++	 * پرداخت" in DigiPay's documentation) once the customer finishes on
++	 * DigiPay's page. A successful result must still be verified server-side
++	 * before the order is marked as paid.
++	 *
++	 * @return void
++	 */
++	public function callback(): void {
++		$this->load->language('extension/iranian_gateways/payment/digipay');
++
++		$sandbox = (bool)$this->config->get('payment_digipay_sandbox');
++
++		$failure_url = $this->url->link('checkout/failure', 'language=' . $this->config->get('config_language'), true);
++
++		$provider_id = $this->requestParam('providerId');
++		$tracking_code = $this->requestParam('trackingCode');
++		$result_status = $this->requestParam('result');
++		$type = (int)($this->requestParam('type') ?? -1);
++
++		if (!$provider_id || !$tracking_code || $type < 0) {
++			$this->redirectFailure($failure_url, $sandbox, 'missing_params');
++
++			return;
++		}
++
++		$json = [];
++
++		$order_info = $this->validateOrder($json);
++
++		if ($json || !$order_info) {
++			$this->redirectFailure($failure_url, $sandbox, 'order_invalid:' . ($json['error'] ?? ''));
++
++			return;
++		}
++
++		if (empty($this->session->data['digipay_provider_id']) || (string)$this->session->data['digipay_provider_id'] !== (string)$provider_id) {
++			$this->redirectFailure($failure_url, $sandbox, 'provider_id_mismatch:session=' . ($this->session->data['digipay_provider_id'] ?? 'unset') . ';got=' . $provider_id);
++
++			return;
++		}
++
++		if ($result_status !== 'SUCCESS') {
++			$this->redirectFailure($failure_url, $sandbox, 'result_not_success:' . $result_status);
++
++			return;
++		}
++
++		$digipay = $this->getClient();
++
++		$token = $digipay->login();
++
++		if ($token === null) {
++			$this->redirectFailure($failure_url, $sandbox, 'verify_login_failed:' . $digipay->error);
++
++			return;
++		}
++
++		$verify = $digipay->verify($token, $tracking_code, $provider_id, $type);
++
++		if (empty($verify['success'])) {
++			$this->redirectFailure($failure_url, $sandbox, 'verify_failed:' . $digipay->error);
++
++			return;
++		}
++
++		$amount = $this->getRialAmount($order_info, $json);
++
++		if ($json || (int)$verify['amount'] !== $amount) {
++			$this->redirectFailure($failure_url, $sandbox, 'amount_mismatch:expected=' . $amount . ';got=' . ($verify['amount'] ?? 'null'));
++
++			return;
++		}
++
++		unset($this->session->data['digipay_provider_id']);
++
++		// Store the tracking info now, while we have it, so the deliver
++		// step (extension/iranian_gateways's order-status event, for
++		// CREDIT/BNPL purchases only) can find it later without needing
++		// anything from this now-gone checkout session.
++		$this->db->query(
++			"INSERT INTO `" . DB_PREFIX . "digipay_purchase` SET"
++			. " `order_id` = '" . (int)$order_info['order_id'] . "',"
++			. " `provider_id` = '" . $this->db->escape($provider_id) . "',"
++			. " `tracking_code` = '" . $this->db->escape($tracking_code) . "',"
++			. " `type` = '" . (int)$type . "',"
++			. " `delivered` = '0',"
++			. " `date_added` = NOW()"
++			. " ON DUPLICATE KEY UPDATE `provider_id` = '" . $this->db->escape($provider_id) . "', `tracking_code` = '" . $this->db->escape($tracking_code) . "', `type` = '" . (int)$type . "', `delivered` = '0', `deliver_attempts` = '0', `deliver_error` = NULL, `date_added` = NOW()"
++		);
++
++		$comment = sprintf($this->language->get('text_track_id'), $tracking_code);
++
++		$this->load->model('checkout/order');
++
++		$this->model_checkout_order->addHistory($this->session->data['order_id'], (int)$this->config->get('payment_digipay_order_status_id'), $comment, true);
++
++		$this->response->redirect($this->url->link('checkout/success', 'language=' . $this->config->get('config_language'), true));
++	}
++
++	/**
++	 * Redirect to the failure page. In sandbox mode only, a short debug
++	 * reason is appended as a query string, matching the pattern already
++	 * used by BitPay's diagnostics in this store.
++	 *
++	 * @param string $failure_url
++	 * @param bool   $sandbox
++	 * @param string $reason
++	 *
++	 * @return void
++	 */
++	private function redirectFailure(string $failure_url, bool $sandbox, string $reason): void {
++		if ($sandbox) {
++			$failure_url .= (str_contains($failure_url, '?') ? '&' : '?') . 'digipay_debug=' . rawurlencode($reason);
++		}
++
++		$this->response->redirect($failure_url);
++	}
++
++	/**
++	 * @return \MDcart\System\Library\Extension\IranianGateways\Digipay
++	 */
++	private function getClient(): \MDcart\System\Library\Extension\IranianGateways\Digipay {
++		$this->load->library('extension/iranian_gateways/digipay');
++
++		return new \MDcart\System\Library\Extension\IranianGateways\Digipay(
++			(string)$this->config->get('payment_digipay_client_id'),
++			(string)$this->config->get('payment_digipay_client_secret'),
++			(string)$this->config->get('payment_digipay_username'),
++			(string)$this->config->get('payment_digipay_password'),
++			(bool)$this->config->get('payment_digipay_sandbox')
++		);
++	}
++
++	/**
++	 * DigiPay expects an Iranian mobile number starting with 0
++	 * (e.g. 09123456789). Best-effort normalization from whatever format
++	 * the customer entered at registration (may already start with 0, with
++	 * +98, or with 98) - not a full validator, matching the light-touch
++	 * level of phone handling already used elsewhere in this store.
++	 *
++	 * @param string $telephone
++	 *
++	 * @return string
++	 */
++	private function normalizeCellNumber(string $telephone): string {
++		$digits = preg_replace('/\D/', '', $telephone) ?? '';
++
++		if (str_starts_with($digits, '0098')) {
++			$digits = substr($digits, 4);
++		} elseif (str_starts_with($digits, '98') && strlen($digits) > 10) {
++			$digits = substr($digits, 2);
++		}
++
++		if ($digits !== '' && !str_starts_with($digits, '0')) {
++			$digits = '0' . $digits;
++		}
++
++		return $digits;
++	}
++
++	/**
++	 * Read a field from POST first, then GET - DigiPay's own examples POST
++	 * the result, but this is defensive in case of a GET redirect instead.
++	 *
++	 * @param string $key
++	 *
++	 * @return string|null
++	 */
++	private function requestParam(string $key): ?string {
++		if (isset($this->request->post[$key]) && $this->request->post[$key] !== '') {
++			return (string)$this->request->post[$key];
++		}
++
++		if (isset($this->request->get[$key]) && $this->request->get[$key] !== '') {
++			return (string)$this->request->get[$key];
++		}
++
++		return null;
++	}
++
++	/**
++	 * @param array<string, mixed> $json
++	 *
++	 * @return array<string, mixed>
++	 */
++	private function validateOrder(array &$json): array {
++		if (!isset($this->session->data['order_id'])) {
++			$json['error'] = $this->language->get('error_order');
++
++			return [];
++		}
++
++		$this->load->model('checkout/order');
++
++		$order_info = $this->model_checkout_order->getOrder($this->session->data['order_id']);
++
++		if (!$order_info) {
++			unset($this->session->data['order_id']);
++
++			$json['error'] = $this->language->get('error_order');
++
++			return [];
++		}
++
++		if (!isset($this->session->data['payment_method']) || $this->session->data['payment_method']['code'] != 'digipay.digipay') {
++			$json['error'] = $this->language->get('error_payment_method');
++
++			return [];
++		}
++
++		return $order_info;
++	}
++
++	/**
++	 * Orders in this store are always placed in IRR - see
++	 * catalog/controller/checkout/confirm.php. DigiPay's documented examples
++	 * use amounts on the same scale as this store's Rial totals, so no unit
++	 * conversion is applied here (matching BitPay's own handling in this
++	 * codebase) - if DigiPay's account for this merchant actually expects
++	 * Toman, this is the one place to change.
++	 *
++	 * @param array<string, mixed> $order_info
++	 * @param array<string, mixed> $json
++	 *
++	 * @return int
++	 */
++	private function getRialAmount(array $order_info, array &$json): int {
++		if ($order_info['currency_code'] !== 'IRR') {
++			$json['error'] = $this->language->get('error_currency');
++
++			return 0;
++		}
++
++		return (int)round($order_info['total'] * $order_info['currency_value']);
++	}
++}
+diff --git a/extension/iranian_gateways/catalog/language/fa/payment/digipay.php b/extension/iranian_gateways/catalog/language/fa/payment/digipay.php
+new file mode 100644
+index 0000000..3e489ee
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/language/fa/payment/digipay.php
+@@ -0,0 +1,13 @@
++<?php
++// Heading
++$_['heading_title']          = 'دیجی‌پی';
++
++// Text
++$_['text_description']       = 'برای تکمیل پرداخت به‌صورت امن به دیجی‌پی منتقل می‌شوید - کارت بانکی، کیف پول دیجی‌پی یا اعتبار خرید/اقساط، هر کدام که دیجی‌پی برایتان فعال کرده باشد.';
++$_['text_track_id']          = 'پرداخت از طریق دیجی‌پی. کد پیگیری: %s';
++
++// Error
++$_['error_order']            = 'سفارش شما یافت نشد!';
++$_['error_payment_method']   = 'روش پرداخت انتخاب نشده است!';
++$_['error_currency']         = 'این سفارش به ریال ثبت نشده و امکان اتصال به دیجی‌پی وجود ندارد!';
++$_['error_gateway']          = 'درخواست پرداخت توسط دیجی‌پی رد شد. لطفاً دوباره تلاش کنید.';
+diff --git a/extension/iranian_gateways/catalog/language/us/payment/digipay.php b/extension/iranian_gateways/catalog/language/us/payment/digipay.php
+new file mode 100644
+index 0000000..47e221e
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/language/us/payment/digipay.php
+@@ -0,0 +1,13 @@
++<?php
++// Heading
++$_['heading_title']          = 'DigiPay';
++
++// Text
++$_['text_description']       = 'You will be redirected to DigiPay to complete your payment securely - bank card, DigiPay wallet or credit/installment, whichever DigiPay offers you.';
++$_['text_track_id']          = 'Paid via DigiPay. Tracking code: %s';
++
++// Error
++$_['error_order']            = 'Your order could not be found!';
++$_['error_payment_method']   = 'Payment method not selected!';
++$_['error_currency']         = 'This order is not in Iranian Rial and cannot be sent to DigiPay!';
++$_['error_gateway']          = 'DigiPay rejected the payment request. Please try again.';
+diff --git a/extension/iranian_gateways/catalog/model/payment/digipay.php b/extension/iranian_gateways/catalog/model/payment/digipay.php
+new file mode 100644
+index 0000000..411d529
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/model/payment/digipay.php
+@@ -0,0 +1,57 @@
++<?php
++namespace MDcart\Catalog\Model\Extension\IranianGateways\Payment;
++/**
++ * Class Digipay
++ *
++ * Can be called from $this->load->model('extension/iranian_gateways/payment/digipay');
++ *
++ * @package MDcart\Catalog\Model\Extension\IranianGateways\Payment
++ */
++class Digipay extends \MDcart\System\Engine\Model {
++	/**
++	 * Get Methods
++	 *
++	 * @param array<string, mixed> $address array of data
++	 *
++	 * @return array<string, mixed>
++	 */
++	public function getMethods(array $address = []): array {
++		$this->load->language('extension/iranian_gateways/payment/digipay');
++
++		if (!$this->config->get('payment_digipay_client_id') || !$this->config->get('payment_digipay_client_secret') || !$this->config->get('payment_digipay_username') || !$this->config->get('payment_digipay_password')) {
++			return [];
++		}
++
++		if ($this->cart->hasSubscription()) {
++			$status = false;
++		} elseif (!$this->config->get('config_checkout_payment_address')) {
++			$status = true;
++		} elseif (!$this->config->get('payment_digipay_geo_zone_id')) {
++			$status = true;
++		} else {
++			$this->load->model('localisation/geo_zone');
++
++			$results = $this->model_localisation_geo_zone->getGeoZone((int)$this->config->get('payment_digipay_geo_zone_id'), (int)$address['country_id'], (int)$address['zone_id']);
++
++			$status = (bool)$results;
++		}
++
++		$method_data = [];
++
++		if ($status) {
++			$option_data['digipay'] = [
++				'code' => 'digipay.digipay',
++				'name' => $this->language->get('heading_title')
++			];
++
++			$method_data = [
++				'code'       => 'digipay',
++				'name'       => $this->language->get('heading_title'),
++				'option'     => $option_data,
++				'sort_order' => $this->config->get('payment_digipay_sort_order')
++			];
++		}
++
++		return $method_data;
++	}
++}
+diff --git a/extension/iranian_gateways/catalog/view/template/payment/digipay.twig b/extension/iranian_gateways/catalog/view/template/payment/digipay.twig
+new file mode 100644
+index 0000000..54a724f
+--- /dev/null
++++ b/extension/iranian_gateways/catalog/view/template/payment/digipay.twig
+@@ -0,0 +1,36 @@
++<fieldset>
++  <legend>{{ heading_title }}</legend>
++  <p>{{ text_description }}</p>
++  <div class="text-end">
++    <button type="button" id="button-confirm" class="btn btn-primary">{{ button_confirm }}</button>
++  </div>
++</fieldset>
++<script type="text/javascript"><!--
++$('#button-confirm').on('click', function() {
++    var element = this;
++
++    $.ajax({
++        url: 'index.php?route=extension/iranian_gateways/payment/digipay.confirm&language={{ language }}',
++        type: 'post',
++        dataType: 'json',
++        beforeSend: function() {
++            $(element).button('loading');
++        },
++        complete: function() {
++            $(element).button('reset');
++        },
++        success: function(json) {
++            if (json['error']) {
++                $('#alert').prepend('<div class="alert alert-danger alert-dismissible"><i class="fa-solid fa-circle-exclamation"></i> ' + json['error'] + ' <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>');
++            }
++
++            if (json['redirect']) {
++                location = json['redirect'];
++            }
++        },
++        error: function(xhr, ajaxOptions, thrownError) {
++            console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
++        }
++    });
++});
++//--></script>
+diff --git a/extension/iranian_gateways/system/library/digipay.php b/extension/iranian_gateways/system/library/digipay.php
+new file mode 100644
+index 0000000..c13f945
+--- /dev/null
++++ b/extension/iranian_gateways/system/library/digipay.php
+@@ -0,0 +1,283 @@
++<?php
++namespace MDcart\System\Library\Extension\IranianGateways;
++/**
++ * Class Digipay
++ *
++ * Minimal client for DigiPay's UPG (Unified Payment Gateway) REST API, per
++ * DigiPay's own integration documentation. Covers the pieces this store
++ * actually needs: login (OAuth2 "password" grant), creating a purchase
++ * ticket (type=11, no preferredGateway restriction, so the customer sees
++ * whichever payment instruments - IPG, Wallet, BNPL/Credit - the merchant
++ * account has enabled on DigiPay's own hosted page), verifying a completed
++ * payment, and delivering a credit/BNPL purchase (the step DigiPay requires
++ * once the goods have actually been handed over, for those two payment
++ * types only). Refund/reverse/refund-inquiry are intentionally NOT
++ * implemented here - no other gateway in this store has admin-triggered
++ * refund actions either, so this follows the same scope.
++ *
++ * No token caching: a fresh login() is done for every ticket/verify/deliver
++ * call. Simpler and safer than caching, and matches every other gateway in
++ * this codebase (none of which persist any gateway-side session state) -
++ * for this store's order volume, one extra login call per purchase/action
++ * is not a real cost.
++ *
++ * @package MDcart\System\Library\Extension\IranianGateways
++ */
++class Digipay {
++	private const BASE_URL = 'https://api.mydigipay.com/digipay/api';
++	private const BASE_URL_SANDBOX = 'https://uat.mydigipay.info/digipay/api';
++
++	// Literal value used in every one of DigiPay's own documented curl
++	// examples for the Digipay-Version header - the documentation's prose
++	// elsewhere describes a different (day-month-year) format for this same
++	// field, but the actual worked examples consistently use this value, so
++	// that's what's trusted here.
++	private const API_VERSION = '2022-02-02';
++
++	private string $client_id;
++	private string $client_secret;
++	private string $username;
++	private string $password;
++	private bool $sandbox;
++
++	/**
++	 * The most recent error message, in English (not shown to customers -
++	 * used for admin-facing history comments and sandbox diagnostics only).
++	 *
++	 * @var string|null
++	 */
++	public ?string $error = null;
++
++	public function __construct(string $client_id, string $client_secret, string $username, string $password, bool $sandbox = false) {
++		$this->client_id = $client_id;
++		$this->client_secret = $client_secret;
++		$this->username = $username;
++		$this->password = $password;
++		$this->sandbox = $sandbox;
++	}
++
++	/**
++	 * Log in and return a bearer access token, or null on failure (see
++	 * $this->error).
++	 *
++	 * @return string|null
++	 */
++	public function login(): ?string {
++		$this->error = null;
++
++		$curl = curl_init($this->baseUrl() . '/oauth/token');
++
++		curl_setopt($curl, CURLOPT_POST, true);
++		// Sent as multipart/form-data (per DigiPay's documented curl
++		// --form examples) - PHP's curl extension does this automatically
++		// when CURLOPT_POSTFIELDS is given as an array rather than a string.
++		curl_setopt($curl, CURLOPT_POSTFIELDS, [
++			'username'   => $this->username,
++			'password'   => $this->password,
++			'grant_type' => 'password'
++		]);
++		curl_setopt($curl, CURLOPT_HTTPHEADER, [
++			'Authorization: Basic ' . base64_encode($this->client_id . ':' . $this->client_secret)
++		]);
++		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
++		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
++		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
++		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
++
++		$response = curl_exec($curl);
++		$curl_error = curl_error($curl);
++
++		curl_close($curl);
++
++		if ($response === false) {
++			$this->error = 'curl_error: ' . $curl_error;
++
++			return null;
++		}
++
++		$result = json_decode((string)$response, true);
++
++		if (!is_array($result) || empty($result['access_token'])) {
++			$this->error = 'login_failed: ' . substr((string)$response, 0, 300);
++
++			return null;
++		}
++
++		return (string)$result['access_token'];
++	}
++
++	/**
++	 * Create a purchase ticket. On success, returns ['redirect_url' =>
++	 * string, 'ticket' => string]; on failure, returns ['error' => string]
++	 * (a message safe to show the customer is not derivable from DigiPay's
++	 * response, so the caller should show its own generic error text and
++	 * use $this->error / the returned raw message for diagnostics only).
++	 *
++	 * @param string $token
++	 * @param string $cell_number
++	 * @param int    $amount       Rial
++	 * @param string $provider_id  A unique id generated by the caller for this purchase attempt
++	 * @param string $callback_url
++	 *
++	 * @return array<string, string>
++	 */
++	public function createTicket(string $token, string $cell_number, int $amount, string $provider_id, string $callback_url): array {
++		[$result, $error] = $this->request('POST', '/tickets/business?type=11', $token, [
++			'cellNumber'  => $cell_number,
++			'amount'      => $amount,
++			'providerId'  => $provider_id,
++			'callbackUrl' => $callback_url
++		]);
++
++		if ($error || !is_array($result)) {
++			$this->error = 'ticket_request_failed: ' . $this->error;
++
++			return ['error' => $this->error];
++		}
++
++		$status = $result['result']['status'] ?? null;
++
++		if ($status !== 0 || empty($result['redirectUrl'])) {
++			$this->error = 'ticket_rejected: status=' . var_export($status, true) . ';message=' . ($result['result']['message'] ?? '');
++
++			return ['error' => $this->error];
++		}
++
++		return [
++			'redirect_url' => (string)$result['redirectUrl'],
++			'ticket'       => (string)($result['ticket'] ?? '')
++		];
++	}
++
++	/**
++	 * Verify a completed purchase. On success, returns ['success' => true,
++	 * 'amount' => int]. On failure, ['success' => false] (see $this->error).
++	 *
++	 * @param string $token
++	 * @param string $tracking_code
++	 * @param string $provider_id
++	 * @param int    $type
++	 *
++	 * @return array{success: bool, amount?: int}
++	 */
++	public function verify(string $token, string $tracking_code, string $provider_id, int $type): array {
++		[$result, $error] = $this->request('POST', '/purchases/verify?type=' . $type, $token, [
++			'trackingCode' => $tracking_code,
++			'providerId'   => $provider_id
++		]);
++
++		if ($error || !is_array($result)) {
++			$this->error = 'verify_request_failed: ' . $this->error;
++
++			return ['success' => false];
++		}
++
++		$status = $result['result']['status'] ?? null;
++
++		if ($status !== 0) {
++			$this->error = 'verify_rejected: status=' . var_export($status, true) . ';message=' . ($result['result']['message'] ?? '');
++
++			return ['success' => false];
++		}
++
++		return [
++			'success' => true,
++			'amount'  => (int)($result['amount'] ?? 0)
++		];
++	}
++
++	/**
++	 * Report a credit/BNPL purchase as delivered (required by DigiPay only
++	 * for those two payment types - see the class docblock).
++	 *
++	 * @param string        $token
++	 * @param string        $tracking_code
++	 * @param int            $type
++	 * @param string        $invoice_number
++	 * @param array<string> $products
++	 * @param int            $delivery_date_ms Epoch milliseconds
++	 *
++	 * @return bool
++	 */
++	public function deliver(string $token, string $tracking_code, int $type, string $invoice_number, array $products, int $delivery_date_ms): bool {
++		[$result, $error] = $this->request('POST', '/purchases/deliver?type=' . $type, $token, [
++			'deliveryDate'   => $delivery_date_ms,
++			'invoiceNumber'  => $invoice_number,
++			'trackingCode'   => $tracking_code,
++			'products'       => $products ?: [$invoice_number]
++		]);
++
++		if ($error || !is_array($result)) {
++			$this->error = 'deliver_request_failed: ' . $this->error;
++
++			return false;
++		}
++
++		$status = $result['result']['status'] ?? null;
++
++		if ($status !== 0) {
++			$this->error = 'deliver_rejected: status=' . var_export($status, true) . ';message=' . ($result['result']['message'] ?? '');
++
++			return false;
++		}
++
++		return true;
++	}
++
++	/**
++	 * @return string
++	 */
++	private function baseUrl(): string {
++		return $this->sandbox ? self::BASE_URL_SANDBOX : self::BASE_URL;
++	}
++
++	/**
++	 * POST a JSON body to a DigiPay endpoint with the standard headers.
++	 *
++	 * @param string               $method Always POST for the endpoints used here, kept for clarity
++	 * @param string               $path   Starting with "/", may include a query string
++	 * @param string               $token  Bearer token
++	 * @param array<string, mixed> $body
++	 *
++	 * @return array{0: mixed, 1: bool}
++	 */
++	private function request(string $method, string $path, string $token, array $body): array {
++		$this->error = null;
++
++		$curl = curl_init($this->baseUrl() . $path);
++
++		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
++		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($body));
++		curl_setopt($curl, CURLOPT_HTTPHEADER, [
++			'Authorization: Bearer ' . $token,
++			'Content-Type: application/json',
++			'Agent: WEB',
++			'Digipay-Version: ' . self::API_VERSION
++		]);
++		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
++		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
++		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
++		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
++
++		$response = curl_exec($curl);
++		$curl_error = curl_error($curl);
++
++		curl_close($curl);
++
++		if ($response === false) {
++			$this->error = 'curl_error: ' . $curl_error;
++
++			return [null, true];
++		}
++
++		$result = json_decode((string)$response, true);
++
++		if (!is_array($result)) {
++			$this->error = 'invalid_json: ' . substr((string)$response, 0, 300);
++
++			return [null, true];
++		}
++
++		return [$result, false];
++	}
++}
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index bd5517c..804da22 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -828,6 +828,59 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 					);
+ 				}
+ 			},
++
++			// Adds DigiPay as an eighth gateway in the existing
++			// `iranian_gateways` package - same "grant permission + seed
++			// extension row" pattern as aqayepardakht_bitpay_extensions
++			// above. DigiPay also needs its own small table (tracking info
++			// needed later to report credit/BNPL purchases as delivered -
++			// see extension/iranian_gateways/catalog/controller/event/digipay_deliver.php)
++			// and an `oc_event` row so that event actually runs; both use
++			// the same "CREATE TABLE IF NOT EXISTS" / SELECT-then-INSERT
++			// safe-to-rerun style already used elsewhere in this file.
++			'digipay_extension' => function (): void {
++				$this->grantAdministratorPermissions([
++					'extension/iranian_gateways/payment/digipay',
++				]);
++
++				$query = $this->db->query(
++					"SELECT `extension_id` FROM `" . DB_PREFIX . "extension`"
++					. " WHERE `extension` = 'iranian_gateways' AND `type` = 'payment' AND `code` = 'digipay'"
++				);
++
++				if (!$query->num_rows) {
++					$this->db->query(
++						"INSERT INTO `" . DB_PREFIX . "extension` SET `extension` = 'iranian_gateways', `type` = 'payment', `code` = 'digipay'"
++					);
++				}
++
++				$this->db->query(
++					"UPDATE `" . DB_PREFIX . "extension_install` SET `description` = '" . $this->db->escape('ZarinPal, PayPing, IDPay, SizPay, card-to-card, Aghaye Pardakht, BitPay and DigiPay payment methods for Iranian stores.') . "' WHERE `code` = 'iranian_gateways'"
++				);
++
++				$this->db->query(
++					"CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "digipay_purchase` ("
++					. "`order_id` int(11) NOT NULL,"
++					. "`provider_id` varchar(64) NOT NULL DEFAULT '',"
++					. "`tracking_code` varchar(64) NOT NULL DEFAULT '',"
++					. "`type` int(11) NOT NULL DEFAULT 0,"
++					. "`delivered` tinyint(1) NOT NULL DEFAULT 0,"
++					. "`deliver_attempts` int(11) NOT NULL DEFAULT 0,"
++					. "`deliver_error` text,"
++					. "`date_added` datetime NOT NULL,"
++					. "PRIMARY KEY (`order_id`)"
++					. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
++				);
++
++				$query = $this->db->query("SELECT `event_id` FROM `" . DB_PREFIX . "event` WHERE `code` = 'digipay_deliver'");
++
++				if (!$query->num_rows) {
++					$this->db->query(
++						"INSERT INTO `" . DB_PREFIX . "event` SET `code` = 'digipay_deliver', `description` = '" . $this->db->escape('Reports a DigiPay credit/BNPL purchase as delivered once its order reaches the configured status.') . "',"
++						. " `trigger` = 'model/checkout/order.addHistory/before', `action` = 'extension/iranian_gateways/event/digipay_deliver', `status` = '1', `sort_order` = '1'"
++					);
++				}
++			},
+ 		];
+ 	}
+ 
