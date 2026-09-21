@@ -105,6 +105,7 @@
                 <table id="table-trust-badge" class="table table-bordered">
                   <thead>
                     <tr>
+                      <td style="width: 1px;"></td>
                       <td>{{ entry_trust_badge_name }}</td>
                       <td>{{ entry_trust_badge_html }}</td>
                       <td style="width: 1px;"></td>
@@ -113,6 +114,9 @@
                   <tbody>
                     {% for uid, badge in config_trust_badges %}
                       <tr>
+                        <td class="text-center" style="width: 1px; cursor: move;">
+                          <span class="drag-handle" draggable="true" data-bs-toggle="tooltip" title="{{ entry_trust_badge_sort }}"><i class="fa-solid fa-grip-vertical text-muted"></i></span>
+                        </td>
                         <td style="width: 220px;">
                           <input type="text" name="config_trust_badges[{{ uid }}][name]" value="{{ badge.name }}" placeholder="{{ entry_trust_badge_name }}" class="form-control"/>
                         </td>
@@ -1615,6 +1619,9 @@
 </div>
 <template id="template-trust-badge-row">
   <tr>
+    <td class="text-center" style="width: 1px; cursor: move;">
+      <span class="drag-handle" draggable="true" data-bs-toggle="tooltip" title="{{ entry_trust_badge_sort }}"><i class="fa-solid fa-grip-vertical text-muted"></i></span>
+    </td>
     <td style="width: 220px;">
       <input type="text" name="" class="form-control" data-oc-field="name"/>
     </td>
@@ -1708,6 +1715,36 @@ $(document).on('click', '#button-trust-badge-add', function() {
 
 $(document).on('click', '[data-oc-toggle=\'remove-trust-badge\']', function() {
     $(this).closest('tr').remove();
+});
+
+// Drag-to-reorder trust badge rows (plain HTML5 drag-and-drop - no
+// library needed). Only the grip handle itself is draggable="true" (not
+// the whole row), so dragging text inside the name/HTML fields still
+// works as normal text selection. Saving the form submits the inputs in
+// their current DOM order, and that same order is what the storefront
+// footer loops over - so no extra "sort order" field is needed, moving
+// the rows here is the entire feature.
+var trustBadgeDragged = null;
+
+$(document).on('dragstart', '#table-trust-badge .drag-handle', function() {
+    trustBadgeDragged = $(this).closest('tr').get(0);
+});
+
+$(document).on('dragover', '#table-trust-badge tbody tr', function(e) {
+    if (!trustBadgeDragged || trustBadgeDragged === this) {
+        return;
+    }
+
+    e.preventDefault();
+
+    var rect = this.getBoundingClientRect();
+    var before = (e.originalEvent.clientY - rect.top) < (rect.height / 2);
+
+    $(this)[before ? 'before' : 'after'](trustBadgeDragged);
+});
+
+$(document).on('dragend', '#table-trust-badge .drag-handle', function() {
+    trustBadgeDragged = null;
 });
 //--></script>
 {{ footer }}
