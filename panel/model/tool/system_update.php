@@ -953,6 +953,22 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 					);
 				}
 			},
+
+			'admin_notify_by_role' => function (): void {
+				$columns = [
+					'notify_mobile'           => 32,
+					'notify_telegram_chat_id' => 64,
+					'notify_bale_chat_id'     => 64,
+				];
+
+				foreach ($columns as $column => $length) {
+					if (!$this->columnExists('user', $column)) {
+						$this->db->query(
+							"ALTER TABLE `" . DB_PREFIX . "user` ADD COLUMN `" . $column . "` varchar(" . (int)$length . ") NOT NULL DEFAULT ''"
+						);
+					}
+				}
+			},
 		];
 	}
 

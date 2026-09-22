@@ -623,9 +623,21 @@ class Order extends \MDcart\System\Engine\Controller {
 				// Send to additional alert emails
 				$emails = explode(',', (string)$this->config->get('config_mail_alert_email'));
 
+				// Also notify staff in the roles selected under Settings >
+				// General ("who gets notified about new orders").
+				$this->load->model('user/user');
+
+				foreach ($this->model_user_user->getNotifyUsers((array)$this->config->get('config_notify_admin_group_ids')) as $notify_user) {
+					if (!empty($notify_user['email'])) {
+						$emails[] = $notify_user['email'];
+					}
+				}
+
+				$emails = array_unique(array_filter(array_map('trim', $emails)));
+
 				foreach ($emails as $email) {
 					if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-						$mail->setTo(trim($email));
+						$mail->setTo($email);
 						$mail->send();
 					}
 				}

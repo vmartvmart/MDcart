@@ -1,0 +1,592 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index f636bfc..a6209ac 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -263,5 +263,10 @@
+     "version": "5.6.38",
+     "fa": "امکان «تایید شماره موبایل هنگام ثبت‌نام» و «ورود با شماره موبایل و کد یکبار مصرف (OTP)» اضافه شد. این قابلیت به‌صورت پیش‌فرض غیرفعال است و برای فعال‌سازی باید در پنل ادمین به مسیر افزونه‌ها ← سایر ← پیامک آی‌پی‌پنل رفته، کلید API و شماره فرستنده را تنظیم کنید و گزینه جدید «فعال‌سازی تایید موبایل و ورود با کد یکبار مصرف» را روشن کنید. پس از فعال‌سازی: مشتریانی که هنگام ثبت‌نام شماره موبایل وارد می‌کنند، یک کد ۶ رقمی از طریق پیامک آی‌پی‌پنل دریافت کرده و باید پیش از فعال شدن حساب‌شان آن را تایید کنند (این فقط برای ثبت‌نام‌های جدید است؛ مشتریان قدیمی نیازی به تایید مجدد ندارند و روش ورود با ایمیل و رمز عبور برای همه دست‌نخورده باقی مانده است). همچنین یک لینک «ورود با شماره موبایل و کد یکبار مصرف» به صفحه ورود اضافه شد که امکان ورود بدون رمز عبور با دریافت کد پیامکی را فراهم می‌کند.",
+     "en": "Added \"mobile number verification at registration\" and \"login with mobile number + OTP\" as an additional login method. This is disabled by default - to turn it on, go to Extensions > Other > IPPanel SMS in the admin panel, set the API key and sender number, and switch on the new \"Enable mobile verification & OTP login\" option. Once enabled: customers who enter a mobile number at registration receive a 6-digit code by SMS through IPPanel and must confirm it before their account is activated (this only applies to new registrations - existing customers are not required to re-verify, and the existing email+password login is untouched for everyone). A \"Login with mobile number & OTP\" link was also added to the login page, letting customers sign in with an SMS code instead of a password."
++  },
++  {
++    "version": "5.6.39",
++    "fa": "اطلاع‌رسانی سفارش جدید به تیم حالا می‌تونه بر اساس نقش/سطح دسترسی کاربر ادمین هدفمند بشه، به‌جای اینکه فقط به یک ایمیل/شماره ثابت بره. توی تنظیمات ← عمومی، فیلد جدید «نقش‌های دریافت‌کننده اطلاع سفارش جدید» رو ببینید و هر گروه کاربری (مثلاً Administrator، Order Processing) که باید مطلع بشه رو تیک بزنید. هر کاربر ادمین هم باید یک‌بار توی پروفایل خودش (بالای صفحه، پروفایل) شماره موبایل و/یا چت‌آیدی تلگرام/بله خودش رو وارد کنه تا از اون طریق‌ها هم اطلاع بگیره. این اطلاع‌رسانی از طریق ایمیل، پیامک آی‌پی‌پنل، تلگرام، بله و واتس‌اپ کار می‌کنه - هرکدوم که از قبل فعال باشن. تنظیمات قبلی (یک ایمیل/شماره/چت‌آیدی ثابت برای مدیر) دست‌نخورده باقی موند و همچنان کار می‌کنه، این قابلیت جدید فقط به‌عنوان گیرنده‌های اضافی روی همون اضافه میشه.",
++    "en": "New-order notifications to the team can now target admin users by role, instead of only going to one fixed email/number. Under Settings > General, a new \"Roles Notified About New Orders\" field lets you check off each user group (e.g. Administrator, Order Processing) that should be notified. Each admin user also needs to enter their own mobile number and/or Telegram/Bale chat ID once on their own Profile page so they receive notifications through those channels too. This works across email, IPPanel SMS, Telegram, Bale and WhatsApp - whichever are already enabled. The previous single fixed admin email/number/chat-ID settings are untouched and still work; this is purely additive on top of them."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index ab8d3a1..06cf2f5 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.38
++5.6.39
+diff --git a/catalog/controller/mail/order.php b/catalog/controller/mail/order.php
+index ed7ecf9..6c101d0 100644
+--- a/catalog/controller/mail/order.php
++++ b/catalog/controller/mail/order.php
+@@ -623,9 +623,21 @@ class Order extends \MDcart\System\Engine\Controller {
+ 				// Send to additional alert emails
+ 				$emails = explode(',', (string)$this->config->get('config_mail_alert_email'));
+ 
++				// Also notify staff in the roles selected under Settings >
++				// General ("who gets notified about new orders").
++				$this->load->model('user/user');
++
++				foreach ($this->model_user_user->getNotifyUsers((array)$this->config->get('config_notify_admin_group_ids')) as $notify_user) {
++					if (!empty($notify_user['email'])) {
++						$emails[] = $notify_user['email'];
++					}
++				}
++
++				$emails = array_unique(array_filter(array_map('trim', $emails)));
++
+ 				foreach ($emails as $email) {
+ 					if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+-						$mail->setTo(trim($email));
++						$mail->setTo($email);
+ 						$mail->send();
+ 					}
+ 				}
+diff --git a/catalog/model/user/user.php b/catalog/model/user/user.php
+new file mode 100644
+index 0000000..7b10b63
+--- /dev/null
++++ b/catalog/model/user/user.php
+@@ -0,0 +1,46 @@
++<?php
++namespace MDcart\Catalog\Model\User;
++/**
++ * Class User
++ *
++ * Read-only lookup of admin users, used by the order-notification event
++ * controllers (email/Telegram/Bale/WhatsApp/IPPanel) to resolve which
++ * staff members should be notified about a new order, based on the
++ * shared "which roles get notified" setting (config_notify_admin_group_ids)
++ * configured under Settings > General.
++ *
++ * Can be loaded using $this->load->model('user/user');
++ *
++ * @package MDcart\Catalog\Model\User
++ */
++class User extends \MDcart\System\Engine\Model {
++	/**
++	 * Get Notify Users
++	 *
++	 * Returns active admin users belonging to any of the given user
++	 * groups, with their own order-notification contact fields
++	 * (email, notify_mobile, notify_telegram_chat_id, notify_bale_chat_id) -
++	 * each set individually by that user on their own Profile page.
++	 *
++	 * @param array<int, mixed> $group_ids
++	 *
++	 * @return array<int, array<string, mixed>>
++	 *
++	 * @example
++	 *
++	 * $this->load->model('user/user');
++	 *
++	 * $notify_users = $this->model_user_user->getNotifyUsers($group_ids);
++	 */
++	public function getNotifyUsers(array $group_ids): array {
++		$group_ids = array_values(array_unique(array_filter(array_map('intval', $group_ids))));
++
++		if (!$group_ids) {
++			return [];
++		}
++
++		$query = $this->db->query("SELECT `user_id`, `email`, `notify_mobile`, `notify_telegram_chat_id`, `notify_bale_chat_id` FROM `" . DB_PREFIX . "user` WHERE `status` = '1' AND `user_group_id` IN (" . implode(',', $group_ids) . ")");
++
++		return $query->rows;
++	}
++}
+diff --git a/extension/bale/catalog/controller/event/order.php b/extension/bale/catalog/controller/event/order.php
+index 3992417..82232a0 100644
+--- a/extension/bale/catalog/controller/event/order.php
++++ b/extension/bale/catalog/controller/event/order.php
+@@ -50,8 +50,12 @@ class Order extends \MDcart\System\Engine\Controller {
+ 				}
+ 			}
+ 
+-			if ($this->config->get('other_bale_admin_status') && $this->config->get('other_bale_admin_chat_id')) {
+-				$bale->sendMessage((string)$this->config->get('other_bale_admin_chat_id'), sprintf($this->language->get('text_order_add_admin'), $order_info['order_id'], $total));
++			if ($this->config->get('other_bale_admin_status')) {
++				$message = sprintf($this->language->get('text_order_add_admin'), $order_info['order_id'], $total);
++
++				foreach ($this->getAdminChatIds() as $chat_id) {
++					$bale->sendMessage($chat_id, $message);
++				}
+ 			}
+ 
+ 			return;
+@@ -81,4 +85,32 @@ class Order extends \MDcart\System\Engine\Controller {
+ 
+ 		return $query->row ? (string)$query->row['chat_id'] : '';
+ 	}
++
++	/**
++	 * Get Admin Chat Ids
++	 *
++	 * The single global other_bale_admin_chat_id (if still set) plus
++	 * every chat ID that staff members in the roles selected under
++	 * Settings > General ("who gets notified about new orders") have set
++	 * on their own Profile page.
++	 *
++	 * @return array<int, string>
++	 */
++	private function getAdminChatIds(): array {
++		$chat_ids = [];
++
++		if ($this->config->get('other_bale_admin_chat_id')) {
++			$chat_ids[] = (string)$this->config->get('other_bale_admin_chat_id');
++		}
++
++		$this->load->model('user/user');
++
++		foreach ($this->model_user_user->getNotifyUsers((array)$this->config->get('config_notify_admin_group_ids')) as $notify_user) {
++			if ($notify_user['notify_bale_chat_id']) {
++				$chat_ids[] = (string)$notify_user['notify_bale_chat_id'];
++			}
++		}
++
++		return array_unique($chat_ids);
++	}
+ }
+diff --git a/extension/ippanel/catalog/controller/event/order.php b/extension/ippanel/catalog/controller/event/order.php
+index dcf1a60..7e7dc56 100644
+--- a/extension/ippanel/catalog/controller/event/order.php
++++ b/extension/ippanel/catalog/controller/event/order.php
+@@ -50,10 +50,12 @@ class Order extends \MDcart\System\Engine\Controller {
+ 				$ippanel->send($order_info['telephone'], $message);
+ 			}
+ 
+-			if ($this->config->get('other_ippanel_admin_status') && $this->config->get('other_ippanel_admin_telephone')) {
++			if ($this->config->get('other_ippanel_admin_status')) {
+ 				$message = sprintf($this->language->get('text_sms_order_add_admin'), $order_info['order_id'], $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value']));
+ 
+-				$ippanel->send((string)$this->config->get('other_ippanel_admin_telephone'), $message);
++				foreach ($this->getAdminTelephones() as $telephone) {
++					$ippanel->send($telephone, $message);
++				}
+ 			}
+ 
+ 			return;
+@@ -72,4 +74,32 @@ class Order extends \MDcart\System\Engine\Controller {
+ 			}
+ 		}
+ 	}
++
++	/**
++	 * Get Admin Telephones
++	 *
++	 * The single global other_ippanel_admin_telephone (if still set) plus
++	 * the mobile number of every staff member in the roles selected under
++	 * Settings > General ("who gets notified about new orders"), as set on
++	 * their own Profile page.
++	 *
++	 * @return array<int, string>
++	 */
++	private function getAdminTelephones(): array {
++		$telephones = [];
++
++		if ($this->config->get('other_ippanel_admin_telephone')) {
++			$telephones[] = (string)$this->config->get('other_ippanel_admin_telephone');
++		}
++
++		$this->load->model('user/user');
++
++		foreach ($this->model_user_user->getNotifyUsers((array)$this->config->get('config_notify_admin_group_ids')) as $notify_user) {
++			if ($notify_user['notify_mobile']) {
++				$telephones[] = (string)$notify_user['notify_mobile'];
++			}
++		}
++
++		return array_unique($telephones);
++	}
+ }
+diff --git a/extension/telegram/catalog/controller/event/order.php b/extension/telegram/catalog/controller/event/order.php
+index dd038e7..8bcc4e1 100644
+--- a/extension/telegram/catalog/controller/event/order.php
++++ b/extension/telegram/catalog/controller/event/order.php
+@@ -50,8 +50,12 @@ class Order extends \MDcart\System\Engine\Controller {
+ 				}
+ 			}
+ 
+-			if ($this->config->get('other_telegram_admin_status') && $this->config->get('other_telegram_admin_chat_id')) {
+-				$telegram->sendMessage((string)$this->config->get('other_telegram_admin_chat_id'), sprintf($this->language->get('text_order_add_admin'), $order_info['order_id'], $total));
++			if ($this->config->get('other_telegram_admin_status')) {
++				$message = sprintf($this->language->get('text_order_add_admin'), $order_info['order_id'], $total);
++
++				foreach ($this->getAdminChatIds() as $chat_id) {
++					$telegram->sendMessage($chat_id, $message);
++				}
+ 			}
+ 
+ 			return;
+@@ -81,4 +85,32 @@ class Order extends \MDcart\System\Engine\Controller {
+ 
+ 		return $query->row ? (string)$query->row['chat_id'] : '';
+ 	}
++
++	/**
++	 * Get Admin Chat Ids
++	 *
++	 * The single global other_telegram_admin_chat_id (if still set) plus
++	 * every chat ID that staff members in the roles selected under
++	 * Settings > General ("who gets notified about new orders") have set
++	 * on their own Profile page.
++	 *
++	 * @return array<int, string>
++	 */
++	private function getAdminChatIds(): array {
++		$chat_ids = [];
++
++		if ($this->config->get('other_telegram_admin_chat_id')) {
++			$chat_ids[] = (string)$this->config->get('other_telegram_admin_chat_id');
++		}
++
++		$this->load->model('user/user');
++
++		foreach ($this->model_user_user->getNotifyUsers((array)$this->config->get('config_notify_admin_group_ids')) as $notify_user) {
++			if ($notify_user['notify_telegram_chat_id']) {
++				$chat_ids[] = (string)$notify_user['notify_telegram_chat_id'];
++			}
++		}
++
++		return array_unique($chat_ids);
++	}
+ }
+diff --git a/extension/whatsapp/catalog/controller/event/order.php b/extension/whatsapp/catalog/controller/event/order.php
+index b0c10af..c2e7fa1 100644
+--- a/extension/whatsapp/catalog/controller/event/order.php
++++ b/extension/whatsapp/catalog/controller/event/order.php
+@@ -53,8 +53,10 @@ class Order extends \MDcart\System\Engine\Controller {
+ 				$whatsapp->sendTemplate($order_info['telephone'], $template, $language_code, [$order_info['order_id'], $total]);
+ 			}
+ 
+-			if ($template && $this->config->get('other_whatsapp_admin_status') && $this->config->get('other_whatsapp_admin_telephone')) {
+-				$whatsapp->sendTemplate((string)$this->config->get('other_whatsapp_admin_telephone'), $template, $language_code, [$order_info['order_id'], $total]);
++			if ($template && $this->config->get('other_whatsapp_admin_status')) {
++				foreach ($this->getAdminTelephones() as $telephone) {
++					$whatsapp->sendTemplate($telephone, $template, $language_code, [$order_info['order_id'], $total]);
++				}
+ 			}
+ 
+ 			return;
+@@ -73,4 +75,32 @@ class Order extends \MDcart\System\Engine\Controller {
+ 			}
+ 		}
+ 	}
++
++	/**
++	 * Get Admin Telephones
++	 *
++	 * The single global other_whatsapp_admin_telephone (if still set) plus
++	 * the mobile number of every staff member in the roles selected under
++	 * Settings > General ("who gets notified about new orders"), as set on
++	 * their own Profile page.
++	 *
++	 * @return array<int, string>
++	 */
++	private function getAdminTelephones(): array {
++		$telephones = [];
++
++		if ($this->config->get('other_whatsapp_admin_telephone')) {
++			$telephones[] = (string)$this->config->get('other_whatsapp_admin_telephone');
++		}
++
++		$this->load->model('user/user');
++
++		foreach ($this->model_user_user->getNotifyUsers((array)$this->config->get('config_notify_admin_group_ids')) as $notify_user) {
++			if ($notify_user['notify_mobile']) {
++				$telephones[] = (string)$notify_user['notify_mobile'];
++			}
++		}
++
++		return array_unique($telephones);
++	}
+ }
+diff --git a/panel/controller/setting/setting.php b/panel/controller/setting/setting.php
+index d3756f5..66eb2e4 100644
+--- a/panel/controller/setting/setting.php
++++ b/panel/controller/setting/setting.php
+@@ -244,6 +244,12 @@ class Setting extends \MDcart\System\Engine\Controller {
+ 		$data['config_customer_group_id'] = $this->config->get('config_customer_group_id');
+ 		$data['config_customer_group_display'] = (array)$this->config->get('config_customer_group_display');
+ 		$data['config_customer_price'] = $this->config->get('config_customer_price');
++
++		// Order notification recipients (roles) - shared across email, Telegram, Bale, WhatsApp and IPPanel
++		$this->load->model('user/user_group');
++
++		$data['user_groups'] = $this->model_user_user_group->getUserGroups();
++		$data['config_notify_admin_group_ids'] = (array)$this->config->get('config_notify_admin_group_ids');
+ 		$data['config_telephone_display'] = $this->config->get('config_telephone_display');
+ 		$data['config_telephone_required'] = $this->config->get('config_telephone_required');
+ 		$data['config_2fa'] = $this->config->get('config_2fa');
+diff --git a/panel/controller/user/profile.php b/panel/controller/user/profile.php
+index 6f0f771..0f8e858 100644
+--- a/panel/controller/user/profile.php
++++ b/panel/controller/user/profile.php
+@@ -67,6 +67,17 @@ class Profile extends \MDcart\System\Engine\Controller {
+ 			$data['image'] = '';
+ 		}
+ 
++		// Order-notification contact details (used by the role-based admin notifications)
++		if (!empty($user_info)) {
++			$data['notify_mobile'] = $user_info['notify_mobile'] ?? '';
++			$data['notify_telegram_chat_id'] = $user_info['notify_telegram_chat_id'] ?? '';
++			$data['notify_bale_chat_id'] = $user_info['notify_bale_chat_id'] ?? '';
++		} else {
++			$data['notify_mobile'] = '';
++			$data['notify_telegram_chat_id'] = '';
++			$data['notify_bale_chat_id'] = '';
++		}
++
+ 		$this->load->model('tool/image');
+ 
+ 		$data['placeholder'] = $this->model_tool_image->resize('no_image.png', $this->config->get('config_image_default_width'), $this->config->get('config_image_default_height'));
+@@ -184,6 +195,14 @@ class Profile extends \MDcart\System\Engine\Controller {
+ 
+ 			$this->model_user_user->editUser($this->user->getId(), $user_data);
+ 
++			$notify_data = [
++				'notify_mobile'           => (string)($this->request->post['notify_mobile'] ?? ''),
++				'notify_telegram_chat_id' => (string)($this->request->post['notify_telegram_chat_id'] ?? ''),
++				'notify_bale_chat_id'     => (string)($this->request->post['notify_bale_chat_id'] ?? ''),
++			];
++
++			$this->model_user_user->editUserNotify($this->user->getId(), $notify_data);
++
+ 			$json['success'] = $this->language->get('text_success');
+ 		}
+ 
+diff --git a/panel/language/fa/setting/setting.php b/panel/language/fa/setting/setting.php
+index 89e0ca8..a6c2ff5 100644
+--- a/panel/language/fa/setting/setting.php
++++ b/panel/language/fa/setting/setting.php
+@@ -25,6 +25,7 @@ $_['text_general']                        = 'عمومی';
+ $_['text_site']                           = 'جزئیات سایت';
+ $_['text_trust_badges']                   = 'نمادها و مجوزهای اعتماد (فوتر سایت)';
+ $_['text_meta']                           = 'متا تگ‌ها';
++$_['text_notify_admin']                   = 'اطلاع‌رسانی سفارش جدید به تیم';
+ $_['text_security']                       = 'امنیت';
+ $_['text_upload']                         = 'بارگذاری‌های مشتری';
+ $_['text_error']                          = 'مدیریت خطا';
+@@ -117,6 +118,7 @@ $_['entry_customer_group_display']        = 'گروه‌های مشتری';
+ $_['entry_customer_price']                = 'نمایش قیمت پس از ورود';
+ $_['entry_telephone_display']             = 'نمایش تلفن';
+ $_['entry_telephone_required']            = 'تلفن الزامی';
++$_['entry_notify_admin_group']            = 'نقش‌های دریافت‌کننده اطلاع سفارش جدید';
+ $_['entry_2fa']                           = 'تأیید دومرحله‌ای';
+ $_['entry_2fa_expire']                    = 'انقضای توکن';
+ $_['entry_login_attempts']                = 'حداکثر تلاش ورود';
+@@ -236,6 +238,7 @@ $_['help_customer_online_expire']         = 'مدت زمانی که افراد 
+ $_['help_customer_activity']              = 'ردیابی فعالیت مشتریان از طریق بخش گزارش مشتریان.';
+ $_['help_customer_group']                 = 'گروه مشتری پیش‌فرض.';
+ $_['help_customer_group_display']         = 'نمایش گروه‌های مشتری که مشتریان جدید هنگام ثبت‌نام می‌توانند انتخاب کنند، مانند عمده‌فروشی و تجاری.';
++$_['help_notify_admin_group']             = 'هر کاربر ادمینی که توی یکی از این نقش‌ها باشه، هنگام ثبت سفارش جدید اطلاع می‌گیره - از طریق ایمیل و هر کدوم از کانال‌های پیامک/تلگرام/بله/واتس‌اپ که برای «اطلاع به ادمین» فعال کرده باشید. هر کاربر باید ایمیل، شماره موبایل و/یا چت‌آیدی تلگرام/بله خودش رو یک‌بار توی پروفایل خودش (بالای صفحه، روی نام کاربری ← پروفایل) وارد کنه.';
+ $_['help_customer_price']                 = 'قیمت‌ها فقط زمانی نمایش داده شود که مشتری وارد شده باشد.';
+ $_['help_2fa']                            = 'تأیید دومرحله‌ای برای مشتریان.';
+ $_['help_2fa_expire']                     = 'تعداد روزهای باقی‌مانده تا انقضای توکن.';
+diff --git a/panel/language/fa/user/profile.php b/panel/language/fa/user/profile.php
+index 0c18450..b8a7514 100644
+--- a/panel/language/fa/user/profile.php
++++ b/panel/language/fa/user/profile.php
+@@ -6,6 +6,7 @@ $_['heading_title']            = 'پروفایل';
+ $_['text_success']             = 'موفق: پروفایل شما تغییر یافت!';
+ $_['text_edit']                = 'ویرایش پروفایل شما';
+ $_['text_user']                = 'جزئیات کاربر';
++$_['text_notify']              = 'اطلاع‌رسانی سفارش جدید به من';
+ $_['text_password']            = 'رمز عبور';
+ 
+ // Entry
+@@ -16,6 +17,14 @@ $_['entry_firstname']          = 'نام';
+ $_['entry_lastname']           = 'نام خانوادگی';
+ $_['entry_email']              = 'ایمیل';
+ $_['entry_image']              = 'تصویر';
++$_['entry_notify_mobile']      = 'شماره موبایل (پیامک/واتس‌اپ)';
++$_['entry_notify_telegram_chat_id'] = 'چت آیدی تلگرام';
++$_['entry_notify_bale_chat_id']     = 'چت آیدی بله';
++
++// Help
++$_['help_notify_mobile']       = 'برای دریافت اطلاع سفارش جدید از طریق پیامک آی‌پی‌پنل یا واتس‌اپ (اگه فعال باشن). خالی بذارید اگه نمی‌خواید از این طریق‌ها اطلاع بگیرید.';
++$_['help_notify_telegram_chat_id'] = 'برای دریافت اطلاع سفارش جدید در تلگرام (اگه فعال باشه). برای پیدا کردن چت آیدی خودتون، به بات @userinfobot در تلگرام پیام بدید.';
++$_['help_notify_bale_chat_id']     = 'برای دریافت اطلاع سفارش جدید در بله (اگه فعال باشه).';
+ 
+ // Error
+ $_['error_permission']         = 'هشدار: شما اجازه تغییر پروفایل خود را ندارید!';
+diff --git a/panel/language/us/setting/setting.php b/panel/language/us/setting/setting.php
+index 9682e46..fbb2ecb 100644
+--- a/panel/language/us/setting/setting.php
++++ b/panel/language/us/setting/setting.php
+@@ -25,6 +25,7 @@ $_['text_general']                        = 'General';
+ $_['text_site']                           = 'Site Details';
+ $_['text_trust_badges']                   = 'Trust Badges & License Seals (Footer)';
+ $_['text_meta']                           = 'Meta Tags';
++$_['text_notify_admin']                   = 'New Order Notifications to Team';
+ $_['text_security']                       = 'Security';
+ $_['text_upload']                         = 'Customer Uploads';
+ $_['text_error']                          = 'Error Handling';
+@@ -117,6 +118,7 @@ $_['entry_customer_group_display']        = 'Customer Groups';
+ $_['entry_customer_price']                = 'Login Display Prices';
+ $_['entry_telephone_display']             = 'Telephone Display';
+ $_['entry_telephone_required']            = 'Telephone Required';
++$_['entry_notify_admin_group']            = 'Roles Notified About New Orders';
+ $_['entry_2fa']                           = 'Two-factor Security';
+ $_['entry_2fa_expire']                    = 'Token Expire';
+ $_['entry_login_attempts']                = 'Max Login Attempts';
+@@ -236,6 +238,7 @@ $_['help_customer_online_expire']         = 'Enter for how long people who visit
+ $_['help_customer_activity']              = 'Track customers activity via the customer reports section.';
+ $_['help_customer_group']                 = 'Default customer group.';
+ $_['help_customer_group_display']         = 'Display customer groups that new customers can select to use such as wholesale and business when signing up.';
++$_['help_notify_admin_group']             = 'Any admin user in one of these roles is notified when a new order is placed - by email, and by any of the SMS/Telegram/Bale/WhatsApp channels that have "notify admin" turned on. Each user needs to enter their own email, mobile number and/or Telegram/Bale chat ID once on their own Profile page (top right, username menu > Profile).';
+ $_['help_customer_price']                 = 'Only show prices when a customer is logged in.';
+ $_['help_2fa']                            = 'Two-factor security for customers.';
+ $_['help_2fa_expire']                     = 'Number of days until the token expires.';
+diff --git a/panel/language/us/user/profile.php b/panel/language/us/user/profile.php
+index bd3405a..2183e50 100644
+--- a/panel/language/us/user/profile.php
++++ b/panel/language/us/user/profile.php
+@@ -6,6 +6,7 @@ $_['heading_title']            = 'Profile';
+ $_['text_success']             = 'Success: You have modified your profile!';
+ $_['text_edit']                = 'Edit Your Profile';
+ $_['text_user']                = 'Users Details';
++$_['text_notify']              = 'New Order Notifications To Me';
+ $_['text_password']            = 'Password';
+ 
+ // Entry
+@@ -16,6 +17,14 @@ $_['entry_firstname']          = 'First Name';
+ $_['entry_lastname']           = 'Last Name';
+ $_['entry_email']              = 'E-Mail';
+ $_['entry_image']              = 'Image';
++$_['entry_notify_mobile']      = 'Mobile Number (SMS/WhatsApp)';
++$_['entry_notify_telegram_chat_id'] = 'Telegram Chat ID';
++$_['entry_notify_bale_chat_id']     = 'Bale Chat ID';
++
++// Help
++$_['help_notify_mobile']       = 'Used to notify you about new orders by IPPanel SMS or WhatsApp (whichever are enabled). Leave blank if you don\'t want notifications this way.';
++$_['help_notify_telegram_chat_id'] = 'Used to notify you about new orders on Telegram (if enabled). To find your own chat ID, message the @userinfobot bot on Telegram.';
++$_['help_notify_bale_chat_id']     = 'Used to notify you about new orders on Bale (if enabled).';
+ 
+ // Error
+ $_['error_permission']         = 'Warning: You do not have permission to modify your profile!';
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index 7899b33..0c44cdd 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -953,6 +953,22 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 					);
+ 				}
+ 			},
++
++			'admin_notify_by_role' => function (): void {
++				$columns = [
++					'notify_mobile'           => 32,
++					'notify_telegram_chat_id' => 64,
++					'notify_bale_chat_id'     => 64,
++				];
++
++				foreach ($columns as $column => $length) {
++					if (!$this->columnExists('user', $column)) {
++						$this->db->query(
++							"ALTER TABLE `" . DB_PREFIX . "user` ADD COLUMN `" . $column . "` varchar(" . (int)$length . ") NOT NULL DEFAULT ''"
++						);
++					}
++				}
++			},
+ 		];
+ 	}
+ 
+diff --git a/panel/model/user/user.php b/panel/model/user/user.php
+index dd15111..a706b17 100644
+--- a/panel/model/user/user.php
++++ b/panel/model/user/user.php
+@@ -799,4 +799,27 @@ class User extends \MDcart\System\Engine\Model {
+ 	public function deleteTokenByCode(string $code): void {
+ 		$this->db->query("DELETE FROM `" . DB_PREFIX . "user_token` WHERE `code` = '" . $this->db->escape($code) . "'");
+ 	}
++
++	/**
++	 * Edit User Notify
++	 *
++	 * Saves a user's own order-notification contact details (mobile
++	 * number for SMS/WhatsApp, Telegram/Bale chat IDs) - separate from
++	 * editUser() so this can be saved from the Profile page without
++	 * touching username/password/group/status.
++	 *
++	 * @param int                  $user_id primary key of the user record
++	 * @param array<string, mixed> $data    ['notify_mobile', 'notify_telegram_chat_id', 'notify_bale_chat_id']
++	 *
++	 * @return void
++	 *
++	 * @example
++	 *
++	 * $this->load->model('user/user');
++	 *
++	 * $this->model_user_user->editUserNotify($user_id, $data);
++	 */
++	public function editUserNotify(int $user_id, array $data): void {
++		$this->db->query("UPDATE `" . DB_PREFIX . "user` SET `notify_mobile` = '" . $this->db->escape((string)($data['notify_mobile'] ?? '')) . "', `notify_telegram_chat_id` = '" . $this->db->escape((string)($data['notify_telegram_chat_id'] ?? '')) . "', `notify_bale_chat_id` = '" . $this->db->escape((string)($data['notify_bale_chat_id'] ?? '')) . "' WHERE `user_id` = '" . (int)$user_id . "'");
++	}
+ }
+diff --git a/panel/view/template/setting/setting.twig b/panel/view/template/setting/setting.twig
+index 82cc8ff..4901ef7 100644
+--- a/panel/view/template/setting/setting.twig
++++ b/panel/view/template/setting/setting.twig
+@@ -713,6 +713,22 @@
+                           <div class="form-text">{{ help_account }}</div>
+                         </div>
+                       </div>
++                      <fieldset>
++                        <legend>{{ text_notify_admin }}</legend>
++                        <div class="row mb-3">
++                          <label class="col-sm-2 col-form-label">{{ entry_notify_admin_group }}</label>
++                          <div class="col-sm-10">
++                            <div id="input-notify-admin-group" class="form-control" style="height: 150px; overflow: auto;">
++                              {% for user_group in user_groups %}
++                                <div class="form-check">
++                                  <input type="checkbox" name="config_notify_admin_group_ids[]" value="{{ user_group.user_group_id }}" id="input-notify-admin-group-{{ user_group.user_group_id }}" class="form-check-input"{% if user_group.user_group_id in config_notify_admin_group_ids %} checked{% endif %}/> <label for="input-notify-admin-group-{{ user_group.user_group_id }}" class="form-check-label">{{ user_group.name }}</label>
++                                </div>
++                              {% endfor %}
++                            </div>
++                            <div class="form-text">{{ help_notify_admin_group }}</div>
++                          </div>
++                        </div>
++                      </fieldset>
+                       <fieldset>
+                         <legend>{{ text_security }}</legend>
+                         <div class="row mb-3">
+diff --git a/panel/view/template/user/profile.twig b/panel/view/template/user/profile.twig
+index 9c91a15..91154b2 100644
+--- a/panel/view/template/user/profile.twig
++++ b/panel/view/template/user/profile.twig
+@@ -62,6 +62,30 @@
+               </div>
+             </div>
+           </fieldset>
++          <fieldset>
++            <legend>{{ text_notify }}</legend>
++            <div class="row mb-3">
++              <label for="input-notify-mobile" class="col-sm-2 col-form-label">{{ entry_notify_mobile }}</label>
++              <div class="col-sm-10">
++                <input type="text" name="notify_mobile" value="{{ notify_mobile }}" placeholder="{{ entry_notify_mobile }}" id="input-notify-mobile" class="form-control" dir="ltr"/>
++                <div class="form-text">{{ help_notify_mobile }}</div>
++              </div>
++            </div>
++            <div class="row mb-3">
++              <label for="input-notify-telegram-chat-id" class="col-sm-2 col-form-label">{{ entry_notify_telegram_chat_id }}</label>
++              <div class="col-sm-10">
++                <input type="text" name="notify_telegram_chat_id" value="{{ notify_telegram_chat_id }}" placeholder="{{ entry_notify_telegram_chat_id }}" id="input-notify-telegram-chat-id" class="form-control" dir="ltr"/>
++                <div class="form-text">{{ help_notify_telegram_chat_id }}</div>
++              </div>
++            </div>
++            <div class="row mb-3">
++              <label for="input-notify-bale-chat-id" class="col-sm-2 col-form-label">{{ entry_notify_bale_chat_id }}</label>
++              <div class="col-sm-10">
++                <input type="text" name="notify_bale_chat_id" value="{{ notify_bale_chat_id }}" placeholder="{{ entry_notify_bale_chat_id }}" id="input-notify-bale-chat-id" class="form-control" dir="ltr"/>
++                <div class="form-text">{{ help_notify_bale_chat_id }}</div>
++              </div>
++            </div>
++          </fieldset>
+           <fieldset>
+             <legend>{{ text_password }}</legend>
+             <div class="row mb-3 required">

@@ -53,8 +53,10 @@ class Order extends \MDcart\System\Engine\Controller {
 				$whatsapp->sendTemplate($order_info['telephone'], $template, $language_code, [$order_info['order_id'], $total]);
 			}
 
-			if ($template && $this->config->get('other_whatsapp_admin_status') && $this->config->get('other_whatsapp_admin_telephone')) {
-				$whatsapp->sendTemplate((string)$this->config->get('other_whatsapp_admin_telephone'), $template, $language_code, [$order_info['order_id'], $total]);
+			if ($template && $this->config->get('other_whatsapp_admin_status')) {
+				foreach ($this->getAdminTelephones() as $telephone) {
+					$whatsapp->sendTemplate($telephone, $template, $language_code, [$order_info['order_id'], $total]);
+				}
 			}
 
 			return;
@@ -72,5 +74,33 @@ class Order extends \MDcart\System\Engine\Controller {
 				$whatsapp->sendTemplate($order_info['telephone'], $template, $language_code, [$order_info['order_id'], $order_status_info['name'] ?? '']);
 			}
 		}
+	}
+
+	/**
+	 * Get Admin Telephones
+	 *
+	 * The single global other_whatsapp_admin_telephone (if still set) plus
+	 * the mobile number of every staff member in the roles selected under
+	 * Settings > General ("who gets notified about new orders"), as set on
+	 * their own Profile page.
+	 *
+	 * @return array<int, string>
+	 */
+	private function getAdminTelephones(): array {
+		$telephones = [];
+
+		if ($this->config->get('other_whatsapp_admin_telephone')) {
+			$telephones[] = (string)$this->config->get('other_whatsapp_admin_telephone');
+		}
+
+		$this->load->model('user/user');
+
+		foreach ($this->model_user_user->getNotifyUsers((array)$this->config->get('config_notify_admin_group_ids')) as $notify_user) {
+			if ($notify_user['notify_mobile']) {
+				$telephones[] = (string)$notify_user['notify_mobile'];
+			}
+		}
+
+		return array_unique($telephones);
 	}
 }

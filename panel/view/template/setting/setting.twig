@@ -714,6 +714,22 @@
                         </div>
                       </div>
                       <fieldset>
+                        <legend>{{ text_notify_admin }}</legend>
+                        <div class="row mb-3">
+                          <label class="col-sm-2 col-form-label">{{ entry_notify_admin_group }}</label>
+                          <div class="col-sm-10">
+                            <div id="input-notify-admin-group" class="form-control" style="height: 150px; overflow: auto;">
+                              {% for user_group in user_groups %}
+                                <div class="form-check">
+                                  <input type="checkbox" name="config_notify_admin_group_ids[]" value="{{ user_group.user_group_id }}" id="input-notify-admin-group-{{ user_group.user_group_id }}" class="form-check-input"{% if user_group.user_group_id in config_notify_admin_group_ids %} checked{% endif %}/> <label for="input-notify-admin-group-{{ user_group.user_group_id }}" class="form-check-label">{{ user_group.name }}</label>
+                                </div>
+                              {% endfor %}
+                            </div>
+                            <div class="form-text">{{ help_notify_admin_group }}</div>
+                          </div>
+                        </div>
+                      </fieldset>
+                      <fieldset>
                         <legend>{{ text_security }}</legend>
                         <div class="row mb-3">
                           <label class="col-sm-2 col-form-label">{{ entry_2fa }}</label>

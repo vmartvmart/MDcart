@@ -50,8 +50,12 @@ class Order extends \MDcart\System\Engine\Controller {
 				}
 			}
 
-			if ($this->config->get('other_telegram_admin_status') && $this->config->get('other_telegram_admin_chat_id')) {
-				$telegram->sendMessage((string)$this->config->get('other_telegram_admin_chat_id'), sprintf($this->language->get('text_order_add_admin'), $order_info['order_id'], $total));
+			if ($this->config->get('other_telegram_admin_status')) {
+				$message = sprintf($this->language->get('text_order_add_admin'), $order_info['order_id'], $total);
+
+				foreach ($this->getAdminChatIds() as $chat_id) {
+					$telegram->sendMessage($chat_id, $message);
+				}
 			}
 
 			return;
@@ -80,5 +84,33 @@ class Order extends \MDcart\System\Engine\Controller {
 		$query = $this->db->query("SELECT `chat_id` FROM `" . DB_PREFIX . "notify_link` WHERE `channel` = 'telegram' AND `purpose` = 'order' AND `order_id` = '" . (int)$order_id . "' AND `status` = '1' ORDER BY `link_id` DESC LIMIT 1");
 
 		return $query->row ? (string)$query->row['chat_id'] : '';
+	}
+
+	/**
+	 * Get Admin Chat Ids
+	 *
+	 * The single global other_telegram_admin_chat_id (if still set) plus
+	 * every chat ID that staff members in the roles selected under
+	 * Settings > General ("who gets notified about new orders") have set
+	 * on their own Profile page.
+	 *
+	 * @return array<int, string>
+	 */
+	private function getAdminChatIds(): array {
+		$chat_ids = [];
+
+		if ($this->config->get('other_telegram_admin_chat_id')) {
+			$chat_ids[] = (string)$this->config->get('other_telegram_admin_chat_id');
+		}
+
+		$this->load->model('user/user');
+
+		foreach ($this->model_user_user->getNotifyUsers((array)$this->config->get('config_notify_admin_group_ids')) as $notify_user) {
+			if ($notify_user['notify_telegram_chat_id']) {
+				$chat_ids[] = (string)$notify_user['notify_telegram_chat_id'];
+			}
+		}
+
+		return array_unique($chat_ids);
 	}
 }

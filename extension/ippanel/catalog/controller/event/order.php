@@ -50,10 +50,12 @@ class Order extends \MDcart\System\Engine\Controller {
 				$ippanel->send($order_info['telephone'], $message);
 			}
 
-			if ($this->config->get('other_ippanel_admin_status') && $this->config->get('other_ippanel_admin_telephone')) {
+			if ($this->config->get('other_ippanel_admin_status')) {
 				$message = sprintf($this->language->get('text_sms_order_add_admin'), $order_info['order_id'], $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value']));
 
-				$ippanel->send((string)$this->config->get('other_ippanel_admin_telephone'), $message);
+				foreach ($this->getAdminTelephones() as $telephone) {
+					$ippanel->send($telephone, $message);
+				}
 			}
 
 			return;
@@ -71,5 +73,33 @@ class Order extends \MDcart\System\Engine\Controller {
 				$ippanel->send($order_info['telephone'], $message);
 			}
 		}
+	}
+
+	/**
+	 * Get Admin Telephones
+	 *
+	 * The single global other_ippanel_admin_telephone (if still set) plus
+	 * the mobile number of every staff member in the roles selected under
+	 * Settings > General ("who gets notified about new orders"), as set on
+	 * their own Profile page.
+	 *
+	 * @return array<int, string>
+	 */
+	private function getAdminTelephones(): array {
+		$telephones = [];
+
+		if ($this->config->get('other_ippanel_admin_telephone')) {
+			$telephones[] = (string)$this->config->get('other_ippanel_admin_telephone');
+		}
+
+		$this->load->model('user/user');
+
+		foreach ($this->model_user_user->getNotifyUsers((array)$this->config->get('config_notify_admin_group_ids')) as $notify_user) {
+			if ($notify_user['notify_mobile']) {
+				$telephones[] = (string)$notify_user['notify_mobile'];
+			}
+		}
+
+		return array_unique($telephones);
 	}
 }

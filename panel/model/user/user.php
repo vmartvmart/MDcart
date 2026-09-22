@@ -799,4 +799,27 @@ class User extends \MDcart\System\Engine\Model {
 	public function deleteTokenByCode(string $code): void {
 		$this->db->query("DELETE FROM `" . DB_PREFIX . "user_token` WHERE `code` = '" . $this->db->escape($code) . "'");
 	}
+
+	/**
+	 * Edit User Notify
+	 *
+	 * Saves a user's own order-notification contact details (mobile
+	 * number for SMS/WhatsApp, Telegram/Bale chat IDs) - separate from
+	 * editUser() so this can be saved from the Profile page without
+	 * touching username/password/group/status.
+	 *
+	 * @param int                  $user_id primary key of the user record
+	 * @param array<string, mixed> $data    ['notify_mobile', 'notify_telegram_chat_id', 'notify_bale_chat_id']
+	 *
+	 * @return void
+	 *
+	 * @example
+	 *
+	 * $this->load->model('user/user');
+	 *
+	 * $this->model_user_user->editUserNotify($user_id, $data);
+	 */
+	public function editUserNotify(int $user_id, array $data): void {
+		$this->db->query("UPDATE `" . DB_PREFIX . "user` SET `notify_mobile` = '" . $this->db->escape((string)($data['notify_mobile'] ?? '')) . "', `notify_telegram_chat_id` = '" . $this->db->escape((string)($data['notify_telegram_chat_id'] ?? '')) . "', `notify_bale_chat_id` = '" . $this->db->escape((string)($data['notify_bale_chat_id'] ?? '')) . "' WHERE `user_id` = '" . (int)$user_id . "'");
+	}
 }

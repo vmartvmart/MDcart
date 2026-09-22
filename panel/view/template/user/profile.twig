@@ -63,6 +63,30 @@
             </div>
           </fieldset>
           <fieldset>
+            <legend>{{ text_notify }}</legend>
+            <div class="row mb-3">
+              <label for="input-notify-mobile" class="col-sm-2 col-form-label">{{ entry_notify_mobile }}</label>
+              <div class="col-sm-10">
+                <input type="text" name="notify_mobile" value="{{ notify_mobile }}" placeholder="{{ entry_notify_mobile }}" id="input-notify-mobile" class="form-control" dir="ltr"/>
+                <div class="form-text">{{ help_notify_mobile }}</div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="input-notify-telegram-chat-id" class="col-sm-2 col-form-label">{{ entry_notify_telegram_chat_id }}</label>
+              <div class="col-sm-10">
+                <input type="text" name="notify_telegram_chat_id" value="{{ notify_telegram_chat_id }}" placeholder="{{ entry_notify_telegram_chat_id }}" id="input-notify-telegram-chat-id" class="form-control" dir="ltr"/>
+                <div class="form-text">{{ help_notify_telegram_chat_id }}</div>
+              </div>
+            </div>
+            <div class="row mb-3">
+              <label for="input-notify-bale-chat-id" class="col-sm-2 col-form-label">{{ entry_notify_bale_chat_id }}</label>
+              <div class="col-sm-10">
+                <input type="text" name="notify_bale_chat_id" value="{{ notify_bale_chat_id }}" placeholder="{{ entry_notify_bale_chat_id }}" id="input-notify-bale-chat-id" class="form-control" dir="ltr"/>
+                <div class="form-text">{{ help_notify_bale_chat_id }}</div>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset>
             <legend>{{ text_password }}</legend>
             <div class="row mb-3 required">
               <label for="input-password" class="col-sm-2 col-form-label">{{ entry_password }}</label>

@@ -244,6 +244,12 @@ class Setting extends \MDcart\System\Engine\Controller {
 		$data['config_customer_group_id'] = $this->config->get('config_customer_group_id');
 		$data['config_customer_group_display'] = (array)$this->config->get('config_customer_group_display');
 		$data['config_customer_price'] = $this->config->get('config_customer_price');
+
+		// Order notification recipients (roles) - shared across email, Telegram, Bale, WhatsApp and IPPanel
+		$this->load->model('user/user_group');
+
+		$data['user_groups'] = $this->model_user_user_group->getUserGroups();
+		$data['config_notify_admin_group_ids'] = (array)$this->config->get('config_notify_admin_group_ids');
 		$data['config_telephone_display'] = $this->config->get('config_telephone_display');
 		$data['config_telephone_required'] = $this->config->get('config_telephone_required');
 		$data['config_2fa'] = $this->config->get('config_2fa');

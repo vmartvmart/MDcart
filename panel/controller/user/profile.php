@@ -67,6 +67,17 @@ class Profile extends \MDcart\System\Engine\Controller {
 			$data['image'] = '';
 		}
 
+		// Order-notification contact details (used by the role-based admin notifications)
+		if (!empty($user_info)) {
+			$data['notify_mobile'] = $user_info['notify_mobile'] ?? '';
+			$data['notify_telegram_chat_id'] = $user_info['notify_telegram_chat_id'] ?? '';
+			$data['notify_bale_chat_id'] = $user_info['notify_bale_chat_id'] ?? '';
+		} else {
+			$data['notify_mobile'] = '';
+			$data['notify_telegram_chat_id'] = '';
+			$data['notify_bale_chat_id'] = '';
+		}
+
 		$this->load->model('tool/image');
 
 		$data['placeholder'] = $this->model_tool_image->resize('no_image.png', $this->config->get('config_image_default_width'), $this->config->get('config_image_default_height'));
@@ -183,6 +194,14 @@ class Profile extends \MDcart\System\Engine\Controller {
 			]);
 
 			$this->model_user_user->editUser($this->user->getId(), $user_data);
+
+			$notify_data = [
+				'notify_mobile'           => (string)($this->request->post['notify_mobile'] ?? ''),
+				'notify_telegram_chat_id' => (string)($this->request->post['notify_telegram_chat_id'] ?? ''),
+				'notify_bale_chat_id'     => (string)($this->request->post['notify_bale_chat_id'] ?? ''),
+			];
+
+			$this->model_user_user->editUserNotify($this->user->getId(), $notify_data);
 
 			$json['success'] = $this->language->get('text_success');
 		}
