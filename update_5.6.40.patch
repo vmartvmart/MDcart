@@ -1,0 +1,240 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index a6209ac..33618bd 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -268,5 +268,10 @@
+     "version": "5.6.39",
+     "fa": "اطلاع‌رسانی سفارش جدید به تیم حالا می‌تونه بر اساس نقش/سطح دسترسی کاربر ادمین هدفمند بشه، به‌جای اینکه فقط به یک ایمیل/شماره ثابت بره. توی تنظیمات ← عمومی، فیلد جدید «نقش‌های دریافت‌کننده اطلاع سفارش جدید» رو ببینید و هر گروه کاربری (مثلاً Administrator، Order Processing) که باید مطلع بشه رو تیک بزنید. هر کاربر ادمین هم باید یک‌بار توی پروفایل خودش (بالای صفحه، پروفایل) شماره موبایل و/یا چت‌آیدی تلگرام/بله خودش رو وارد کنه تا از اون طریق‌ها هم اطلاع بگیره. این اطلاع‌رسانی از طریق ایمیل، پیامک آی‌پی‌پنل، تلگرام، بله و واتس‌اپ کار می‌کنه - هرکدوم که از قبل فعال باشن. تنظیمات قبلی (یک ایمیل/شماره/چت‌آیدی ثابت برای مدیر) دست‌نخورده باقی موند و همچنان کار می‌کنه، این قابلیت جدید فقط به‌عنوان گیرنده‌های اضافی روی همون اضافه میشه.",
+     "en": "New-order notifications to the team can now target admin users by role, instead of only going to one fixed email/number. Under Settings > General, a new \"Roles Notified About New Orders\" field lets you check off each user group (e.g. Administrator, Order Processing) that should be notified. Each admin user also needs to enter their own mobile number and/or Telegram/Bale chat ID once on their own Profile page so they receive notifications through those channels too. This works across email, IPPanel SMS, Telegram, Bale and WhatsApp - whichever are already enabled. The previous single fixed admin email/number/chat-ID settings are untouched and still work; this is purely additive on top of them."
++  },
++  {
++    "version": "5.6.40",
++    "fa": "رفع باگ ترجمه انگلیسی برای ۱۲ صفحه/بخش از افزونه‌ها که تا الان یا اصلاً ترجمه نمی‌شدن یا فقط کلیدهای خام نشون می‌دادن، چون فایل‌های ترجمه‌شون توی پوشه‌ی en-gb بودن (که این فروشگاه دیگه بارگذاری نمی‌کنه - زبان انگلیسی واقعی این سایت us هست، نه en-gb). این شامل صفحات تنظیمات ادمین زرین‌پال، آی‌دی‌پی، پی‌پینگ و سیزپی (که حتی توی فارسی هم قبلاً خراب بودن، چون اصلاً فایل فارسی نداشتن - الان دارن)، تلگرام، بله، واتس‌اپ و آی‌پی‌پنل، هشدار اتمام موجودی (Stock Alert)، پیامک انبوه (Marketing Broadcast) و فید ترب (Torob) میشه. همچنین متن‌های سمت مشتری (صفحه‌ی پرداخت با درگاه‌های زرین‌پال/آی‌دی‌پی/پی‌پینگ/سیزپی/کارت‌به‌کارت، و پیام سفارش تلگرام/بله/آی‌پی‌پنل) هم همین مشکل رو داشتن، رفع شد. هیچ تغییری توی منطق یا رفتار این افزونه‌ها داده نشده - فقط فایل‌های ترجمه جابه‌جا/تکمیل شدن.",
++    "en": "Fixed the English-translation bug across 12 extension pages/areas that were either never translated or showed raw untranslated keys, because their language files lived in an en-gb folder this store no longer loads (this store's real English locale is us, not en-gb). This covers the ZarinPal, IDPay, PayPing and SizPay admin settings pages (which were actually broken in Persian too, since they had no Persian file at all until now), the Telegram, Bale, WhatsApp and IPPanel admin settings pages, and the Stock Alert, Marketing Broadcast, and Torob feed admin pages. The same bug also affected customer-facing checkout text for ZarinPal/IDPay/PayPing/SizPay/Card-to-Card and the Telegram/Bale/IPPanel order-notification message text, now fixed too. No behavior or logic was changed in any of these extensions - only the language files were moved/completed."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 06cf2f5..68ddac9 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.39
++5.6.40
+diff --git a/extension/bale/admin/language/en-gb/other/bale.php b/extension/bale/admin/language/us/other/bale.php
+similarity index 100%
+rename from extension/bale/admin/language/en-gb/other/bale.php
+rename to extension/bale/admin/language/us/other/bale.php
+diff --git a/extension/bale/catalog/language/en-gb/event/order.php b/extension/bale/catalog/language/us/event/order.php
+similarity index 100%
+rename from extension/bale/catalog/language/en-gb/event/order.php
+rename to extension/bale/catalog/language/us/event/order.php
+diff --git a/extension/ippanel/admin/language/en-gb/other/ippanel.php b/extension/ippanel/admin/language/us/other/ippanel.php
+similarity index 100%
+rename from extension/ippanel/admin/language/en-gb/other/ippanel.php
+rename to extension/ippanel/admin/language/us/other/ippanel.php
+diff --git a/extension/ippanel/catalog/language/en-gb/event/order.php b/extension/ippanel/catalog/language/us/event/order.php
+similarity index 100%
+rename from extension/ippanel/catalog/language/en-gb/event/order.php
+rename to extension/ippanel/catalog/language/us/event/order.php
+diff --git a/extension/iranian_gateways/admin/language/fa/payment/idpay.php b/extension/iranian_gateways/admin/language/fa/payment/idpay.php
+new file mode 100644
+index 0000000..8c9a822
+--- /dev/null
++++ b/extension/iranian_gateways/admin/language/fa/payment/idpay.php
+@@ -0,0 +1,27 @@
++<?php
++// Heading
++$_['heading_title']       = 'آی‌دی‌پی';
++
++// Text
++$_['text_extension']      = 'افزونه‌ها';
++$_['text_success']        = 'موفق: اطلاعات آی‌دی‌پی با موفقیت ویرایش شد!';
++$_['text_edit']           = 'ویرایش آی‌دی‌پی';
++$_['text_all_zones']      = 'همه مناطق';
++$_['text_callback_url']   = 'آدرس بازگشت (Callback URL)';
++
++// Entry
++$_['entry_api_key']       = 'کلید API';
++$_['entry_sandbox']       = 'حالت تست (Sandbox)';
++$_['entry_order_status']  = 'وضعیت سفارش (پرداخت موفق)';
++$_['entry_geo_zone']      = 'منطقه جغرافیایی';
++$_['entry_status']        = 'وضعیت';
++$_['entry_sort_order']    = 'ترتیب نمایش';
++
++// Help
++$_['help_api_key']        = 'کلید API (Web Service Key) از پنل آی‌دی‌پی شما (idpay.ir/dashboard/web-service).';
++$_['help_sandbox']        = 'استفاده از محیط تست آی‌دی‌پی برای آزمایش درگاه — پول واقعی جابه‌جا نمی‌شود. قبل از فعال شدن واقعی سایت، این گزینه را خاموش کنید.';
++$_['help_callback_url']   = 'اگر پنل آی‌دی‌پی آدرس بازگشت درخواست کرد، از این آدرس استفاده کنید.';
++
++// Error
++$_['error_permission']    = 'هشدار: شما اجازه ویرایش تنظیمات آی‌دی‌پی را ندارید!';
++$_['error_api_key']       = 'وارد کردن کلید API الزامی است!';
+diff --git a/extension/iranian_gateways/admin/language/fa/payment/payping.php b/extension/iranian_gateways/admin/language/fa/payment/payping.php
+new file mode 100644
+index 0000000..a36ab7d
+--- /dev/null
++++ b/extension/iranian_gateways/admin/language/fa/payment/payping.php
+@@ -0,0 +1,25 @@
++<?php
++// Heading
++$_['heading_title']       = 'پی‌پینگ';
++
++// Text
++$_['text_extension']      = 'افزونه‌ها';
++$_['text_success']        = 'موفق: اطلاعات پی‌پینگ با موفقیت ویرایش شد!';
++$_['text_edit']           = 'ویرایش پی‌پینگ';
++$_['text_all_zones']      = 'همه مناطق';
++$_['text_callback_url']   = 'آدرس بازگشت (Callback URL)';
++
++// Entry
++$_['entry_api_key']       = 'کلید API (توکن)';
++$_['entry_order_status']  = 'وضعیت سفارش (پرداخت موفق)';
++$_['entry_geo_zone']      = 'منطقه جغرافیایی';
++$_['entry_status']        = 'وضعیت';
++$_['entry_sort_order']    = 'ترتیب نمایش';
++
++// Help
++$_['help_api_key']        = 'توکن دسترسی از پنل پی‌پینگ شما (panel.payping.ir).';
++$_['help_callback_url']   = 'اگر پنل پی‌پینگ آدرس بازگشت درخواست کرد، از این آدرس استفاده کنید.';
++
++// Error
++$_['error_permission']    = 'هشدار: شما اجازه ویرایش تنظیمات پی‌پینگ را ندارید!';
++$_['error_api_key']       = 'وارد کردن کلید API الزامی است!';
+diff --git a/extension/iranian_gateways/admin/language/fa/payment/sizpay.php b/extension/iranian_gateways/admin/language/fa/payment/sizpay.php
+new file mode 100644
+index 0000000..68d8203
+--- /dev/null
++++ b/extension/iranian_gateways/admin/language/fa/payment/sizpay.php
+@@ -0,0 +1,31 @@
++<?php
++// Heading
++$_['heading_title']       = 'سیزپی';
++
++// Text
++$_['text_extension']      = 'افزونه‌ها';
++$_['text_success']        = 'موفق: اطلاعات سیزپی با موفقیت ویرایش شد!';
++$_['text_edit']           = 'ویرایش سیزپی';
++$_['text_all_zones']      = 'همه مناطق';
++$_['text_callback_url']   = 'آدرس بازگشت (Callback URL)';
++
++// Entry
++$_['entry_merchant_id']   = 'شناسه پذیرنده (Merchant ID)';
++$_['entry_terminal_id']   = 'شناسه ترمینال (Terminal ID)';
++$_['entry_username']      = 'نام کاربری';
++$_['entry_password']      = 'رمز عبور';
++$_['entry_order_status']  = 'وضعیت سفارش (پرداخت موفق)';
++$_['entry_geo_zone']      = 'منطقه جغرافیایی';
++$_['entry_status']        = 'وضعیت';
++$_['entry_sort_order']    = 'ترتیب نمایش';
++
++// Help
++$_['help_credentials']    = 'شناسه پذیرنده، شناسه ترمینال، نام کاربری و رمز عبور پس از تأیید درگاه شما توسط سیزپی (sizpay.ir) صادر می‌شوند.';
++$_['help_callback_url']   = 'اگر پنل سیزپی آدرس بازگشت درخواست کرد، از این آدرس استفاده کنید.';
++
++// Error
++$_['error_permission']    = 'هشدار: شما اجازه ویرایش تنظیمات سیزپی را ندارید!';
++$_['error_merchant_id']   = 'وارد کردن شناسه پذیرنده الزامی است!';
++$_['error_terminal_id']   = 'وارد کردن شناسه ترمینال الزامی است!';
++$_['error_username']      = 'وارد کردن نام کاربری الزامی است!';
++$_['error_password']      = 'وارد کردن رمز عبور الزامی است!';
+diff --git a/extension/iranian_gateways/admin/language/fa/payment/zarinpal.php b/extension/iranian_gateways/admin/language/fa/payment/zarinpal.php
+new file mode 100644
+index 0000000..04403ec
+--- /dev/null
++++ b/extension/iranian_gateways/admin/language/fa/payment/zarinpal.php
+@@ -0,0 +1,27 @@
++<?php
++// Heading
++$_['heading_title']       = 'زرین‌پال';
++
++// Text
++$_['text_extension']      = 'افزونه‌ها';
++$_['text_success']        = 'موفق: اطلاعات زرین‌پال با موفقیت ویرایش شد!';
++$_['text_edit']           = 'ویرایش زرین‌پال';
++$_['text_all_zones']      = 'همه مناطق';
++$_['text_callback_url']   = 'آدرس بازگشت (Callback URL)';
++
++// Entry
++$_['entry_merchant_id']   = 'شناسه پذیرنده (Merchant ID)';
++$_['entry_sandbox']       = 'حالت تست (Sandbox)';
++$_['entry_order_status']  = 'وضعیت سفارش (پرداخت موفق)';
++$_['entry_geo_zone']      = 'منطقه جغرافیایی';
++$_['entry_status']        = 'وضعیت';
++$_['entry_sort_order']    = 'ترتیب نمایش';
++
++// Help
++$_['help_merchant_id']    = 'شناسه پذیرنده ۳۶ کاراکتری از پنل زرین‌پال شما (panel.zarinpal.com).';
++$_['help_sandbox']        = 'استفاده از محیط تست زرین‌پال برای آزمایش درگاه — پول واقعی جابه‌جا نمی‌شود. قبل از فعال شدن واقعی سایت، این گزینه را خاموش کنید.';
++$_['help_callback_url']   = 'این آدرس را فقط در صورت درخواست زرین‌پال به آن‌ها بدهید — به‌صورت خودکار استفاده می‌شود و نیازی به تنظیم دستی در پنل آن‌ها نیست.';
++
++// Error
++$_['error_permission']    = 'هشدار: شما اجازه ویرایش تنظیمات زرین‌پال را ندارید!';
++$_['error_merchant_id']   = 'وارد کردن شناسه پذیرنده الزامی است!';
+diff --git a/extension/iranian_gateways/admin/language/en-gb/payment/idpay.php b/extension/iranian_gateways/admin/language/us/payment/idpay.php
+similarity index 100%
+rename from extension/iranian_gateways/admin/language/en-gb/payment/idpay.php
+rename to extension/iranian_gateways/admin/language/us/payment/idpay.php
+diff --git a/extension/iranian_gateways/admin/language/en-gb/payment/payping.php b/extension/iranian_gateways/admin/language/us/payment/payping.php
+similarity index 100%
+rename from extension/iranian_gateways/admin/language/en-gb/payment/payping.php
+rename to extension/iranian_gateways/admin/language/us/payment/payping.php
+diff --git a/extension/iranian_gateways/admin/language/en-gb/payment/sizpay.php b/extension/iranian_gateways/admin/language/us/payment/sizpay.php
+similarity index 100%
+rename from extension/iranian_gateways/admin/language/en-gb/payment/sizpay.php
+rename to extension/iranian_gateways/admin/language/us/payment/sizpay.php
+diff --git a/extension/iranian_gateways/admin/language/en-gb/payment/zarinpal.php b/extension/iranian_gateways/admin/language/us/payment/zarinpal.php
+similarity index 100%
+rename from extension/iranian_gateways/admin/language/en-gb/payment/zarinpal.php
+rename to extension/iranian_gateways/admin/language/us/payment/zarinpal.php
+diff --git a/extension/iranian_gateways/catalog/language/en-gb/payment/card_to_card.php b/extension/iranian_gateways/catalog/language/us/payment/card_to_card.php
+similarity index 100%
+rename from extension/iranian_gateways/catalog/language/en-gb/payment/card_to_card.php
+rename to extension/iranian_gateways/catalog/language/us/payment/card_to_card.php
+diff --git a/extension/iranian_gateways/catalog/language/en-gb/payment/idpay.php b/extension/iranian_gateways/catalog/language/us/payment/idpay.php
+similarity index 100%
+rename from extension/iranian_gateways/catalog/language/en-gb/payment/idpay.php
+rename to extension/iranian_gateways/catalog/language/us/payment/idpay.php
+diff --git a/extension/iranian_gateways/catalog/language/en-gb/payment/payping.php b/extension/iranian_gateways/catalog/language/us/payment/payping.php
+similarity index 100%
+rename from extension/iranian_gateways/catalog/language/en-gb/payment/payping.php
+rename to extension/iranian_gateways/catalog/language/us/payment/payping.php
+diff --git a/extension/iranian_gateways/catalog/language/en-gb/payment/sizpay.php b/extension/iranian_gateways/catalog/language/us/payment/sizpay.php
+similarity index 100%
+rename from extension/iranian_gateways/catalog/language/en-gb/payment/sizpay.php
+rename to extension/iranian_gateways/catalog/language/us/payment/sizpay.php
+diff --git a/extension/iranian_gateways/catalog/language/en-gb/payment/zarinpal.php b/extension/iranian_gateways/catalog/language/us/payment/zarinpal.php
+similarity index 100%
+rename from extension/iranian_gateways/catalog/language/en-gb/payment/zarinpal.php
+rename to extension/iranian_gateways/catalog/language/us/payment/zarinpal.php
+diff --git a/extension/marketing_broadcast/admin/language/en-gb/other/marketing_broadcast.php b/extension/marketing_broadcast/admin/language/us/other/marketing_broadcast.php
+similarity index 100%
+rename from extension/marketing_broadcast/admin/language/en-gb/other/marketing_broadcast.php
+rename to extension/marketing_broadcast/admin/language/us/other/marketing_broadcast.php
+diff --git a/extension/stock_alert/admin/language/en-gb/event/restock.php b/extension/stock_alert/admin/language/us/event/restock.php
+similarity index 100%
+rename from extension/stock_alert/admin/language/en-gb/event/restock.php
+rename to extension/stock_alert/admin/language/us/event/restock.php
+diff --git a/extension/stock_alert/admin/language/en-gb/other/stock_alert.php b/extension/stock_alert/admin/language/us/other/stock_alert.php
+similarity index 100%
+rename from extension/stock_alert/admin/language/en-gb/other/stock_alert.php
+rename to extension/stock_alert/admin/language/us/other/stock_alert.php
+diff --git a/extension/stock_alert/catalog/language/en-gb/product/stock_alert.php b/extension/stock_alert/catalog/language/us/product/stock_alert.php
+similarity index 100%
+rename from extension/stock_alert/catalog/language/en-gb/product/stock_alert.php
+rename to extension/stock_alert/catalog/language/us/product/stock_alert.php
+diff --git a/extension/telegram/admin/language/en-gb/other/telegram.php b/extension/telegram/admin/language/us/other/telegram.php
+similarity index 100%
+rename from extension/telegram/admin/language/en-gb/other/telegram.php
+rename to extension/telegram/admin/language/us/other/telegram.php
+diff --git a/extension/telegram/catalog/language/en-gb/event/order.php b/extension/telegram/catalog/language/us/event/order.php
+similarity index 100%
+rename from extension/telegram/catalog/language/en-gb/event/order.php
+rename to extension/telegram/catalog/language/us/event/order.php
+diff --git a/extension/torob/admin/language/en-gb/feed/torob.php b/extension/torob/admin/language/us/feed/torob.php
+similarity index 100%
+rename from extension/torob/admin/language/en-gb/feed/torob.php
+rename to extension/torob/admin/language/us/feed/torob.php
+diff --git a/extension/whatsapp/admin/language/en-gb/other/whatsapp.php b/extension/whatsapp/admin/language/us/other/whatsapp.php
+similarity index 100%
+rename from extension/whatsapp/admin/language/en-gb/other/whatsapp.php
+rename to extension/whatsapp/admin/language/us/other/whatsapp.php
