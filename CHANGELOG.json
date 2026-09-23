@@ -283,5 +283,10 @@
     "version": "5.6.42",
     "fa": "5.6.42: صفحه ورود مشتریان بازطراحی شد؛ حالا مثل دیجی‌کالا/تکنولایف یک فرم ساده دارد: ابتدا شماره موبایل یا ایمیل را وارد می‌کنید، سپس بر اساس اینکه حساب کاربری موجود است یا نه، فیلد رمز عبور (به همراه گزینه ورود با کد یکبار مصرف در صورت فعال بودن) نمایش داده می‌شود یا به صفحه ثبت‌نام با مقدار از پیش پر شده هدایت می‌شوید. حساب‌های موجود هرگز از طریق این بررسی فاش نمی‌شوند.",
     "en": "5.6.42: redesigned the customer login page into a single unified form like Digikala/Technolife: enter your mobile number or e-mail first, then - based on whether an account exists - a password field (plus an OTP-login link when eligible) appears, or you're sent to registration with the value prefilled. The existence check never reveals which e-mail is associated with a phone number."
+  },
+  {
+    "version": "5.6.43",
+    "fa": "5.6.43: باگ «دیجی‌پی به درگاه نمی‌رود» بررسی و برطرف شد - علت اصلی این بود که دیجی‌پی برخلاف بقیه درگاه‌ها به یک شماره موبایل معتبر نیاز دارد و وقتی مشتری شماره موبایل نداشت یا نامعتبر بود، خطای مبهمی از سمت دیجی‌پی برمی‌گشت که چیزی به مشتری نشان نمی‌داد؛ حالا این حالت زودتر تشخیص داده می‌شود و پیام روشنی نمایش داده می‌شود، و تمام خطاهای دیجی‌پی همیشه در لاگ سرور هم ثبت می‌شوند. همچنین صفحه انتخاب روش پرداخت در تسویه‌حساب بازطراحی شد: هر روش پرداخت حالا یک آیکون کنار نامش دارد و با فونت بزرگ‌تر و در قالب کارت‌های قابل‌کلیک نمایش داده می‌شود (نه فقط متن ریز کنار یک دایره انتخاب).",
+    "en": "5.6.43: investigated and fixed the \"DigiPay doesn't go to the gateway\" report - root cause was that DigiPay, unlike every other gateway in this store, requires a valid Iranian mobile number, and when the customer had none (or an invalid one) on file, DigiPay returned a generic rejection that showed the customer nothing actionable. This is now caught early with a clear message, and every DigiPay failure is now always written to the server error log for diagnosis. Also redesigned the checkout payment-method list: each method now shows a category icon next to its name in a larger, clickable card instead of small text next to a plain radio dot."
   }
 ]

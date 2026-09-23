@@ -50,12 +50,28 @@ window.loadPaymentMethods = function() {
                 }
 
                 if (json['payment_methods']) {
+                    // Generic per-category icons (not any gateway's own
+                    // brand logo/mark - see the 5.6.43 changelog note for
+                    // why) so the list isn't just a wall of same-size text;
+                    // keyed by the extension's own code (the "i" this loop
+                    // already iterates over). Anything not listed here
+                    // falls back to a plain card icon.
+                    var paymentMethodIcons = {
+                        'bank_transfer': 'fa-solid fa-building-columns',
+                        'cod': 'fa-solid fa-truck',
+                        'cheque': 'fa-solid fa-money-check-dollar',
+                        'free_checkout': 'fa-solid fa-circle-check',
+                        'card_to_card': 'fa-solid fa-building-columns'
+                    };
+
                     var html = '';
                     var first = true;
                     var method = $('#input-payment-code').val();
 
                     for (i in json['payment_methods']) {
                         if (!json['payment_methods'][i]['error']) {
+                            var icon = paymentMethodIcons[i] || 'fa-solid fa-credit-card';
+
                             for (j in json['payment_methods'][i]['option']) {
                                 var code = i + '-' + j.replaceAll('_', '-');
                                 var checked = (json['payment_methods'][i]['option'][j]['code'] == method) || (!method && first);
@@ -64,10 +80,11 @@ window.loadPaymentMethods = function() {
                                     first = false;
                                 }
 
-                                html += '<div class="form-check">';
-                                html += '  <input type="radio" name="payment_method" value="' + json['payment_methods'][i]['option'][j]['code'] + '" id="input-payment-method-' + code + '" class="form-check-input"' + (checked ? ' checked' : '') + '/>';
-                                html += '  <label for="input-payment-method-' + code + '" class="form-check-label">' + json['payment_methods'][i]['option'][j]['name'] + '</label>';
-                                html += '</div>';
+                                html += '<label for="input-payment-method-' + code + '" class="payment-method-option">';
+                                html += '  <input type="radio" name="payment_method" value="' + json['payment_methods'][i]['option'][j]['code'] + '" id="input-payment-method-' + code + '" class="form-check-input flex-shrink-0"' + (checked ? ' checked' : '') + '/>';
+                                html += '  <i class="' + icon + ' payment-method-icon"></i>';
+                                html += '  <span class="payment-method-name">' + json['payment_methods'][i]['option'][j]['name'] + '</span>';
+                                html += '</label>';
                             }
                         }
                     }

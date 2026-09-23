@@ -45,12 +45,30 @@ class Digipay extends \MDcart\System\Engine\Controller {
 		if (!$json && $order_info) {
 			$amount = $this->getRialAmount($order_info, $json);
 
+			$cell_number = '';
+
+			// DigiPay - unlike every other gateway in this store - requires a
+			// valid Iranian mobile number to open a ticket. If the customer's
+			// account has none on file (or it's not a real mobile number),
+			// DigiPay's API just rejects the ticket with a generic error that
+			// gives the customer no idea why - catch it here instead with a
+			// specific, actionable message.
+			if (!$json) {
+				$cell_number = $this->normalizeCellNumber((string)$order_info['telephone']);
+
+				if (!preg_match('/^09\d{9}$/', $cell_number)) {
+					$json['error'] = $this->language->get('error_telephone');
+				}
+			}
+
 			if (!$json) {
 				$digipay = $this->getClient();
 
 				$token = $digipay->login();
 
 				if ($token === null) {
+					error_log('MDcart digipay.confirm: login failed - ' . $digipay->error);
+
 					$json['error'] = $this->language->get('error_gateway');
 
 					if ($this->config->get('payment_digipay_sandbox')) {
@@ -65,9 +83,11 @@ class Digipay extends \MDcart\System\Engine\Controller {
 
 					$callback_url = str_replace('&amp;', '&', $this->url->link('extension/iranian_gateways/payment/digipay.callback', '', true));
 
-					$result = $digipay->createTicket($token, $this->normalizeCellNumber($order_info['telephone']), $amount, $provider_id, $callback_url);
+					$result = $digipay->createTicket($token, $cell_number, $amount, $provider_id, $callback_url);
 
 					if (!empty($result['error']) || empty($result['redirect_url'])) {
+						error_log('MDcart digipay.confirm: createTicket failed - ' . ($result['error'] ?? 'no redirect_url returned'));
+
 						$json['error'] = $this->language->get('error_gateway');
 
 						if ($this->config->get('payment_digipay_sandbox')) {
@@ -189,9 +209,13 @@ class Digipay extends \MDcart\System\Engine\Controller {
 	}
 
 	/**
-	 * Redirect to the failure page. In sandbox mode only, a short debug
-	 * reason is appended as a query string, matching the pattern already
-	 * used by BitPay's diagnostics in this store.
+	 * Redirect to the failure page. The reason is always written to the PHP
+	 * error log (so a failure can be diagnosed later even outside sandbox
+	 * mode - the callback route has no other way to surface anything to an
+	 * admin, since the customer's browser is the only thing "watching" this
+	 * request). In sandbox mode only, the same short debug reason is also
+	 * appended as a query string, matching the pattern already used by
+	 * BitPay's diagnostics in this store.
 	 *
 	 * @param string $failure_url
 	 * @param bool   $sandbox
@@ -200,6 +224,8 @@ class Digipay extends \MDcart\System\Engine\Controller {
 	 * @return void
 	 */
 	private function redirectFailure(string $failure_url, bool $sandbox, string $reason): void {
+		error_log('MDcart digipay.callback: ' . $reason);
+
 		if ($sandbox) {
 			$failure_url .= (str_contains($failure_url, '?') ? '&' : '?') . 'digipay_debug=' . rawurlencode($reason);
 		}
