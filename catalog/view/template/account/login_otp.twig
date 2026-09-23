@@ -16,7 +16,7 @@
           <form id="form-login-otp" action="{{ confirm }}" method="post" data-oc-toggle="ajax">
             <div class="mb-3">
               <label for="input-telephone" class="col-form-label">{{ entry_telephone }}</label>
-              <input type="text" name="telephone" value="" placeholder="{{ entry_telephone }}" id="input-telephone" class="form-control" inputmode="tel" dir="ltr"/>
+              <input type="text" name="telephone" value="{{ telephone }}" placeholder="{{ entry_telephone }}" id="input-telephone" class="form-control" inputmode="tel" dir="ltr"/>
               <div id="error-telephone" class="invalid-feedback"></div>
             </div>
             {% if redirect %}

@@ -45,6 +45,21 @@ class Register extends \MDcart\System\Engine\Controller {
 		$data['config_telephone_display'] = $this->config->get('config_telephone_display');
 		$data['config_telephone_required'] = $this->config->get('config_telephone_required');
 
+		// Prefill support: a visitor arriving from the unified login form's
+		// "no account found" check has already typed an e-mail address or
+		// mobile number - don't make them type it again.
+		if (isset($this->request->get['email'])) {
+			$data['email'] = (string)$this->request->get['email'];
+		} else {
+			$data['email'] = '';
+		}
+
+		if (isset($this->request->get['telephone'])) {
+			$data['telephone'] = (string)$this->request->get['telephone'];
+		} else {
+			$data['telephone'] = '';
+		}
+
 		// Create form token
 		$this->session->data['register_token'] = oc_token(26);
 
@@ -193,7 +208,13 @@ class Register extends \MDcart\System\Engine\Controller {
 				$json['error']['warning'] = $this->language->get('error_exists');
 			}
 
-			if ($this->config->get('config_telephone_required') && !oc_validate_length($post_info['telephone'], 3, 32)) {
+			// A mobile number is always required (and must be verified by
+			// SMS code before the account can be used) while mobile
+			// verification is enabled, regardless of the separate
+			// config_telephone_required store setting.
+			$otp_required = (bool)($this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender'));
+
+			if (($this->config->get('config_telephone_required') || $otp_required) && !oc_validate_length($post_info['telephone'], 3, 32)) {
 				$json['error']['telephone'] = $this->language->get('error_telephone');
 			}
 

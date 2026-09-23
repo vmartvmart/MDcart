@@ -75,6 +75,15 @@ class LoginOtp extends \MDcart\System\Engine\Controller {
 			$data['redirect'] = '';
 		}
 
+		// Prefill support: arriving from the unified login form, the
+		// mobile number the visitor already typed there is known - don't
+		// make them retype it.
+		if (isset($this->request->get['telephone'])) {
+			$data['telephone'] = (string)$this->request->get['telephone'];
+		} else {
+			$data['telephone'] = '';
+		}
+
 		$data['confirm'] = $this->url->link('account/login_otp.confirm', 'language=' . $this->config->get('config_language'));
 		$data['login'] = $this->url->link('account/login', 'language=' . $this->config->get('config_language'));
 

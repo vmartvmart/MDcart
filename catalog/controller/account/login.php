@@ -87,14 +87,20 @@ class Login extends \MDcart\System\Engine\Controller {
 		$this->session->data['login_token'] = oc_token(26);
 
 		$data['login'] = $this->url->link('account/login.login', 'language=' . $this->config->get('config_language') . '&login_token=' . $this->session->data['login_token']);
+		$data['check'] = $this->url->link('account/login.check', 'language=' . $this->config->get('config_language'));
 		$data['register'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language'));
 		$data['forgotten'] = $this->url->link('account/forgotten', 'language=' . $this->config->get('config_language'));
 
-		if ($this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender')) {
-			$data['login_otp'] = $this->url->link('account/login_otp', 'language=' . $this->config->get('config_language') . ($data['redirect'] ? '&redirect=' . urlencode((string)$data['redirect']) : ''));
+		// Prefill support: coming back from an identifier that turned out
+		// to have no matching account, the visitor doesn't have to retype
+		// it here either.
+		if (isset($this->request->get['identifier'])) {
+			$data['identifier'] = (string)$this->request->get['identifier'];
 		} else {
-			$data['login_otp'] = '';
+			$data['identifier'] = '';
 		}
+
+		$data['error_identifier'] = $this->language->get('error_identifier');
 
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['column_right'] = $this->load->controller('common/column_right');
@@ -116,14 +122,19 @@ class Login extends \MDcart\System\Engine\Controller {
 
 		$json = [];
 
-		// Stop any undefined index messages.
+		// Stop any undefined index messages. 'identifier' is the new
+		// unified email-or-mobile field; 'email' is kept as a fallback so
+		// nothing that still posts the old field name breaks.
 		$required = [
-			'email'    => '',
-			'password' => '',
-			'redirect' => ''
+			'identifier' => '',
+			'email'      => '',
+			'password'   => '',
+			'redirect'   => ''
 		];
 
 		$post_info = $this->request->post + $required;
+
+		$identifier = ($post_info['identifier'] !== '') ? (string)$post_info['identifier'] : (string)$post_info['email'];
 
 		$this->customer->logout();
 
@@ -135,7 +146,7 @@ class Login extends \MDcart\System\Engine\Controller {
 			// Check how many login attempts have been made.
 			$this->load->model('account/customer');
 
-			$login_info = $this->model_account_customer->getLoginAttempts($post_info['email']);
+			$login_info = $this->model_account_customer->getLoginAttempts($identifier);
 
 			if ($login_info && ($login_info['total'] >= $this->config->get('config_login_attempts')) && strtotime('-1 hour') < strtotime($login_info['date_modified'])) {
 				$json['error']['warning'] = $this->language->get('error_attempts');
@@ -143,15 +154,20 @@ class Login extends \MDcart\System\Engine\Controller {
 		}
 
 		if (!$json) {
-			// Check if customer has been approved.
-			$customer_info = $this->model_account_customer->getCustomerByEmail($post_info['email']);
+			// Resolve the identifier to a customer - email if it looks like
+			// one, otherwise treat it as a mobile number.
+			if (str_contains($identifier, '@')) {
+				$customer_info = $this->model_account_customer->getCustomerByEmail($identifier);
+			} else {
+				$customer_info = $this->model_account_customer->getCustomerByTelephone($identifier);
+			}
 
 			if ($customer_info && !$customer_info['status']) {
 				$json['error']['warning'] = $this->language->get('error_approved');
-			} elseif (!$this->customer->login($post_info['email'], html_entity_decode($post_info['password'], ENT_QUOTES, 'UTF-8'))) {
+			} elseif (!$customer_info || !$this->customer->login($customer_info['email'], html_entity_decode($post_info['password'], ENT_QUOTES, 'UTF-8'))) {
 				$json['error']['warning'] = $this->language->get('error_login');
 
-				$this->model_account_customer->addLoginAttempt($post_info['email']);
+				$this->model_account_customer->addLoginAttempt($identifier);
 			}
 		}
 
@@ -194,7 +210,7 @@ class Login extends \MDcart\System\Engine\Controller {
 			// Create customer token
 			$this->session->data['customer_token'] = oc_token(26);
 
-			$this->model_account_customer->deleteLoginAttempts($post_info['email']);
+			$this->model_account_customer->deleteLoginAttempts($identifier);
 
 			if (isset($post_info['redirect'])) {
 				$redirect = urldecode(html_entity_decode($post_info['redirect'], ENT_QUOTES, 'UTF-8'));
@@ -207,6 +223,68 @@ class Login extends \MDcart\System\Engine\Controller {
 				$json['redirect'] = $redirect . '&customer_token=' . $this->session->data['customer_token'];
 			} else {
 				$json['redirect'] = $this->url->link('account/account', 'language=' . $this->config->get('config_language') . '&customer_token=' . $this->session->data['customer_token'], true);
+			}
+		}
+
+		$this->response->addHeader('Content-Type: application/json');
+		$this->response->setOutput(json_encode($json));
+	}
+
+	/**
+	 * Check
+	 *
+	 * AJAX endpoint used by the unified login form: resolves a posted
+	 * email-or-mobile identifier to either an existing account (so the
+	 * template can reveal the password field, plus an OTP-login link when
+	 * eligible) or a new one (so the template can send the visitor into
+	 * registration with the typed value prefilled).
+	 *
+	 * Deliberately never returns the resolved e-mail address - a
+	 * phone-number identifier must not let a visitor probing with just a
+	 * phone number discover the e-mail address on the account.
+	 *
+	 * @return void
+	 */
+	public function check(): void {
+		$this->load->language('account/login');
+
+		$json = [];
+
+		$post_info = $this->request->post + ['identifier' => ''];
+
+		$identifier = trim((string)$post_info['identifier']);
+
+		if ($identifier === '') {
+			$json['error'] = $this->language->get('error_identifier');
+		}
+
+		if (!$json) {
+			$this->load->model('account/customer');
+
+			$is_email = str_contains($identifier, '@');
+
+			if ($is_email) {
+				$customer_info = $this->model_account_customer->getCustomerByEmail($identifier);
+			} else {
+				$customer_info = $this->model_account_customer->getCustomerByTelephone($identifier);
+			}
+
+			if ($customer_info) {
+				$json['state'] = 'existing';
+
+				if (!$is_email && $customer_info['telephone'] && $this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender')) {
+					$json['otp'] = $this->url->link('account/login_otp', 'language=' . $this->config->get('config_language') . '&telephone=' . urlencode($identifier));
+				} else {
+					$json['otp'] = '';
+				}
+			} else {
+				$json['state'] = 'new';
+
+				if ($is_email) {
+					$json['register'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language') . '&email=' . urlencode($identifier));
+				} else {
+					$json['register'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language') . '&telephone=' . urlencode($identifier));
+				}
 			}
 		}
 

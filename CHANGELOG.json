@@ -278,5 +278,10 @@
     "version": "5.6.41",
     "fa": "رفع باگ: وقتی مشتری با «ورود با شماره موبایل و کد یکبار مصرف» یا در مرحله‌ی تایید موبایل هنگام ثبت‌نام، پیامک به هر دلیلی ارسال نمی‌شد (مثلاً چون مایگریشن دیتابیس هنوز اجرا نشده بود، یا سرویس آی‌پی‌پنل خطا می‌داد)، صفحه کاملاً بی‌واکنش می‌موند - نه خطایی نشون داده می‌شد، نه هیچ اتفاقی می‌افتاد. حالا در این حالت یک پیام هشدار واضح نشون داده میشه (که به مشتری میگه دوباره امتحان کنه یا با پشتیبانی تماس بگیره) و جزئیات خطای واقعی هم برای بررسی بعدی لاگ میشه. هیچ تغییری در رفتار عادی (وقتی پیامک با موفقیت ارسال میشه) ایجاد نشده.",
     "en": "Fixed a bug where, if the SMS failed to send for any reason (e.g. the database migration hadn't been run yet, or the IPPanel service returned an error) during \"Login with mobile number & OTP\" or the mobile-verification step at registration, the page would just sit there completely unresponsive - no error, no visible reaction at all. It now shows a clear warning message (telling the customer to try again or contact support) and logs the real underlying error server-side for diagnosis. No change to normal behavior when the SMS sends successfully."
+  },
+  {
+    "version": "5.6.42",
+    "fa": "5.6.42: صفحه ورود مشتریان بازطراحی شد؛ حالا مثل دیجی‌کالا/تکنولایف یک فرم ساده دارد: ابتدا شماره موبایل یا ایمیل را وارد می‌کنید، سپس بر اساس اینکه حساب کاربری موجود است یا نه، فیلد رمز عبور (به همراه گزینه ورود با کد یکبار مصرف در صورت فعال بودن) نمایش داده می‌شود یا به صفحه ثبت‌نام با مقدار از پیش پر شده هدایت می‌شوید. حساب‌های موجود هرگز از طریق این بررسی فاش نمی‌شوند.",
+    "en": "5.6.42: redesigned the customer login page into a single unified form like Digikala/Technolife: enter your mobile number or e-mail first, then - based on whether an account exists - a password field (plus an OTP-login link when eligible) appears, or you're sent to registration with the value prefilled. The existence check never reveals which e-mail is associated with a phone number."
   }
 ]
