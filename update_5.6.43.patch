@@ -1,0 +1,218 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 38c322f..90cdc39 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -283,5 +283,10 @@
+     "version": "5.6.42",
+     "fa": "5.6.42: صفحه ورود مشتریان بازطراحی شد؛ حالا مثل دیجی‌کالا/تکنولایف یک فرم ساده دارد: ابتدا شماره موبایل یا ایمیل را وارد می‌کنید، سپس بر اساس اینکه حساب کاربری موجود است یا نه، فیلد رمز عبور (به همراه گزینه ورود با کد یکبار مصرف در صورت فعال بودن) نمایش داده می‌شود یا به صفحه ثبت‌نام با مقدار از پیش پر شده هدایت می‌شوید. حساب‌های موجود هرگز از طریق این بررسی فاش نمی‌شوند.",
+     "en": "5.6.42: redesigned the customer login page into a single unified form like Digikala/Technolife: enter your mobile number or e-mail first, then - based on whether an account exists - a password field (plus an OTP-login link when eligible) appears, or you're sent to registration with the value prefilled. The existence check never reveals which e-mail is associated with a phone number."
++  },
++  {
++    "version": "5.6.43",
++    "fa": "5.6.43: باگ «دیجی‌پی به درگاه نمی‌رود» بررسی و برطرف شد - علت اصلی این بود که دیجی‌پی برخلاف بقیه درگاه‌ها به یک شماره موبایل معتبر نیاز دارد و وقتی مشتری شماره موبایل نداشت یا نامعتبر بود، خطای مبهمی از سمت دیجی‌پی برمی‌گشت که چیزی به مشتری نشان نمی‌داد؛ حالا این حالت زودتر تشخیص داده می‌شود و پیام روشنی نمایش داده می‌شود، و تمام خطاهای دیجی‌پی همیشه در لاگ سرور هم ثبت می‌شوند. همچنین صفحه انتخاب روش پرداخت در تسویه‌حساب بازطراحی شد: هر روش پرداخت حالا یک آیکون کنار نامش دارد و با فونت بزرگ‌تر و در قالب کارت‌های قابل‌کلیک نمایش داده می‌شود (نه فقط متن ریز کنار یک دایره انتخاب).",
++    "en": "5.6.43: investigated and fixed the \"DigiPay doesn't go to the gateway\" report - root cause was that DigiPay, unlike every other gateway in this store, requires a valid Iranian mobile number, and when the customer had none (or an invalid one) on file, DigiPay returned a generic rejection that showed the customer nothing actionable. This is now caught early with a clear message, and every DigiPay failure is now always written to the server error log for diagnosis. Also redesigned the checkout payment-method list: each method now shows a category icon next to its name in a larger, clickable card instead of small text next to a plain radio dot."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 87b9684..ab365c9 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.42
++5.6.43
+diff --git a/catalog/view/stylesheet/stylesheet.css b/catalog/view/stylesheet/stylesheet.css
+index ed75fbd..7c8d3e7 100644
+--- a/catalog/view/stylesheet/stylesheet.css
++++ b/catalog/view/stylesheet/stylesheet.css
+@@ -609,6 +609,48 @@ footer h5 {
+    and common.js's ocSyncCartBadge(). Anchored to the icon's own <a>
+    (given "position-relative" in the template) rather than the <li>, so it
+    sits right at the icon's corner regardless of the list item's padding. */
++/* Checkout > payment method list (see payment_method.twig) - was plain
++   small Bootstrap .form-check text with no visual identifier per gateway,
++   flagged as too hard to read. Each row is now a full clickable card with
++   a category icon (see paymentMethodIcons in the twig's script) and a
++   larger label. */
++#payment-methods .payment-method-option {
++  display: flex;
++  align-items: center;
++  gap: .6rem;
++  padding: .65rem .75rem;
++  border: 1px solid var(--bs-border-color, #dee2e6);
++  border-radius: .375rem;
++  margin-bottom: .5rem;
++  cursor: pointer;
++}
++
++#payment-methods .payment-method-option:last-child {
++  margin-bottom: 0;
++}
++
++#payment-methods .payment-method-option:hover {
++  border-color: var(--bs-primary, #0d6efd);
++}
++
++#payment-methods .payment-method-option:has(input:checked) {
++  border-color: var(--bs-primary, #0d6efd);
++  background-color: rgba(13, 110, 253, .06);
++}
++
++#payment-methods .payment-method-icon {
++  font-size: 1.35rem;
++  width: 1.5em;
++  text-align: center;
++  flex-shrink: 0;
++  color: var(--bs-secondary-color, #6c757d);
++}
++
++#payment-methods .payment-method-name {
++  flex: 1 1 auto;
++  font-size: 1.05rem;
++}
++
+ #cart-count-badge {
+   /* Positioned relative to its <li> (see header.twig), not the <a> inside
+      it - the icon font's own line-height makes the <a> render a few
+diff --git a/catalog/view/template/checkout/payment_method.twig b/catalog/view/template/checkout/payment_method.twig
+index 3b47642..f254912 100644
+--- a/catalog/view/template/checkout/payment_method.twig
++++ b/catalog/view/template/checkout/payment_method.twig
+@@ -50,12 +50,28 @@ window.loadPaymentMethods = function() {
+                 }
+ 
+                 if (json['payment_methods']) {
++                    // Generic per-category icons (not any gateway's own
++                    // brand logo/mark - see the 5.6.43 changelog note for
++                    // why) so the list isn't just a wall of same-size text;
++                    // keyed by the extension's own code (the "i" this loop
++                    // already iterates over). Anything not listed here
++                    // falls back to a plain card icon.
++                    var paymentMethodIcons = {
++                        'bank_transfer': 'fa-solid fa-building-columns',
++                        'cod': 'fa-solid fa-truck',
++                        'cheque': 'fa-solid fa-money-check-dollar',
++                        'free_checkout': 'fa-solid fa-circle-check',
++                        'card_to_card': 'fa-solid fa-building-columns'
++                    };
++
+                     var html = '';
+                     var first = true;
+                     var method = $('#input-payment-code').val();
+ 
+                     for (i in json['payment_methods']) {
+                         if (!json['payment_methods'][i]['error']) {
++                            var icon = paymentMethodIcons[i] || 'fa-solid fa-credit-card';
++
+                             for (j in json['payment_methods'][i]['option']) {
+                                 var code = i + '-' + j.replaceAll('_', '-');
+                                 var checked = (json['payment_methods'][i]['option'][j]['code'] == method) || (!method && first);
+@@ -64,10 +80,11 @@ window.loadPaymentMethods = function() {
+                                     first = false;
+                                 }
+ 
+-                                html += '<div class="form-check">';
+-                                html += '  <input type="radio" name="payment_method" value="' + json['payment_methods'][i]['option'][j]['code'] + '" id="input-payment-method-' + code + '" class="form-check-input"' + (checked ? ' checked' : '') + '/>';
+-                                html += '  <label for="input-payment-method-' + code + '" class="form-check-label">' + json['payment_methods'][i]['option'][j]['name'] + '</label>';
+-                                html += '</div>';
++                                html += '<label for="input-payment-method-' + code + '" class="payment-method-option">';
++                                html += '  <input type="radio" name="payment_method" value="' + json['payment_methods'][i]['option'][j]['code'] + '" id="input-payment-method-' + code + '" class="form-check-input flex-shrink-0"' + (checked ? ' checked' : '') + '/>';
++                                html += '  <i class="' + icon + ' payment-method-icon"></i>';
++                                html += '  <span class="payment-method-name">' + json['payment_methods'][i]['option'][j]['name'] + '</span>';
++                                html += '</label>';
+                             }
+                         }
+                     }
+diff --git a/extension/iranian_gateways/catalog/controller/payment/digipay.php b/extension/iranian_gateways/catalog/controller/payment/digipay.php
+index 512812d..2698421 100644
+--- a/extension/iranian_gateways/catalog/controller/payment/digipay.php
++++ b/extension/iranian_gateways/catalog/controller/payment/digipay.php
+@@ -45,12 +45,30 @@ class Digipay extends \MDcart\System\Engine\Controller {
+ 		if (!$json && $order_info) {
+ 			$amount = $this->getRialAmount($order_info, $json);
+ 
++			$cell_number = '';
++
++			// DigiPay - unlike every other gateway in this store - requires a
++			// valid Iranian mobile number to open a ticket. If the customer's
++			// account has none on file (or it's not a real mobile number),
++			// DigiPay's API just rejects the ticket with a generic error that
++			// gives the customer no idea why - catch it here instead with a
++			// specific, actionable message.
++			if (!$json) {
++				$cell_number = $this->normalizeCellNumber((string)$order_info['telephone']);
++
++				if (!preg_match('/^09\d{9}$/', $cell_number)) {
++					$json['error'] = $this->language->get('error_telephone');
++				}
++			}
++
+ 			if (!$json) {
+ 				$digipay = $this->getClient();
+ 
+ 				$token = $digipay->login();
+ 
+ 				if ($token === null) {
++					error_log('MDcart digipay.confirm: login failed - ' . $digipay->error);
++
+ 					$json['error'] = $this->language->get('error_gateway');
+ 
+ 					if ($this->config->get('payment_digipay_sandbox')) {
+@@ -65,9 +83,11 @@ class Digipay extends \MDcart\System\Engine\Controller {
+ 
+ 					$callback_url = str_replace('&amp;', '&', $this->url->link('extension/iranian_gateways/payment/digipay.callback', '', true));
+ 
+-					$result = $digipay->createTicket($token, $this->normalizeCellNumber($order_info['telephone']), $amount, $provider_id, $callback_url);
++					$result = $digipay->createTicket($token, $cell_number, $amount, $provider_id, $callback_url);
+ 
+ 					if (!empty($result['error']) || empty($result['redirect_url'])) {
++						error_log('MDcart digipay.confirm: createTicket failed - ' . ($result['error'] ?? 'no redirect_url returned'));
++
+ 						$json['error'] = $this->language->get('error_gateway');
+ 
+ 						if ($this->config->get('payment_digipay_sandbox')) {
+@@ -189,9 +209,13 @@ class Digipay extends \MDcart\System\Engine\Controller {
+ 	}
+ 
+ 	/**
+-	 * Redirect to the failure page. In sandbox mode only, a short debug
+-	 * reason is appended as a query string, matching the pattern already
+-	 * used by BitPay's diagnostics in this store.
++	 * Redirect to the failure page. The reason is always written to the PHP
++	 * error log (so a failure can be diagnosed later even outside sandbox
++	 * mode - the callback route has no other way to surface anything to an
++	 * admin, since the customer's browser is the only thing "watching" this
++	 * request). In sandbox mode only, the same short debug reason is also
++	 * appended as a query string, matching the pattern already used by
++	 * BitPay's diagnostics in this store.
+ 	 *
+ 	 * @param string $failure_url
+ 	 * @param bool   $sandbox
+@@ -200,6 +224,8 @@ class Digipay extends \MDcart\System\Engine\Controller {
+ 	 * @return void
+ 	 */
+ 	private function redirectFailure(string $failure_url, bool $sandbox, string $reason): void {
++		error_log('MDcart digipay.callback: ' . $reason);
++
+ 		if ($sandbox) {
+ 			$failure_url .= (str_contains($failure_url, '?') ? '&' : '?') . 'digipay_debug=' . rawurlencode($reason);
+ 		}
+diff --git a/extension/iranian_gateways/catalog/language/fa/payment/digipay.php b/extension/iranian_gateways/catalog/language/fa/payment/digipay.php
+index 3e489ee..f0bff6c 100644
+--- a/extension/iranian_gateways/catalog/language/fa/payment/digipay.php
++++ b/extension/iranian_gateways/catalog/language/fa/payment/digipay.php
+@@ -10,4 +10,5 @@ $_['text_track_id']          = 'پرداخت از طریق دیجی‌پی. کد
+ $_['error_order']            = 'سفارش شما یافت نشد!';
+ $_['error_payment_method']   = 'روش پرداخت انتخاب نشده است!';
+ $_['error_currency']         = 'این سفارش به ریال ثبت نشده و امکان اتصال به دیجی‌پی وجود ندارد!';
++$_['error_telephone']        = 'برای پرداخت با دیجی‌پی به یک شماره موبایل معتبر ایرانی نیاز است. لطفاً شماره موبایل خود را در حساب کاربری خود تکمیل یا اصلاح کنید و دوباره تلاش کنید.';
+ $_['error_gateway']          = 'درخواست پرداخت توسط دیجی‌پی رد شد. لطفاً دوباره تلاش کنید.';
+diff --git a/extension/iranian_gateways/catalog/language/us/payment/digipay.php b/extension/iranian_gateways/catalog/language/us/payment/digipay.php
+index 47e221e..df4600a 100644
+--- a/extension/iranian_gateways/catalog/language/us/payment/digipay.php
++++ b/extension/iranian_gateways/catalog/language/us/payment/digipay.php
+@@ -10,4 +10,5 @@ $_['text_track_id']          = 'Paid via DigiPay. Tracking code: %s';
+ $_['error_order']            = 'Your order could not be found!';
+ $_['error_payment_method']   = 'Payment method not selected!';
+ $_['error_currency']         = 'This order is not in Iranian Rial and cannot be sent to DigiPay!';
++$_['error_telephone']        = 'DigiPay requires a valid Iranian mobile number to pay. Please add or correct your mobile number in your account and try again.';
+ $_['error_gateway']          = 'DigiPay rejected the payment request. Please try again.';

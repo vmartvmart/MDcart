@@ -1,0 +1,529 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 8a6f466..38c322f 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -278,5 +278,10 @@
+     "version": "5.6.41",
+     "fa": "رفع باگ: وقتی مشتری با «ورود با شماره موبایل و کد یکبار مصرف» یا در مرحله‌ی تایید موبایل هنگام ثبت‌نام، پیامک به هر دلیلی ارسال نمی‌شد (مثلاً چون مایگریشن دیتابیس هنوز اجرا نشده بود، یا سرویس آی‌پی‌پنل خطا می‌داد)، صفحه کاملاً بی‌واکنش می‌موند - نه خطایی نشون داده می‌شد، نه هیچ اتفاقی می‌افتاد. حالا در این حالت یک پیام هشدار واضح نشون داده میشه (که به مشتری میگه دوباره امتحان کنه یا با پشتیبانی تماس بگیره) و جزئیات خطای واقعی هم برای بررسی بعدی لاگ میشه. هیچ تغییری در رفتار عادی (وقتی پیامک با موفقیت ارسال میشه) ایجاد نشده.",
+     "en": "Fixed a bug where, if the SMS failed to send for any reason (e.g. the database migration hadn't been run yet, or the IPPanel service returned an error) during \"Login with mobile number & OTP\" or the mobile-verification step at registration, the page would just sit there completely unresponsive - no error, no visible reaction at all. It now shows a clear warning message (telling the customer to try again or contact support) and logs the real underlying error server-side for diagnosis. No change to normal behavior when the SMS sends successfully."
++  },
++  {
++    "version": "5.6.42",
++    "fa": "5.6.42: صفحه ورود مشتریان بازطراحی شد؛ حالا مثل دیجی‌کالا/تکنولایف یک فرم ساده دارد: ابتدا شماره موبایل یا ایمیل را وارد می‌کنید، سپس بر اساس اینکه حساب کاربری موجود است یا نه، فیلد رمز عبور (به همراه گزینه ورود با کد یکبار مصرف در صورت فعال بودن) نمایش داده می‌شود یا به صفحه ثبت‌نام با مقدار از پیش پر شده هدایت می‌شوید. حساب‌های موجود هرگز از طریق این بررسی فاش نمی‌شوند.",
++    "en": "5.6.42: redesigned the customer login page into a single unified form like Digikala/Technolife: enter your mobile number or e-mail first, then - based on whether an account exists - a password field (plus an OTP-login link when eligible) appears, or you're sent to registration with the value prefilled. The existence check never reveals which e-mail is associated with a phone number."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index cbb2530..87b9684 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.41
++5.6.42
+diff --git a/catalog/controller/account/login.php b/catalog/controller/account/login.php
+index ec0743e..afea57d 100644
+--- a/catalog/controller/account/login.php
++++ b/catalog/controller/account/login.php
+@@ -87,15 +87,21 @@ class Login extends \MDcart\System\Engine\Controller {
+ 		$this->session->data['login_token'] = oc_token(26);
+ 
+ 		$data['login'] = $this->url->link('account/login.login', 'language=' . $this->config->get('config_language') . '&login_token=' . $this->session->data['login_token']);
++		$data['check'] = $this->url->link('account/login.check', 'language=' . $this->config->get('config_language'));
+ 		$data['register'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language'));
+ 		$data['forgotten'] = $this->url->link('account/forgotten', 'language=' . $this->config->get('config_language'));
+ 
+-		if ($this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender')) {
+-			$data['login_otp'] = $this->url->link('account/login_otp', 'language=' . $this->config->get('config_language') . ($data['redirect'] ? '&redirect=' . urlencode((string)$data['redirect']) : ''));
++		// Prefill support: coming back from an identifier that turned out
++		// to have no matching account, the visitor doesn't have to retype
++		// it here either.
++		if (isset($this->request->get['identifier'])) {
++			$data['identifier'] = (string)$this->request->get['identifier'];
+ 		} else {
+-			$data['login_otp'] = '';
++			$data['identifier'] = '';
+ 		}
+ 
++		$data['error_identifier'] = $this->language->get('error_identifier');
++
+ 		$data['column_left'] = $this->load->controller('common/column_left');
+ 		$data['column_right'] = $this->load->controller('common/column_right');
+ 		$data['content_top'] = $this->load->controller('common/content_top');
+@@ -116,15 +122,20 @@ class Login extends \MDcart\System\Engine\Controller {
+ 
+ 		$json = [];
+ 
+-		// Stop any undefined index messages.
++		// Stop any undefined index messages. 'identifier' is the new
++		// unified email-or-mobile field; 'email' is kept as a fallback so
++		// nothing that still posts the old field name breaks.
+ 		$required = [
+-			'email'    => '',
+-			'password' => '',
+-			'redirect' => ''
++			'identifier' => '',
++			'email'      => '',
++			'password'   => '',
++			'redirect'   => ''
+ 		];
+ 
+ 		$post_info = $this->request->post + $required;
+ 
++		$identifier = ($post_info['identifier'] !== '') ? (string)$post_info['identifier'] : (string)$post_info['email'];
++
+ 		$this->customer->logout();
+ 
+ 		if (!isset($this->request->get['login_token']) || !isset($this->session->data['login_token']) || ($this->request->get['login_token'] != $this->session->data['login_token'])) {
+@@ -135,7 +146,7 @@ class Login extends \MDcart\System\Engine\Controller {
+ 			// Check how many login attempts have been made.
+ 			$this->load->model('account/customer');
+ 
+-			$login_info = $this->model_account_customer->getLoginAttempts($post_info['email']);
++			$login_info = $this->model_account_customer->getLoginAttempts($identifier);
+ 
+ 			if ($login_info && ($login_info['total'] >= $this->config->get('config_login_attempts')) && strtotime('-1 hour') < strtotime($login_info['date_modified'])) {
+ 				$json['error']['warning'] = $this->language->get('error_attempts');
+@@ -143,15 +154,20 @@ class Login extends \MDcart\System\Engine\Controller {
+ 		}
+ 
+ 		if (!$json) {
+-			// Check if customer has been approved.
+-			$customer_info = $this->model_account_customer->getCustomerByEmail($post_info['email']);
++			// Resolve the identifier to a customer - email if it looks like
++			// one, otherwise treat it as a mobile number.
++			if (str_contains($identifier, '@')) {
++				$customer_info = $this->model_account_customer->getCustomerByEmail($identifier);
++			} else {
++				$customer_info = $this->model_account_customer->getCustomerByTelephone($identifier);
++			}
+ 
+ 			if ($customer_info && !$customer_info['status']) {
+ 				$json['error']['warning'] = $this->language->get('error_approved');
+-			} elseif (!$this->customer->login($post_info['email'], html_entity_decode($post_info['password'], ENT_QUOTES, 'UTF-8'))) {
++			} elseif (!$customer_info || !$this->customer->login($customer_info['email'], html_entity_decode($post_info['password'], ENT_QUOTES, 'UTF-8'))) {
+ 				$json['error']['warning'] = $this->language->get('error_login');
+ 
+-				$this->model_account_customer->addLoginAttempt($post_info['email']);
++				$this->model_account_customer->addLoginAttempt($identifier);
+ 			}
+ 		}
+ 
+@@ -194,7 +210,7 @@ class Login extends \MDcart\System\Engine\Controller {
+ 			// Create customer token
+ 			$this->session->data['customer_token'] = oc_token(26);
+ 
+-			$this->model_account_customer->deleteLoginAttempts($post_info['email']);
++			$this->model_account_customer->deleteLoginAttempts($identifier);
+ 
+ 			if (isset($post_info['redirect'])) {
+ 				$redirect = urldecode(html_entity_decode($post_info['redirect'], ENT_QUOTES, 'UTF-8'));
+@@ -214,6 +230,68 @@ class Login extends \MDcart\System\Engine\Controller {
+ 		$this->response->setOutput(json_encode($json));
+ 	}
+ 
++	/**
++	 * Check
++	 *
++	 * AJAX endpoint used by the unified login form: resolves a posted
++	 * email-or-mobile identifier to either an existing account (so the
++	 * template can reveal the password field, plus an OTP-login link when
++	 * eligible) or a new one (so the template can send the visitor into
++	 * registration with the typed value prefilled).
++	 *
++	 * Deliberately never returns the resolved e-mail address - a
++	 * phone-number identifier must not let a visitor probing with just a
++	 * phone number discover the e-mail address on the account.
++	 *
++	 * @return void
++	 */
++	public function check(): void {
++		$this->load->language('account/login');
++
++		$json = [];
++
++		$post_info = $this->request->post + ['identifier' => ''];
++
++		$identifier = trim((string)$post_info['identifier']);
++
++		if ($identifier === '') {
++			$json['error'] = $this->language->get('error_identifier');
++		}
++
++		if (!$json) {
++			$this->load->model('account/customer');
++
++			$is_email = str_contains($identifier, '@');
++
++			if ($is_email) {
++				$customer_info = $this->model_account_customer->getCustomerByEmail($identifier);
++			} else {
++				$customer_info = $this->model_account_customer->getCustomerByTelephone($identifier);
++			}
++
++			if ($customer_info) {
++				$json['state'] = 'existing';
++
++				if (!$is_email && $customer_info['telephone'] && $this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender')) {
++					$json['otp'] = $this->url->link('account/login_otp', 'language=' . $this->config->get('config_language') . '&telephone=' . urlencode($identifier));
++				} else {
++					$json['otp'] = '';
++				}
++			} else {
++				$json['state'] = 'new';
++
++				if ($is_email) {
++					$json['register'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language') . '&email=' . urlencode($identifier));
++				} else {
++					$json['register'] = $this->url->link('account/register', 'language=' . $this->config->get('config_language') . '&telephone=' . urlencode($identifier));
++				}
++			}
++		}
++
++		$this->response->addHeader('Content-Type: application/json');
++		$this->response->setOutput(json_encode($json));
++	}
++
+ 	/**
+ 	 * Token
+ 	 *
+diff --git a/catalog/controller/account/login_otp.php b/catalog/controller/account/login_otp.php
+index adcd72e..b4c64a8 100644
+--- a/catalog/controller/account/login_otp.php
++++ b/catalog/controller/account/login_otp.php
+@@ -75,6 +75,15 @@ class LoginOtp extends \MDcart\System\Engine\Controller {
+ 			$data['redirect'] = '';
+ 		}
+ 
++		// Prefill support: arriving from the unified login form, the
++		// mobile number the visitor already typed there is known - don't
++		// make them retype it.
++		if (isset($this->request->get['telephone'])) {
++			$data['telephone'] = (string)$this->request->get['telephone'];
++		} else {
++			$data['telephone'] = '';
++		}
++
+ 		$data['confirm'] = $this->url->link('account/login_otp.confirm', 'language=' . $this->config->get('config_language'));
+ 		$data['login'] = $this->url->link('account/login', 'language=' . $this->config->get('config_language'));
+ 
+diff --git a/catalog/controller/account/register.php b/catalog/controller/account/register.php
+index aa37e04..e8c678e 100644
+--- a/catalog/controller/account/register.php
++++ b/catalog/controller/account/register.php
+@@ -45,6 +45,21 @@ class Register extends \MDcart\System\Engine\Controller {
+ 		$data['config_telephone_display'] = $this->config->get('config_telephone_display');
+ 		$data['config_telephone_required'] = $this->config->get('config_telephone_required');
+ 
++		// Prefill support: a visitor arriving from the unified login form's
++		// "no account found" check has already typed an e-mail address or
++		// mobile number - don't make them type it again.
++		if (isset($this->request->get['email'])) {
++			$data['email'] = (string)$this->request->get['email'];
++		} else {
++			$data['email'] = '';
++		}
++
++		if (isset($this->request->get['telephone'])) {
++			$data['telephone'] = (string)$this->request->get['telephone'];
++		} else {
++			$data['telephone'] = '';
++		}
++
+ 		// Create form token
+ 		$this->session->data['register_token'] = oc_token(26);
+ 
+@@ -193,7 +208,13 @@ class Register extends \MDcart\System\Engine\Controller {
+ 				$json['error']['warning'] = $this->language->get('error_exists');
+ 			}
+ 
+-			if ($this->config->get('config_telephone_required') && !oc_validate_length($post_info['telephone'], 3, 32)) {
++			// A mobile number is always required (and must be verified by
++			// SMS code before the account can be used) while mobile
++			// verification is enabled, regardless of the separate
++			// config_telephone_required store setting.
++			$otp_required = (bool)($this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender'));
++
++			if (($this->config->get('config_telephone_required') || $otp_required) && !oc_validate_length($post_info['telephone'], 3, 32)) {
+ 				$json['error']['telephone'] = $this->language->get('error_telephone');
+ 			}
+ 
+diff --git a/catalog/language/fa/account/login.php b/catalog/language/fa/account/login.php
+index 393289c..5fa34a9 100644
+--- a/catalog/language/fa/account/login.php
++++ b/catalog/language/fa/account/login.php
+@@ -5,20 +5,19 @@ $_['heading_title']                = 'ورود به حساب کاربری';
+ // Text
+ $_['text_account']                 = 'حساب کاربری';
+ $_['text_login']                   = 'ورود';
+-$_['text_new_customer']            = 'مشتری جدید';
+-$_['text_register']                = 'ایجاد حساب کاربری';
+-$_['text_register_account']        = 'با ایجاد یک حساب کاربری می‌توانید سریع‌تر خرید کنید، از وضعیت سفارش خود مطلع شوید و سفارش‌های قبلی خود را پیگیری کنید.';
+-$_['text_returning_customer']      = 'مشتری قدیمی';
+-$_['text_i_am_returning_customer'] = 'من مشتری قدیمی هستم';
++$_['text_new_customer']            = 'هنوز حساب کاربری ندارید؟';
++$_['text_register']                = 'ثبت‌نام';
+ $_['text_forgotten']               = 'فراموشی رمز عبور';
+ $_['text_login_otp']               = 'ورود با شماره موبایل و کد یکبار مصرف';
+ 
+ // Entry
++$_['entry_identifier']             = 'شماره موبایل یا آدرس ایمیل';
+ $_['entry_email']                  = 'آدرس ایمیل';
+ $_['entry_password']               = 'رمز عبور';
+ 
+ // Error
+ $_['error_token']                  = 'هشدار: نشست نامعتبر است. لطفاً دوباره وارد شوید!';
++$_['error_identifier']             = 'لطفاً شماره موبایل یا آدرس ایمیل خود را وارد کنید!';
+ $_['error_login']                  = 'هشدار: آدرس ایمیل و/یا رمز عبور مطابقت ندارد.';
+ $_['error_attempts']               = 'هشدار: تعداد تلاش‌های مجاز برای ورود به حساب شما به پایان رسیده است. لطفاً ۱ ساعت دیگر دوباره تلاش کنید.';
+ $_['error_approved']               = 'هشدار: حساب شما پیش از ورود نیاز به تأیید دارد.';
+diff --git a/catalog/language/fr-fr/account/login.php b/catalog/language/fr-fr/account/login.php
+index b338a32..e9c5449 100644
+--- a/catalog/language/fr-fr/account/login.php
++++ b/catalog/language/fr-fr/account/login.php
+@@ -5,19 +5,19 @@ $_['heading_title']                = 'Connexion au Compte';
+ // Texte
+ $_['text_account']                 = 'Compte';
+ $_['text_login']                   = 'Connexion';
+-$_['text_new_customer']            = 'Nouveau Client';
+-$_['text_register']                = 'Créer un Compte';
+-$_['text_register_account']        = 'En créant un compte, vous pourrez acheter plus rapidement, être informé du statut de vos commandes et suivre les commandes que vous avez déjà passées.';
+-$_['text_returning_customer']      = 'Client déjà enregistré';
+-$_['text_i_am_returning_customer'] = 'Je suis un client déjà enregistré';
++$_['text_new_customer']            = 'Vous n\'avez pas encore de compte ?';
++$_['text_register']                = 'Créer un compte';
+ $_['text_forgotten']               = 'Mot de passe oublié';
++$_['text_login_otp']               = 'Se connecter avec un numéro de mobile et un code à usage unique';
+ 
+ // Entrée
++$_['entry_identifier']             = 'Numéro de mobile ou adresse e-mail';
+ $_['entry_email']                  = 'Adresse e-mail';
+ $_['entry_password']               = 'Mot de passe';
+ 
+ // Erreur
+ $_['error_token']                  = 'Attention: Session de jeton invalide. Veuillez vous reconnecter !';
++$_['error_identifier']             = 'Veuillez saisir votre numéro de mobile ou votre adresse e-mail !';
+ $_['error_login']                  = 'Attention: Aucune correspondance pour l\'adresse e-mail et/ou le mot de passe.';
+ $_['error_attempts']               = 'Attention: Votre compte a dépassé le nombre autorisé de tentatives de connexion. Veuillez réessayer dans 1 heure.';
+ $_['error_approved']               = 'Attention: Votre compte nécessite une approbation avant de pouvoir vous connecter.';
+diff --git a/catalog/language/us/account/login.php b/catalog/language/us/account/login.php
+index f094b00..7e5bd2f 100644
+--- a/catalog/language/us/account/login.php
++++ b/catalog/language/us/account/login.php
+@@ -5,20 +5,19 @@ $_['heading_title']                = 'Account Login';
+ // Text
+ $_['text_account']                 = 'Account';
+ $_['text_login']                   = 'Login';
+-$_['text_new_customer']            = 'New Customer';
+-$_['text_register']                = 'Register Account';
+-$_['text_register_account']        = 'By creating an account you will be able to shop faster, be up to date on an order\'s status, and keep track of the orders you have previously made.';
+-$_['text_returning_customer']      = 'Returning Customer';
+-$_['text_i_am_returning_customer'] = 'I am a returning customer';
++$_['text_new_customer']            = 'Don\'t have an account yet?';
++$_['text_register']                = 'Register';
+ $_['text_forgotten']               = 'Forgotten Password';
+-$_['text_login_otp']               = 'Login with mobile number & OTP';
++$_['text_login_otp']               = 'Login with mobile number & OTP instead';
+ 
+ // Entry
++$_['entry_identifier']             = 'Mobile number or e-mail address';
+ $_['entry_email']                  = 'E-Mail Address';
+ $_['entry_password']               = 'Password';
+ 
+ // Error
+ $_['error_token']                  = 'Warning: Invalid token session. Please login again!';
++$_['error_identifier']             = 'Please enter your mobile number or e-mail address!';
+ $_['error_login']                  = 'Warning: No match for E-Mail Address and/or Password.';
+ $_['error_attempts']               = 'Warning: Your account has exceeded allowed number of login attempts. Please try again in 1 hour.';
+ $_['error_approved']               = 'Warning: Your account requires approval before you can login.';
+diff --git a/catalog/view/template/account/login.twig b/catalog/view/template/account/login.twig
+index cffa44a..81831bf 100644
+--- a/catalog/view/template/account/login.twig
++++ b/catalog/view/template/account/login.twig
+@@ -15,43 +15,40 @@
+     {{ column_left }}
+     <div id="content" class="col">
+       {{ content_top }}
+-      <div class="row">
+-        <div class="col mb-3">
+-          <div class="border rounded p-3 d-flex flex-column h-100">
+-            <h2>{{ text_new_customer }}</h2>
+-            <p><strong>{{ text_register }}</strong></p>
+-            <p>{{ text_register_account }}</p>
+-            <div class="text-end">
+-              <a href="{{ register }}" class="btn btn-primary">{{ button_continue }}</a>
+-            </div>
+-          </div>
+-        </div>
+-        <div class="col mb-3">
+-          <div class="border rounded p-3 d-flex flex-column h-100">
++      <div class="row justify-content-center">
++        <div class="col-md-6 col-lg-5 mb-3">
++          <div class="border rounded p-4">
++            <h1 class="h2 mb-3">{{ heading_title }}</h1>
+             <form id="form-login" action="{{ login }}" method="post" data-oc-toggle="ajax">
+-              <h2>{{ text_returning_customer }}</h2>
+-              <p><strong>{{ text_i_am_returning_customer }}</strong></p>
+-              <div class="mb-3">
+-                <label for="input-email" class="col-form-label">{{ entry_email }}</label>
+-                <input type="email" name="email" value="{{ email }}" placeholder="{{ entry_email }}" id="input-email" class="form-control"/>
++              <div class="mb-3" id="group-identifier">
++                <label for="input-identifier" class="col-form-label">{{ entry_identifier }}</label>
++                <div class="input-group">
++                  <input type="text" name="identifier" value="{{ identifier }}" placeholder="{{ entry_identifier }}" id="input-identifier" class="form-control" autofocus/>
++                  <button type="button" class="btn btn-outline-secondary d-none" id="button-change">{{ button_edit }}</button>
++                </div>
++                <div id="error-identifier" class="invalid-feedback"></div>
+               </div>
+-              <div class="mb-3">
++              <div class="mb-3 d-none" id="group-password">
+                 <label for="input-password" class="col-form-label">{{ entry_password }}</label>
+-                <input type="password" name="password" value="{{ password }}" placeholder="{{ entry_password }}" id="input-password" class="form-control mb-1"/>
++                <input type="password" name="password" value="" placeholder="{{ entry_password }}" id="input-password" class="form-control mb-1"/>
+                 <a href="{{ forgotten }}">{{ text_forgotten }}</a>
++                <div id="error-password" class="invalid-feedback"></div>
+               </div>
+               {% if redirect %}
+                 <input type="hidden" name="redirect" value="{{ redirect }}"/>
+               {% endif %}
++              <div class="text-end mb-2 d-none" id="group-login-otp">
++                <a href="" id="link-login-otp">{{ text_login_otp }}</a>
++              </div>
+               <div class="text-end">
+-                <button type="submit" class="btn btn-primary">{{ button_login }}</button>
++                <button type="button" id="button-check" class="btn btn-primary">{{ button_continue }}</button>
++                <button type="submit" id="button-login" class="btn btn-primary d-none">{{ button_login }}</button>
+               </div>
+-              {% if login_otp %}
+-                <div class="text-end mt-2">
+-                  <a href="{{ login_otp }}">{{ text_login_otp }}</a>
+-                </div>
+-              {% endif %}
+             </form>
++            <hr/>
++            <div class="text-center">
++              <span>{{ text_new_customer }}</span> <a href="{{ register }}">{{ text_register }}</a>
++            </div>
+           </div>
+         </div>
+       </div>
+@@ -60,4 +57,85 @@
+     {{ column_right }}
+   </div>
+ </div>
++<script type="text/javascript"><!--
++$(document).ready(function() {
++    'use strict';
++
++    $('#button-check').on('click', function() {
++        var button = this;
++        var identifier = $.trim($('#input-identifier').val());
++
++        $('#alert .alert-dismissible').remove();
++        $('#input-identifier').removeClass('is-invalid');
++        $('#error-identifier').removeClass('d-block').html('');
++
++        if (!identifier) {
++            $('#input-identifier').addClass('is-invalid');
++            $('#error-identifier').html('{{ error_identifier|e('js') }}').addClass('d-block');
++
++            return;
++        }
++
++        $(button).button('loading');
++
++        $.ajax({
++            url: '{{ check }}',
++            type: 'post',
++            data: {identifier: identifier},
++            dataType: 'json',
++            complete: function() {
++                $(button).button('reset');
++            },
++            success: function(json) {
++                if (json['error']) {
++                    $('#input-identifier').addClass('is-invalid');
++                    $('#error-identifier').html(json['error']).addClass('d-block');
++
++                    return;
++                }
++
++                if (json['state'] == 'new') {
++                    location = json['register'];
++
++                    return;
++                }
++
++                $('#input-identifier').prop('readonly', true);
++                $('#group-password').removeClass('d-none');
++                $('#button-check').addClass('d-none');
++                $('#button-change').removeClass('d-none');
++                $('#button-login').removeClass('d-none');
++                $('#input-password').trigger('focus');
++
++                if (json['otp']) {
++                    $('#link-login-otp').attr('href', json['otp']);
++                    $('#group-login-otp').removeClass('d-none');
++                }
++            },
++            error: function(xhr, ajaxOptions, thrownError) {
++                console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
++            }
++        });
++    });
++
++    $('#input-identifier').on('keydown', function(e) {
++        if ((e.which == 13) && $('#button-check').is(':visible')) {
++            e.preventDefault();
++
++            $('#button-check').trigger('click');
++        }
++    });
++
++    $('#button-change').on('click', function() {
++        // Let the visitor go back and check a different identifier.
++        $('#input-identifier').prop('readonly', false).trigger('focus');
++        $('#input-password').val('');
++        $('#group-password').addClass('d-none');
++        $('#group-login-otp').addClass('d-none');
++        $('#button-login').addClass('d-none');
++        $('#button-change').addClass('d-none');
++        $('#button-check').removeClass('d-none');
++    });
++});
++//--></script>
+ {{ footer }}
+diff --git a/catalog/view/template/account/login_otp.twig b/catalog/view/template/account/login_otp.twig
+index 3680bb4..f470978 100644
+--- a/catalog/view/template/account/login_otp.twig
++++ b/catalog/view/template/account/login_otp.twig
+@@ -16,7 +16,7 @@
+           <form id="form-login-otp" action="{{ confirm }}" method="post" data-oc-toggle="ajax">
+             <div class="mb-3">
+               <label for="input-telephone" class="col-form-label">{{ entry_telephone }}</label>
+-              <input type="text" name="telephone" value="" placeholder="{{ entry_telephone }}" id="input-telephone" class="form-control" inputmode="tel" dir="ltr"/>
++              <input type="text" name="telephone" value="{{ telephone }}" placeholder="{{ entry_telephone }}" id="input-telephone" class="form-control" inputmode="tel" dir="ltr"/>
+               <div id="error-telephone" class="invalid-feedback"></div>
+             </div>
+             {% if redirect %}
+diff --git a/catalog/view/template/account/register.twig b/catalog/view/template/account/register.twig
+index 116d392..48ea599 100644
+--- a/catalog/view/template/account/register.twig
++++ b/catalog/view/template/account/register.twig
+@@ -42,7 +42,7 @@
+           <div class="row mb-3 required">
+             <label for="input-email" class="col-sm-2 col-form-label">{{ entry_email }}</label>
+             <div class="col-sm-10">
+-              <input type="email" name="email" value="" placeholder="{{ entry_email }}" id="input-email" class="form-control"/>
++              <input type="email" name="email" value="{{ email }}" placeholder="{{ entry_email }}" id="input-email" class="form-control"/>
+               <div id="error-email" class="invalid-feedback"></div>
+             </div>
+           </div>
+@@ -51,7 +51,7 @@
+             <div class="row mb-3{% if config_telephone_required %} required{% endif %}">
+               <label for="input-telephone" class="col-sm-2 col-form-label">{{ entry_telephone }}</label>
+               <div class="col-sm-10">
+-                <input type="tel" name="telephone" value="" placeholder="{{ entry_telephone }}" id="input-telephone" class="form-control"/>
++                <input type="tel" name="telephone" value="{{ telephone }}" placeholder="{{ entry_telephone }}" id="input-telephone" class="form-control"/>
+                 <div id="error-telephone" class="invalid-feedback"></div>
+               </div>
+             </div>

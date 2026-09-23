@@ -187,18 +187,29 @@ class RegisterOtp extends \MDcart\System\Engine\Controller {
 
 			$this->load->model('account/customer');
 
-			$this->model_account_customer->addOtp($telephone, 'register', $code, $customer_id);
+			// See the matching try/catch in login_otp.php::confirm() - a DB
+			// or SMS-send failure here must surface a clear error, not fail
+			// silently.
+			try {
+				$this->model_account_customer->addOtp($telephone, 'register', $code, $customer_id);
 
-			$this->load->library('extension/ippanel/ippanel');
+				$this->load->library('extension/ippanel/ippanel');
 
-			$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
-				(string)$this->config->get('other_ippanel_api_key'),
-				(string)$this->config->get('other_ippanel_sender')
-			);
+				$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
+					(string)$this->config->get('other_ippanel_api_key'),
+					(string)$this->config->get('other_ippanel_sender')
+				);
 
-			$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code));
+				if (!$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code))) {
+					throw new \RuntimeException((string)$ippanel->error);
+				}
 
-			$json['success'] = $this->language->get('text_resent');
+				$json['success'] = $this->language->get('text_resent');
+			} catch (\Throwable $e) {
+				error_log('MDcart register_otp.resend: failed to send OTP SMS - ' . $e->getMessage());
+
+				$json['error']['warning'] = $this->language->get('error_send_failed');
+			}
 		}
 
 		$this->response->addHeader('Content-Type: application/json');

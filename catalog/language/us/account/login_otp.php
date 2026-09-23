@@ -22,3 +22,4 @@ $_['error_expired']   = 'The verification code has expired or could not be found
 $_['error_attempts']  = 'Too many incorrect attempts. Please try again.';
 $_['error_code']      = 'Verification code is incorrect!';
 $_['error_login']     = 'Warning: Unable to log in. Please try again.';
+$_['error_send_failed'] = 'Warning: The verification SMS could not be sent right now. Please try again shortly or contact support.';

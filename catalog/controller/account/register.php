@@ -257,6 +257,8 @@ class Register extends \MDcart\System\Engine\Controller {
 
 			$normalized_telephone = ($post_info['telephone'] !== '') ? $this->model_account_customer->normalizeTelephone($post_info['telephone']) : '';
 
+			$otp_send_failed = false;
+
 			if ($otp_enabled && ($normalized_telephone !== '')) {
 				// Phone verification is required before this account can be
 				// used - keep it pending (status = 0) regardless of the
@@ -269,10 +271,22 @@ class Register extends \MDcart\System\Engine\Controller {
 
 				$code = (string)random_int(100000, 999999);
 
-				$this->model_account_customer->addOtp($normalized_telephone, 'register', $code, $customer_id);
+				// A DB error (e.g. the customer_otp table not existing yet
+				// because the migration hasn't been run) or an SMS-send
+				// failure must not leave the customer on a dead-end page -
+				// see the matching try/catch in login_otp.php::confirm().
+				try {
+					$this->model_account_customer->addOtp($normalized_telephone, 'register', $code, $customer_id);
 
-				$this->sendOtpSms($normalized_telephone, $code);
+					$this->sendOtpSms($normalized_telephone, $code);
+				} catch (\Throwable $e) {
+					error_log('MDcart register.save: failed to send registration OTP SMS - ' . $e->getMessage());
 
+					$otp_send_failed = true;
+				}
+			}
+
+			if ($otp_enabled && ($normalized_telephone !== '') && !$otp_send_failed) {
 				$this->session->data['register_otp'] = [
 					'customer_id' => $customer_id,
 					'telephone'   => $normalized_telephone,
@@ -294,6 +308,11 @@ class Register extends \MDcart\System\Engine\Controller {
 				unset($this->session->data['payment_methods']);
 
 				$json['redirect'] = $this->url->link('account/register_otp', 'language=' . $this->config->get('config_language'), true);
+			} elseif ($otp_send_failed) {
+				// The account exists (pending, status = 0) but no working
+				// OTP code was sent - tell the customer plainly rather than
+				// send them to a verification page that can never succeed.
+				$json['error']['warning'] = $this->language->get('error_send_failed');
 			} else {
 				// Login if requires approval
 				if (!$customer_group_info['approval']) {

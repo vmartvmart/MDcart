@@ -1,0 +1,214 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 33618bd..8a6f466 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -273,5 +273,10 @@
+     "version": "5.6.40",
+     "fa": "رفع باگ ترجمه انگلیسی برای ۱۲ صفحه/بخش از افزونه‌ها که تا الان یا اصلاً ترجمه نمی‌شدن یا فقط کلیدهای خام نشون می‌دادن، چون فایل‌های ترجمه‌شون توی پوشه‌ی en-gb بودن (که این فروشگاه دیگه بارگذاری نمی‌کنه - زبان انگلیسی واقعی این سایت us هست، نه en-gb). این شامل صفحات تنظیمات ادمین زرین‌پال، آی‌دی‌پی، پی‌پینگ و سیزپی (که حتی توی فارسی هم قبلاً خراب بودن، چون اصلاً فایل فارسی نداشتن - الان دارن)، تلگرام، بله، واتس‌اپ و آی‌پی‌پنل، هشدار اتمام موجودی (Stock Alert)، پیامک انبوه (Marketing Broadcast) و فید ترب (Torob) میشه. همچنین متن‌های سمت مشتری (صفحه‌ی پرداخت با درگاه‌های زرین‌پال/آی‌دی‌پی/پی‌پینگ/سیزپی/کارت‌به‌کارت، و پیام سفارش تلگرام/بله/آی‌پی‌پنل) هم همین مشکل رو داشتن، رفع شد. هیچ تغییری توی منطق یا رفتار این افزونه‌ها داده نشده - فقط فایل‌های ترجمه جابه‌جا/تکمیل شدن.",
+     "en": "Fixed the English-translation bug across 12 extension pages/areas that were either never translated or showed raw untranslated keys, because their language files lived in an en-gb folder this store no longer loads (this store's real English locale is us, not en-gb). This covers the ZarinPal, IDPay, PayPing and SizPay admin settings pages (which were actually broken in Persian too, since they had no Persian file at all until now), the Telegram, Bale, WhatsApp and IPPanel admin settings pages, and the Stock Alert, Marketing Broadcast, and Torob feed admin pages. The same bug also affected customer-facing checkout text for ZarinPal/IDPay/PayPing/SizPay/Card-to-Card and the Telegram/Bale/IPPanel order-notification message text, now fixed too. No behavior or logic was changed in any of these extensions - only the language files were moved/completed."
++  },
++  {
++    "version": "5.6.41",
++    "fa": "رفع باگ: وقتی مشتری با «ورود با شماره موبایل و کد یکبار مصرف» یا در مرحله‌ی تایید موبایل هنگام ثبت‌نام، پیامک به هر دلیلی ارسال نمی‌شد (مثلاً چون مایگریشن دیتابیس هنوز اجرا نشده بود، یا سرویس آی‌پی‌پنل خطا می‌داد)، صفحه کاملاً بی‌واکنش می‌موند - نه خطایی نشون داده می‌شد، نه هیچ اتفاقی می‌افتاد. حالا در این حالت یک پیام هشدار واضح نشون داده میشه (که به مشتری میگه دوباره امتحان کنه یا با پشتیبانی تماس بگیره) و جزئیات خطای واقعی هم برای بررسی بعدی لاگ میشه. هیچ تغییری در رفتار عادی (وقتی پیامک با موفقیت ارسال میشه) ایجاد نشده.",
++    "en": "Fixed a bug where, if the SMS failed to send for any reason (e.g. the database migration hadn't been run yet, or the IPPanel service returned an error) during \"Login with mobile number & OTP\" or the mobile-verification step at registration, the page would just sit there completely unresponsive - no error, no visible reaction at all. It now shows a clear warning message (telling the customer to try again or contact support) and logs the real underlying error server-side for diagnosis. No change to normal behavior when the SMS sends successfully."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index 68ddac9..cbb2530 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.40
++5.6.41
+diff --git a/catalog/controller/account/login_otp.php b/catalog/controller/account/login_otp.php
+index e896ba5..adcd72e 100644
+--- a/catalog/controller/account/login_otp.php
++++ b/catalog/controller/account/login_otp.php
+@@ -121,17 +121,32 @@ class LoginOtp extends \MDcart\System\Engine\Controller {
+ 
+ 			$code = (string)random_int(100000, 999999);
+ 
+-			$this->model_account_customer->addOtp($telephone, 'login', $code, (int)$customer_info['customer_id']);
+-
+-			$this->load->library('extension/ippanel/ippanel');
+-
+-			$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
+-				(string)$this->config->get('other_ippanel_api_key'),
+-				(string)$this->config->get('other_ippanel_sender')
+-			);
++			// Never let a DB error (e.g. the customer_otp table not existing
++			// yet because the migration hasn't been run) or an SMS-send
++			// failure result in a silent dead end for the customer - surface
++			// a clear error instead, per this project's rule that code
++			// touching a migration-added table must degrade gracefully.
++			try {
++				$this->model_account_customer->addOtp($telephone, 'login', $code, (int)$customer_info['customer_id']);
++
++				$this->load->library('extension/ippanel/ippanel');
++
++				$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
++					(string)$this->config->get('other_ippanel_api_key'),
++					(string)$this->config->get('other_ippanel_sender')
++				);
++
++				if (!$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code))) {
++					throw new \RuntimeException((string)$ippanel->error);
++				}
++			} catch (\Throwable $e) {
++				error_log('MDcart login_otp.confirm: failed to send OTP SMS - ' . $e->getMessage());
+ 
+-			$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code));
++				$json['error']['warning'] = $this->language->get('error_send_failed');
++			}
++		}
+ 
++		if (!$json && isset($telephone)) {
+ 			$this->session->data['login_otp'] = [
+ 				'telephone'   => $telephone,
+ 				'customer_id' => (int)$customer_info['customer_id'],
+diff --git a/catalog/controller/account/register.php b/catalog/controller/account/register.php
+index 03123c7..aa37e04 100644
+--- a/catalog/controller/account/register.php
++++ b/catalog/controller/account/register.php
+@@ -257,6 +257,8 @@ class Register extends \MDcart\System\Engine\Controller {
+ 
+ 			$normalized_telephone = ($post_info['telephone'] !== '') ? $this->model_account_customer->normalizeTelephone($post_info['telephone']) : '';
+ 
++			$otp_send_failed = false;
++
+ 			if ($otp_enabled && ($normalized_telephone !== '')) {
+ 				// Phone verification is required before this account can be
+ 				// used - keep it pending (status = 0) regardless of the
+@@ -269,10 +271,22 @@ class Register extends \MDcart\System\Engine\Controller {
+ 
+ 				$code = (string)random_int(100000, 999999);
+ 
+-				$this->model_account_customer->addOtp($normalized_telephone, 'register', $code, $customer_id);
++				// A DB error (e.g. the customer_otp table not existing yet
++				// because the migration hasn't been run) or an SMS-send
++				// failure must not leave the customer on a dead-end page -
++				// see the matching try/catch in login_otp.php::confirm().
++				try {
++					$this->model_account_customer->addOtp($normalized_telephone, 'register', $code, $customer_id);
++
++					$this->sendOtpSms($normalized_telephone, $code);
++				} catch (\Throwable $e) {
++					error_log('MDcart register.save: failed to send registration OTP SMS - ' . $e->getMessage());
+ 
+-				$this->sendOtpSms($normalized_telephone, $code);
++					$otp_send_failed = true;
++				}
++			}
+ 
++			if ($otp_enabled && ($normalized_telephone !== '') && !$otp_send_failed) {
+ 				$this->session->data['register_otp'] = [
+ 					'customer_id' => $customer_id,
+ 					'telephone'   => $normalized_telephone,
+@@ -294,6 +308,11 @@ class Register extends \MDcart\System\Engine\Controller {
+ 				unset($this->session->data['payment_methods']);
+ 
+ 				$json['redirect'] = $this->url->link('account/register_otp', 'language=' . $this->config->get('config_language'), true);
++			} elseif ($otp_send_failed) {
++				// The account exists (pending, status = 0) but no working
++				// OTP code was sent - tell the customer plainly rather than
++				// send them to a verification page that can never succeed.
++				$json['error']['warning'] = $this->language->get('error_send_failed');
+ 			} else {
+ 				// Login if requires approval
+ 				if (!$customer_group_info['approval']) {
+diff --git a/catalog/controller/account/register_otp.php b/catalog/controller/account/register_otp.php
+index 0a4b778..a26e52f 100644
+--- a/catalog/controller/account/register_otp.php
++++ b/catalog/controller/account/register_otp.php
+@@ -187,18 +187,29 @@ class RegisterOtp extends \MDcart\System\Engine\Controller {
+ 
+ 			$this->load->model('account/customer');
+ 
+-			$this->model_account_customer->addOtp($telephone, 'register', $code, $customer_id);
++			// See the matching try/catch in login_otp.php::confirm() - a DB
++			// or SMS-send failure here must surface a clear error, not fail
++			// silently.
++			try {
++				$this->model_account_customer->addOtp($telephone, 'register', $code, $customer_id);
+ 
+-			$this->load->library('extension/ippanel/ippanel');
++				$this->load->library('extension/ippanel/ippanel');
+ 
+-			$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
+-				(string)$this->config->get('other_ippanel_api_key'),
+-				(string)$this->config->get('other_ippanel_sender')
+-			);
++				$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
++					(string)$this->config->get('other_ippanel_api_key'),
++					(string)$this->config->get('other_ippanel_sender')
++				);
+ 
+-			$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code));
++				if (!$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code))) {
++					throw new \RuntimeException((string)$ippanel->error);
++				}
++
++				$json['success'] = $this->language->get('text_resent');
++			} catch (\Throwable $e) {
++				error_log('MDcart register_otp.resend: failed to send OTP SMS - ' . $e->getMessage());
+ 
+-			$json['success'] = $this->language->get('text_resent');
++				$json['error']['warning'] = $this->language->get('error_send_failed');
++			}
+ 		}
+ 
+ 		$this->response->addHeader('Content-Type: application/json');
+diff --git a/catalog/language/fa/account/login_otp.php b/catalog/language/fa/account/login_otp.php
+index 5aaa86f..54149d2 100644
+--- a/catalog/language/fa/account/login_otp.php
++++ b/catalog/language/fa/account/login_otp.php
+@@ -22,3 +22,4 @@ $_['error_expired']   = 'کد تایید منقضی شده یا یافت نشد.
+ $_['error_attempts']  = 'تعداد تلاش‌های نادرست بیش از حد مجاز است. لطفاً دوباره تلاش کنید.';
+ $_['error_code']      = 'کد تایید وارد شده صحیح نیست!';
+ $_['error_login']     = 'هشدار: امکان ورود وجود ندارد. لطفاً دوباره تلاش کنید.';
++$_['error_send_failed'] = 'هشدار: در حال حاضر امکان ارسال پیامک وجود ندارد. لطفاً کمی بعد دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.';
+diff --git a/catalog/language/fa/account/register.php b/catalog/language/fa/account/register.php
+index d5e26c7..c4da7ef 100644
+--- a/catalog/language/fa/account/register.php
++++ b/catalog/language/fa/account/register.php
+@@ -37,3 +37,4 @@ $_['error_password_number']    = 'عدد';
+ $_['error_password_symbol']    = 'نماد';
+ $_['error_password_length']    = 'رمز عبور باید بین %d تا ۴۰ کاراکتر باشد!';
+ $_['error_agree']              = 'هشدار: باید %s را بپذیرید!';
++$_['error_send_failed']        = 'هشدار: حساب شما ساخته شد اما در حال حاضر امکان ارسال پیامک تایید وجود ندارد. لطفاً کمی بعد دوباره ثبت‌نام را امتحان کنید یا با پشتیبانی تماس بگیرید.';
+diff --git a/catalog/language/fa/account/register_otp.php b/catalog/language/fa/account/register_otp.php
+index 8c62e5f..62f3ce8 100644
+--- a/catalog/language/fa/account/register_otp.php
++++ b/catalog/language/fa/account/register_otp.php
+@@ -22,3 +22,4 @@ $_['button_continue']              = 'تایید';
+ $_['error_expired']                = 'کد تایید منقضی شده یا یافت نشد. لطفاً کد جدید درخواست کنید.';
+ $_['error_attempts']               = 'تعداد تلاش‌های نادرست بیش از حد مجاز است. لطفاً کد جدید درخواست کنید.';
+ $_['error_code']                   = 'کد تایید وارد شده صحیح نیست!';
++$_['error_send_failed']            = 'هشدار: در حال حاضر امکان ارسال پیامک وجود ندارد. لطفاً کمی بعد دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.';
+diff --git a/catalog/language/us/account/login_otp.php b/catalog/language/us/account/login_otp.php
+index 0f2b6a0..066583f 100644
+--- a/catalog/language/us/account/login_otp.php
++++ b/catalog/language/us/account/login_otp.php
+@@ -22,3 +22,4 @@ $_['error_expired']   = 'The verification code has expired or could not be found
+ $_['error_attempts']  = 'Too many incorrect attempts. Please try again.';
+ $_['error_code']      = 'Verification code is incorrect!';
+ $_['error_login']     = 'Warning: Unable to log in. Please try again.';
++$_['error_send_failed'] = 'Warning: The verification SMS could not be sent right now. Please try again shortly or contact support.';
+diff --git a/catalog/language/us/account/register.php b/catalog/language/us/account/register.php
+index 6c33cb2..903c355 100644
+--- a/catalog/language/us/account/register.php
++++ b/catalog/language/us/account/register.php
+@@ -37,3 +37,4 @@ $_['error_password_number']    = 'number';
+ $_['error_password_symbol']    = 'symbol';
+ $_['error_password_length']    = 'Password must be between %d and 40 characters!';
+ $_['error_agree']              = 'Warning: You must agree to the %s!';
++$_['error_send_failed']        = 'Warning: Your account was created, but the verification SMS could not be sent right now. Please try registering again shortly or contact support.';
+diff --git a/catalog/language/us/account/register_otp.php b/catalog/language/us/account/register_otp.php
+index a63b51c..6332303 100644
+--- a/catalog/language/us/account/register_otp.php
++++ b/catalog/language/us/account/register_otp.php
+@@ -22,3 +22,4 @@ $_['button_continue']              = 'Continue';
+ $_['error_expired']                = 'The verification code has expired or could not be found. Please request a new code.';
+ $_['error_attempts']               = 'Too many incorrect attempts. Please request a new code.';
+ $_['error_code']                   = 'Verification code is incorrect!';
++$_['error_send_failed']            = 'Warning: The verification SMS could not be sent right now. Please try again shortly or contact support.';

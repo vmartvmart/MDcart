@@ -121,17 +121,32 @@ class LoginOtp extends \MDcart\System\Engine\Controller {
 
 			$code = (string)random_int(100000, 999999);
 
-			$this->model_account_customer->addOtp($telephone, 'login', $code, (int)$customer_info['customer_id']);
+			// Never let a DB error (e.g. the customer_otp table not existing
+			// yet because the migration hasn't been run) or an SMS-send
+			// failure result in a silent dead end for the customer - surface
+			// a clear error instead, per this project's rule that code
+			// touching a migration-added table must degrade gracefully.
+			try {
+				$this->model_account_customer->addOtp($telephone, 'login', $code, (int)$customer_info['customer_id']);
 
-			$this->load->library('extension/ippanel/ippanel');
+				$this->load->library('extension/ippanel/ippanel');
 
-			$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
-				(string)$this->config->get('other_ippanel_api_key'),
-				(string)$this->config->get('other_ippanel_sender')
-			);
+				$ippanel = new \MDcart\System\Library\Extension\Ippanel\Ippanel(
+					(string)$this->config->get('other_ippanel_api_key'),
+					(string)$this->config->get('other_ippanel_sender')
+				);
 
-			$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code));
+				if (!$ippanel->send($telephone, sprintf($this->language->get('text_sms_otp'), $code))) {
+					throw new \RuntimeException((string)$ippanel->error);
+				}
+			} catch (\Throwable $e) {
+				error_log('MDcart login_otp.confirm: failed to send OTP SMS - ' . $e->getMessage());
 
+				$json['error']['warning'] = $this->language->get('error_send_failed');
+			}
+		}
+
+		if (!$json && isset($telephone)) {
 			$this->session->data['login_otp'] = [
 				'telephone'   => $telephone,
 				'customer_id' => (int)$customer_info['customer_id'],

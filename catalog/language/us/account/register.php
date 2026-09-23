@@ -37,3 +37,4 @@ $_['error_password_number']    = 'number';
 $_['error_password_symbol']    = 'symbol';
 $_['error_password_length']    = 'Password must be between %d and 40 characters!';
 $_['error_agree']              = 'Warning: You must agree to the %s!';
+$_['error_send_failed']        = 'Warning: Your account was created, but the verification SMS could not be sent right now. Please try registering again shortly or contact support.';

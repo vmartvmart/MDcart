@@ -22,3 +22,4 @@ $_['button_continue']              = 'Continue';
 $_['error_expired']                = 'The verification code has expired or could not be found. Please request a new code.';
 $_['error_attempts']               = 'Too many incorrect attempts. Please request a new code.';
 $_['error_code']                   = 'Verification code is incorrect!';
+$_['error_send_failed']            = 'Warning: The verification SMS could not be sent right now. Please try again shortly or contact support.';
