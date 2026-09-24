@@ -1,0 +1,407 @@
+diff --git a/CHANGELOG.json b/CHANGELOG.json
+index 90cdc39..ee27828 100644
+--- a/CHANGELOG.json
++++ b/CHANGELOG.json
+@@ -288,5 +288,10 @@
+     "version": "5.6.43",
+     "fa": "5.6.43: باگ «دیجی‌پی به درگاه نمی‌رود» بررسی و برطرف شد - علت اصلی این بود که دیجی‌پی برخلاف بقیه درگاه‌ها به یک شماره موبایل معتبر نیاز دارد و وقتی مشتری شماره موبایل نداشت یا نامعتبر بود، خطای مبهمی از سمت دیجی‌پی برمی‌گشت که چیزی به مشتری نشان نمی‌داد؛ حالا این حالت زودتر تشخیص داده می‌شود و پیام روشنی نمایش داده می‌شود، و تمام خطاهای دیجی‌پی همیشه در لاگ سرور هم ثبت می‌شوند. همچنین صفحه انتخاب روش پرداخت در تسویه‌حساب بازطراحی شد: هر روش پرداخت حالا یک آیکون کنار نامش دارد و با فونت بزرگ‌تر و در قالب کارت‌های قابل‌کلیک نمایش داده می‌شود (نه فقط متن ریز کنار یک دایره انتخاب).",
+     "en": "5.6.43: investigated and fixed the \"DigiPay doesn't go to the gateway\" report - root cause was that DigiPay, unlike every other gateway in this store, requires a valid Iranian mobile number, and when the customer had none (or an invalid one) on file, DigiPay returned a generic rejection that showed the customer nothing actionable. This is now caught early with a clear message, and every DigiPay failure is now always written to the server error log for diagnosis. Also redesigned the checkout payment-method list: each method now shows a category icon next to its name in a larger, clickable card instead of small text next to a plain radio dot."
++  },
++  {
++    "version": "5.6.44",
++    "fa": "5.6.44: قابلیت «نو / کارکرده» برای کالاها اضافه شد. برای هر کالا در تب «داده‌ها»، ادمین می‌تواند وضعیت آن را نو یا کارکرده مشخص کند که به مشتری هم نمایش داده می‌شود (روی صفحه محصول و روی تصویر کوچک در لیست‌ها). برای کالاهایی که هم به‌صورت نو و هم کارکرده با قیمت و موجودی جداگانه فروخته می‌شوند، یک گزینه آماده به نام «وضعیت» به تب «گزینه‌ها»ی هر محصول اضافه شد که با دو مقدار نو/کارکرده، قیمت و موجودی کاملاً جدا برای هرکدام قابل تنظیم است و مشتری با یک دکمه بین آن‌ها انتخاب می‌کند (نه لیست کشویی). راهنمای استفاده در پیام جداگانه توضیح داده شده.",
++    "en": "5.6.44: added a \"new/used\" condition to products. On each product's Data tab, the admin can mark it as new or used, shown to the customer both on the product page and as a badge on its thumbnail in listings. For products sold as BOTH new and used at separate prices and separately tracked stock, a ready-made \"Condition\" option (New/Used) was seeded onto every product's Options tab - each value gets its own independent price and quantity, and the customer picks between them with a button (not a dropdown) since all radio-type options on the product page are now rendered as a button group instead of plain radio dots."
+   }
+ ]
+diff --git a/VERSION b/VERSION
+index ab365c9..a28ebdd 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-5.6.43
++5.6.44
+diff --git a/catalog/controller/product/product.php b/catalog/controller/product/product.php
+index 1b00512..87dae5e 100644
+--- a/catalog/controller/product/product.php
++++ b/catalog/controller/product/product.php
+@@ -261,6 +261,7 @@ class Product extends \MDcart\System\Engine\Controller {
+ 
+ 			$data['manufacturers'] = $this->url->link('product/manufacturer.info', 'language=' . $this->config->get('config_language') . '&manufacturer_id=' . $product_info['manufacturer_id']);
+ 			$data['model'] = $product_info['model'];
++			$data['condition'] = $product_info['condition'] ?? 'new';
+ 
+ 			$data['product_codes'] = [];
+ 
+diff --git a/catalog/language/fa/product/product.php b/catalog/language/fa/product/product.php
+index 5f50b37..80b0b22 100644
+--- a/catalog/language/fa/product/product.php
++++ b/catalog/language/fa/product/product.php
+@@ -4,6 +4,8 @@ $_['text_search']                = 'جستجو';
+ $_['text_brand']                 = 'برند';
+ $_['text_manufacturer']          = 'برند:';
+ $_['text_model']                 = 'کد محصول:';
++$_['text_condition_new']         = 'نو';
++$_['text_condition_used']        = 'کارکرده';
+ $_['text_reward']                = 'امتیاز پاداش:';
+ $_['text_points']                = 'قیمت بر حسب امتیاز پاداش:';
+ $_['text_stock']                 = 'موجودی:';
+diff --git a/catalog/language/fa/product/thumb.php b/catalog/language/fa/product/thumb.php
+index 5f855b5..2f8eb15 100644
+--- a/catalog/language/fa/product/thumb.php
++++ b/catalog/language/fa/product/thumb.php
+@@ -2,3 +2,4 @@
+ // Text
+ $_['text_price'] = 'قیمت:';
+ $_['text_tax']   = 'بدون مالیات:';
++$_['text_condition_used'] = 'کارکرده';
+diff --git a/catalog/language/fr-fr/product/product.php b/catalog/language/fr-fr/product/product.php
+index 888edae..c7d891a 100644
+--- a/catalog/language/fr-fr/product/product.php
++++ b/catalog/language/fr-fr/product/product.php
+@@ -4,6 +4,8 @@ $_['text_search']                = 'Recherche';
+ $_['text_brand']                 = 'Marque';
+ $_['text_manufacturer']          = 'Marque:';
+ $_['text_model']                 = 'Code produit:';
++$_['text_condition_new']         = 'Neuf';
++$_['text_condition_used']        = 'Occasion';
+ $_['text_reward']                = 'Points de récompenses:';
+ $_['text_points']                = 'Prix en points de récompenses:';
+ $_['text_stock']                 = 'Disponibilité:';
+diff --git a/catalog/language/fr-fr/product/thumb.php b/catalog/language/fr-fr/product/thumb.php
+index 4def348..1538e09 100644
+--- a/catalog/language/fr-fr/product/thumb.php
++++ b/catalog/language/fr-fr/product/thumb.php
+@@ -2,3 +2,4 @@
+ // Texte
+ $_['text_price'] = 'Prix:';
+ $_['text_tax']   = 'Hors taxes:';
++$_['text_condition_used'] = 'Occasion';
+diff --git a/catalog/language/us/product/product.php b/catalog/language/us/product/product.php
+index 02751e8..e374f4e 100644
+--- a/catalog/language/us/product/product.php
++++ b/catalog/language/us/product/product.php
+@@ -4,6 +4,8 @@ $_['text_search']                = 'Search';
+ $_['text_brand']                 = 'Brand';
+ $_['text_manufacturer']          = 'Brand:';
+ $_['text_model']                 = 'Product Code:';
++$_['text_condition_new']         = 'New';
++$_['text_condition_used']        = 'Used';
+ $_['text_reward']                = 'Reward Points:';
+ $_['text_points']                = 'Price in reward points:';
+ $_['text_stock']                 = 'Availability:';
+diff --git a/catalog/language/us/product/thumb.php b/catalog/language/us/product/thumb.php
+index c34e4b8..8ff14cf 100644
+--- a/catalog/language/us/product/thumb.php
++++ b/catalog/language/us/product/thumb.php
+@@ -2,3 +2,4 @@
+ // Text
+ $_['text_price'] = 'Price:';
+ $_['text_tax']   = 'Ex Tax:';
++$_['text_condition_used'] = 'Used';
+diff --git a/catalog/view/stylesheet/stylesheet.css b/catalog/view/stylesheet/stylesheet.css
+index 7c8d3e7..c784afa 100644
+--- a/catalog/view/stylesheet/stylesheet.css
++++ b/catalog/view/stylesheet/stylesheet.css
+@@ -609,6 +609,23 @@ footer h5 {
+    and common.js's ocSyncCartBadge(). Anchored to the icon's own <a>
+    (given "position-relative" in the template) rather than the <li>, so it
+    sits right at the icon's corner regardless of the list item's padding. */
++/* Product thumbnail "Used" badge (see product/thumb.twig) - a small
++   corner ribbon over the image, shown only for condition == 'used' so a
++   normal (new) product's thumbnail is unchanged. `.product-thumb .image`
++   needs position:relative as the positioning context; that class has no
++   other positioning rule today so this is safe to add here rather than
++   in a theme file. */
++.product-thumb .image {
++  position: relative;
++}
++
++.product-thumb .condition-badge {
++  position: absolute;
++  top: .5rem;
++  inset-inline-start: .5rem;
++  z-index: 1;
++}
++
+ /* Checkout > payment method list (see payment_method.twig) - was plain
+    small Bootstrap .form-check text with no visual identifier per gateway,
+    flagged as too hard to read. Each row is now a full clickable card with
+diff --git a/catalog/view/template/product/product.twig b/catalog/view/template/product/product.twig
+index 8bc6a07..d4f0117 100644
+--- a/catalog/view/template/product/product.twig
++++ b/catalog/view/template/product/product.twig
+@@ -26,7 +26,7 @@
+           </div>
+         {% endif %}
+         <div class="col-sm">
+-          <h1>{{ heading_title }}</h1>
++          <h1>{{ heading_title }}{% if condition == 'used' %} <span class="badge text-bg-secondary align-middle">{{ text_condition_used }}</span>{% endif %}</h1>
+           <ul class="list-unstyled">
+             {% if manufacturer %}
+               <li>{{ text_manufacturer }} <a href="{{ manufacturers }}">{{ manufacturer }}</a></li>
+@@ -113,20 +113,27 @@
+                     {% endif %}
+ 
+                     {% if option.type == 'radio' %}
++                      {# Rendered as a Bootstrap button group (input type=radio
++                         with the .btn-check class, hidden, paired with a
++                         <label class="btn">) rather than plain radio dots -
++                         reads as a set of clickable buttons, e.g. for a
++                         "Condition: New / Used" choice with its own price
++                         and stock per value (see the product_condition and
++                         condition_option_seed migrations). #}
+                       <div class="mb-3{% if option.required %} required{% endif %}">
+                         <label class="form-label">{{ option.name }}</label>
+-                        <div id="input-option-{{ option.product_option_id }}">
++                        <div id="input-option-{{ option.product_option_id }}" class="btn-group flex-wrap" role="group">
+                           {% for option_value in option.product_option_value %}
+-                            <div class="form-check">
+-                              <input type="radio" name="option[{{ option.product_option_id }}]" value="{{ option_value.product_option_value_id }}" id="input-option-value-{{ option_value.product_option_value_id }}" class="form-check-input"/>
+-                              <label for="input-option-value-{{ option_value.product_option_value_id }}" class="form-check-label">
+-                                {% if option_value.image %}
+-                                  <img src="{{ option_value.image }}" alt="{{ option_value.name }} {% if option_value.price %}{{ option_value.price_prefix }} {{ option_value.price }}{% endif %}" class="img-thumbnail"/>{% endif %}
+-                                {{ option_value.name }}
+-                                {% if option_value.price %}
+-                                  ({{ option_value.price_prefix }}{{ option_value.price }})
+-                                {% endif %}</label>
+-                            </div>
++                            <input type="radio" name="option[{{ option.product_option_id }}]" value="{{ option_value.product_option_value_id }}" id="input-option-value-{{ option_value.product_option_value_id }}" class="btn-check" autocomplete="off"/>
++                            <label for="input-option-value-{{ option_value.product_option_value_id }}" class="btn btn-outline-secondary">
++                              {% if option_value.image %}
++                                <img src="{{ option_value.image }}" alt="{{ option_value.name }} {% if option_value.price %}{{ option_value.price_prefix }} {{ option_value.price }}{% endif %}" class="img-thumbnail d-block mx-auto mb-1"/>
++                              {% endif %}
++                              {{ option_value.name }}
++                              {% if option_value.price %}
++                                ({{ option_value.price_prefix }}{{ option_value.price }})
++                              {% endif %}
++                            </label>
+                           {% endfor %}
+                         </div>
+                         <div id="error-option-{{ option.product_option_id }}" class="invalid-feedback"></div>
+diff --git a/catalog/view/template/product/thumb.twig b/catalog/view/template/product/thumb.twig
+index dd20b37..32edf1c 100644
+--- a/catalog/view/template/product/thumb.twig
++++ b/catalog/view/template/product/thumb.twig
+@@ -1,5 +1,8 @@
+ <div class="product-thumb">
+-  <div class="image"><a href="{{ href }}"><img src="{{ thumb }}" alt="{{ name }}" title="{{ name }}" class="img-fluid"/></a></div>
++  <div class="image">
++    {% if condition == 'used' %}<span class="condition-badge badge text-bg-secondary">{{ text_condition_used }}</span>{% endif %}
++    <a href="{{ href }}"><img src="{{ thumb }}" alt="{{ name }}" title="{{ name }}" class="img-fluid"/></a>
++  </div>
+   <div class="content">
+     <div class="description">
+       <h4><a href="{{ href }}">{{ name }}</a></h4>
+diff --git a/panel/controller/catalog/product.php b/panel/controller/catalog/product.php
+index 411ffa7..13c7bb9 100644
+--- a/panel/controller/catalog/product.php
++++ b/panel/controller/catalog/product.php
+@@ -684,6 +684,12 @@ class Product extends \MDcart\System\Engine\Controller {
+ 			$data['model'] = '';
+ 		}
+ 
++		if (!empty($product_info)) {
++			$data['condition'] = $product_info['condition'];
++		} else {
++			$data['condition'] = 'new';
++		}
++
+ 		// Product Identifiers
+ 		$this->load->model('catalog/identifier');
+ 
+@@ -1213,6 +1219,7 @@ class Product extends \MDcart\System\Engine\Controller {
+ 			'master_id'           => 0,
+ 			'product_description' => [],
+ 			'model'               => '',
++			'condition'           => 'new',
+ 			'product_code'        => [],
+ 			'location'            => '',
+ 			'variant'             => [],
+diff --git a/panel/language/fa/catalog/product.php b/panel/language/fa/catalog/product.php
+index a2870ce..43da83c 100644
+--- a/panel/language/fa/catalog/product.php
++++ b/panel/language/fa/catalog/product.php
+@@ -12,6 +12,8 @@ $_['text_variant_add']           = 'افزودن متغیر';
+ $_['text_general']               = 'عمومی';
+ $_['text_meta']                  = 'متا تگ‌ها';
+ $_['text_model']                 = 'مدل';
++$_['text_condition_new']         = 'نو';
++$_['text_condition_used']        = 'کارکرده';
+ $_['text_price']                 = 'قیمت';
+ $_['text_stock']                 = 'موجودی';
+ $_['text_specification']         = 'مشخصات';
+@@ -71,6 +73,7 @@ $_['entry_meta_description']     = 'توضیحات متا تگ';
+ $_['entry_store']                = 'فروشگاه‌ها';
+ $_['entry_keyword']              = 'کلمه کلیدی';
+ $_['entry_model']                = 'مدل';
++$_['entry_condition']            = 'وضعیت کالا';
+ $_['entry_product_code']         = 'کدهای محصول';
+ $_['entry_location']             = 'محل نگهداری';
+ $_['entry_shipping']             = 'نیاز به ارسال دارد';
+@@ -124,6 +127,7 @@ $_['help_tag']                   = 'با ویرگول جدا کنید';
+ $_['help_minimum']               = 'حداقل مقدار سفارش را الزامی کنید';
+ $_['help_max_customer_quantity'] = 'حداکثر تعدادی که یک مشتری (با حساب کاربری خودش) در طول زمان می‌تواند از این محصول سفارش بدهد - جمع سفارش‌های قبلی تایید‌شده به‌علاوه‌ی آنچه الان در سبد اوست. عدد ۰ یعنی بدون محدودیت. برای مهمان (بدون ورود به حساب کاربری) فقط سبد خرید فعلی بررسی می‌شود، چون سفارش‌های قبلی مهمان قابل ردیابی نیست.';
+ $_['help_stock_status']          = 'وضعیتی که هنگام اتمام موجودی محصول نمایش داده می‌شود';
++$_['help_condition']             = 'به مشتری نمایش داده می‌شود. اگر این کالا هم به‌صورت نو و هم کارکرده با قیمت و موجودی جداگانه فروخته می‌شود، از تب «گزینه‌ها» و گزینه آماده «وضعیت» استفاده کنید تا مشتری بتواند بین نو و کارکرده انتخاب کند.';
+ $_['help_preorder_status']       = 'در صورت فعال بودن، مشتریان در فروشگاه اینترنتی حتی پس از اتمام موجودی می‌توانند این محصول را به‌صورت پیش‌سفارش ثبت کنند. در صندوق فروش (POS) همیشه امکان فروش پیش‌سفارش برای هر محصولی وجود دارد، چون کاربر POS خودش نماینده تایید ادمین است.';
+ $_['help_preorder_lead_days']    = 'برای پیشنهاد خودکار تاریخ تحویل استفاده می‌شود (پیش‌سفارش‌های فروشگاه اینترنتی و مقدار پیش‌فرض در تقویم POS). اگر خالی بماند باز هم هنگام فروش باید تاریخ به‌صورت دستی انتخاب شود.';
+ $_['help_manufacturer']          = '(تکمیل خودکار)';
+diff --git a/panel/language/us/catalog/product.php b/panel/language/us/catalog/product.php
+index befc26b..43915e2 100644
+--- a/panel/language/us/catalog/product.php
++++ b/panel/language/us/catalog/product.php
+@@ -12,6 +12,8 @@ $_['text_variant_add']           = 'Add Variant';
+ $_['text_general']               = 'General';
+ $_['text_meta']                  = 'Meta Tags';
+ $_['text_model']                 = 'Model';
++$_['text_condition_new']         = 'New';
++$_['text_condition_used']        = 'Used';
+ $_['text_price']                 = 'Price';
+ $_['text_stock']                 = 'Stock';
+ $_['text_specification']         = 'Specification';
+@@ -84,6 +86,7 @@ $_['entry_meta_description']     = 'Meta Tag Description';
+ $_['entry_store']                = 'Stores';
+ $_['entry_keyword']              = 'Keyword';
+ $_['entry_model']                = 'Model';
++$_['entry_condition']            = 'Condition';
+ $_['entry_product_code']         = 'Product Codes';
+ $_['entry_location']             = 'Location';
+ $_['entry_shipping']             = 'Requires Shipping';
+@@ -137,6 +140,7 @@ $_['help_tag']                   = 'Comma separated';
+ $_['help_minimum']               = 'Force a minimum ordered amount';
+ $_['help_max_customer_quantity'] = 'The most a single customer (their own account) can ever order of this product, in total - their already-confirmed past orders plus whatever is currently in their cart. 0 means unlimited. For a guest (not logged in), only their current cart is checked, since a guest\'s past orders can\'t be tracked.';
+ $_['help_stock_status']          = 'Status shown when a product is out of stock';
++$_['help_condition']             = 'Shown to the customer. If this product is sold both new and used at separate prices/stock, use the Options tab instead and attach the ready-made "Condition" option so the customer can choose between them.';
+ $_['help_preorder_status']       = 'If enabled, customers on the storefront can still order this product once it is out of stock, as a pre-order. Point of Sale can always offer a pre-order on any product regardless of this setting, since a cashier already represents admin approval.';
+ $_['help_preorder_lead_days']    = 'Used to auto-suggest a delivery date (storefront pre-orders, and the default shown on the POS date picker). Leave blank for no default - a date will still need to be picked at sale time.';
+ $_['help_manufacturer']          = '(Autocomplete)';
+diff --git a/panel/model/catalog/product.php b/panel/model/catalog/product.php
+index ac8ef3a..046dab3 100644
+--- a/panel/model/catalog/product.php
++++ b/panel/model/catalog/product.php
+@@ -56,7 +56,7 @@ class Product extends \MDcart\System\Engine\Model {
+ 	 * $product_id = $this->model_catalog_product->addProduct($product_data);
+ 	 */
+ 	public function addProduct(array $data): int {
+-		$this->db->query("INSERT INTO `" . DB_PREFIX . "product` SET `master_id` = '" . (int)$data['master_id'] . "', `model` = '" . $this->db->escape((string)$data['model']) . "', `location` = '" . $this->db->escape((string)$data['location']) . "', `variant` = '" . $this->db->escape(!empty($data['variant']) ? json_encode($data['variant']) : '') . "', `override` = '" . $this->db->escape(!empty($data['override']) ? json_encode($data['override']) : '') . "', `quantity` = '" . (int)$data['quantity'] . "', `minimum` = '" . (int)$data['minimum'] . "', `max_customer_quantity` = '" . (int)($data['max_customer_quantity'] ?? 0) . "', `subtract` = '" . (isset($data['subtract']) ? (bool)$data['subtract'] : 0) . "', `stock_status_id` = '" . (int)$data['stock_status_id'] . "', `preorder_status` = '" . (isset($data['preorder_status']) ? (bool)$data['preorder_status'] : 0) . "', `preorder_lead_days` = " . (!empty($data['preorder_lead_days']) ? "'" . (int)$data['preorder_lead_days'] . "'" : "NULL") . ", `date_available` = '" . $this->db->escape((string)$data['date_available']) . "', `manufacturer_id` = '" . (int)$data['manufacturer_id'] . "', `shipping` = '" . (isset($data['shipping']) ? (bool)$data['shipping'] : 0) . "', `price` = '" . (float)$data['price'] . "', `points` = '" . (int)$data['points'] . "', `weight` = '" . (float)$data['weight'] . "', `weight_class_id` = '" . (int)$data['weight_class_id'] . "', `length` = '" . (float)$data['length'] . "', `width` = '" . (float)$data['width'] . "', `height` = '" . (float)$data['height'] . "', `length_class_id` = '" . (int)$data['length_class_id'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `tax_class_id` = '" . (int)$data['tax_class_id'] . "', `sort_order` = '" . (int)$data['sort_order'] . "', `date_added` = NOW(), `date_modified` = NOW()");
++		$this->db->query("INSERT INTO `" . DB_PREFIX . "product` SET `master_id` = '" . (int)$data['master_id'] . "', `model` = '" . $this->db->escape((string)$data['model']) . "', `condition` = '" . (($data['condition'] ?? 'new') === 'used' ? 'used' : 'new') . "', `location` = '" . $this->db->escape((string)$data['location']) . "', `variant` = '" . $this->db->escape(!empty($data['variant']) ? json_encode($data['variant']) : '') . "', `override` = '" . $this->db->escape(!empty($data['override']) ? json_encode($data['override']) : '') . "', `quantity` = '" . (int)$data['quantity'] . "', `minimum` = '" . (int)$data['minimum'] . "', `max_customer_quantity` = '" . (int)($data['max_customer_quantity'] ?? 0) . "', `subtract` = '" . (isset($data['subtract']) ? (bool)$data['subtract'] : 0) . "', `stock_status_id` = '" . (int)$data['stock_status_id'] . "', `preorder_status` = '" . (isset($data['preorder_status']) ? (bool)$data['preorder_status'] : 0) . "', `preorder_lead_days` = " . (!empty($data['preorder_lead_days']) ? "'" . (int)$data['preorder_lead_days'] . "'" : "NULL") . ", `date_available` = '" . $this->db->escape((string)$data['date_available']) . "', `manufacturer_id` = '" . (int)$data['manufacturer_id'] . "', `shipping` = '" . (isset($data['shipping']) ? (bool)$data['shipping'] : 0) . "', `price` = '" . (float)$data['price'] . "', `points` = '" . (int)$data['points'] . "', `weight` = '" . (float)$data['weight'] . "', `weight_class_id` = '" . (int)$data['weight_class_id'] . "', `length` = '" . (float)$data['length'] . "', `width` = '" . (float)$data['width'] . "', `height` = '" . (float)$data['height'] . "', `length_class_id` = '" . (int)$data['length_class_id'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `tax_class_id` = '" . (int)$data['tax_class_id'] . "', `sort_order` = '" . (int)$data['sort_order'] . "', `date_added` = NOW(), `date_modified` = NOW()");
+ 
+ 		$product_id = $this->db->getLastId();
+ 
+@@ -243,7 +243,7 @@ class Product extends \MDcart\System\Engine\Model {
+ 	 * $this->model_catalog_product->editProduct($product_id, $product_data);
+ 	 */
+ 	public function editProduct(int $product_id, array $data): void {
+-		$this->db->query("UPDATE `" . DB_PREFIX . "product` SET `model` = '" . $this->db->escape((string)$data['model']) . "', `location` = '" . $this->db->escape((string)$data['location']) . "', `variant` = '" . $this->db->escape(!empty($data['variant']) ? json_encode($data['variant']) : '') . "', `override` = '" . $this->db->escape(!empty($data['override']) ? json_encode($data['override']) : '') . "', `quantity` = '" . (int)$data['quantity'] . "', `minimum` = '" . (int)$data['minimum'] . "', `max_customer_quantity` = '" . (int)($data['max_customer_quantity'] ?? 0) . "', `subtract` = '" . (isset($data['subtract']) ? (bool)$data['subtract'] : 0) . "', `stock_status_id` = '" . (int)$data['stock_status_id'] . "', `preorder_status` = '" . (isset($data['preorder_status']) ? (bool)$data['preorder_status'] : 0) . "', `preorder_lead_days` = " . (!empty($data['preorder_lead_days']) ? "'" . (int)$data['preorder_lead_days'] . "'" : "NULL") . ", `image` = '" . $this->db->escape((string)$data['image']) . "', `date_available` = '" . $this->db->escape((string)$data['date_available']) . "', `manufacturer_id` = '" . (int)$data['manufacturer_id'] . "', `shipping` = '" . (isset($data['shipping']) ? (bool)$data['shipping'] : 0) . "', `price` = '" . (float)$data['price'] . "', `points` = '" . (int)$data['points'] . "', `weight` = '" . (float)$data['weight'] . "', `weight_class_id` = '" . (int)$data['weight_class_id'] . "', `length` = '" . (float)$data['length'] . "', `width` = '" . (float)$data['width'] . "', `height` = '" . (float)$data['height'] . "', `length_class_id` = '" . (int)$data['length_class_id'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `tax_class_id` = '" . (int)$data['tax_class_id'] . "', `sort_order` = '" . (int)$data['sort_order'] . "', `date_modified` = NOW() WHERE `product_id` = '" . (int)$product_id . "'");
++		$this->db->query("UPDATE `" . DB_PREFIX . "product` SET `model` = '" . $this->db->escape((string)$data['model']) . "', `condition` = '" . (($data['condition'] ?? 'new') === 'used' ? 'used' : 'new') . "', `location` = '" . $this->db->escape((string)$data['location']) . "', `variant` = '" . $this->db->escape(!empty($data['variant']) ? json_encode($data['variant']) : '') . "', `override` = '" . $this->db->escape(!empty($data['override']) ? json_encode($data['override']) : '') . "', `quantity` = '" . (int)$data['quantity'] . "', `minimum` = '" . (int)$data['minimum'] . "', `max_customer_quantity` = '" . (int)($data['max_customer_quantity'] ?? 0) . "', `subtract` = '" . (isset($data['subtract']) ? (bool)$data['subtract'] : 0) . "', `stock_status_id` = '" . (int)$data['stock_status_id'] . "', `preorder_status` = '" . (isset($data['preorder_status']) ? (bool)$data['preorder_status'] : 0) . "', `preorder_lead_days` = " . (!empty($data['preorder_lead_days']) ? "'" . (int)$data['preorder_lead_days'] . "'" : "NULL") . ", `image` = '" . $this->db->escape((string)$data['image']) . "', `date_available` = '" . $this->db->escape((string)$data['date_available']) . "', `manufacturer_id` = '" . (int)$data['manufacturer_id'] . "', `shipping` = '" . (isset($data['shipping']) ? (bool)$data['shipping'] : 0) . "', `price` = '" . (float)$data['price'] . "', `points` = '" . (int)$data['points'] . "', `weight` = '" . (float)$data['weight'] . "', `weight_class_id` = '" . (int)$data['weight_class_id'] . "', `length` = '" . (float)$data['length'] . "', `width` = '" . (float)$data['width'] . "', `height` = '" . (float)$data['height'] . "', `length_class_id` = '" . (int)$data['length_class_id'] . "', `status` = '" . (bool)($data['status'] ?? 0) . "', `tax_class_id` = '" . (int)$data['tax_class_id'] . "', `sort_order` = '" . (int)$data['sort_order'] . "', `date_modified` = NOW() WHERE `product_id` = '" . (int)$product_id . "'");
+ 
+ 		// Description
+ 		$this->model_catalog_product->deleteDescriptions($product_id);
+diff --git a/panel/model/tool/system_update.php b/panel/model/tool/system_update.php
+index 0c44cdd..d9eea10 100644
+--- a/panel/model/tool/system_update.php
++++ b/panel/model/tool/system_update.php
+@@ -969,6 +969,82 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
+ 					}
+ 				}
+ 			},
++
++			// Simple per-product "new"/"used" badge, shown to the customer
++			// and picked by the admin on every product's Data tab. This is
++			// deliberately just a display attribute (one product = one
++			// condition) - see condition_option_seed below for the separate
++			// "this product comes in BOTH new and used, at two different
++			// prices with two separately tracked stock counts" case.
++			'product_condition' => function (): void {
++				if (!$this->columnExists('product', 'condition')) {
++					$this->db->query("ALTER TABLE `" . DB_PREFIX . "product` ADD COLUMN `condition` enum('new','used') NOT NULL DEFAULT 'new' AFTER `model`");
++				}
++			},
++
++			// Seeds a reusable global "Condition" (وضعیت) product option -
++			// type=radio, with "New"/"Used" (نو/کارکرده) values - for
++			// products that need to sell BOTH a new and a used unit at two
++			// different prices with two independently tracked stock counts.
++			// Every option VALUE already carries its own independent
++			// price/price_prefix/quantity/subtract (oc_product_option_value)
++			// - core, unmodified OpenCart functionality - so attaching this
++			// ready-made option from Catalog > Products > [product] >
++			// Options is all that's needed; no new price/stock-tracking
++			// code was written for this. Guarded by an existing-name check
++			// (rather than just relying on the migration key, which only
++			// prevents THIS code from re-running) so re-running it after a
++			// hand-rollback doesn't create a duplicate.
++			'condition_option_seed' => function (): void {
++				$existing = $this->db->query(
++					"SELECT `option_id` FROM `" . DB_PREFIX . "option_description` WHERE `name` = 'Condition'"
++				);
++
++				if ($existing->num_rows) {
++					return;
++				}
++
++				$languages = $this->db->query("SELECT `language_id`, `code` FROM `" . DB_PREFIX . "language`")->rows;
++
++				$this->db->query("INSERT INTO `" . DB_PREFIX . "option` SET `type` = 'radio', `sort_order` = '0'");
++
++				$option_id = $this->db->getLastId();
++
++				$option_names = [
++					'fa'    => 'وضعیت',
++					'us'    => 'Condition',
++					'fr-fr' => 'État',
++				];
++
++				foreach ($languages as $language) {
++					$name = $option_names[$language['code']] ?? $option_names['us'];
++
++					$this->db->query(
++						"INSERT INTO `" . DB_PREFIX . "option_description` SET `option_id` = '" . (int)$option_id . "', `language_id` = '" . (int)$language['language_id'] . "', `name` = '" . $this->db->escape($name) . "'"
++					);
++				}
++
++				$values = [
++					['fa' => 'نو', 'us' => 'New', 'fr-fr' => 'Neuf'],
++					['fa' => 'کارکرده', 'us' => 'Used', 'fr-fr' => 'Occasion'],
++				];
++
++				foreach ($values as $sort_order => $value_names) {
++					$this->db->query(
++						"INSERT INTO `" . DB_PREFIX . "option_value` SET `option_id` = '" . (int)$option_id . "', `image` = '', `sort_order` = '" . (int)($sort_order + 1) . "'"
++					);
++
++					$option_value_id = $this->db->getLastId();
++
++					foreach ($languages as $language) {
++						$name = $value_names[$language['code']] ?? $value_names['us'];
++
++						$this->db->query(
++							"INSERT INTO `" . DB_PREFIX . "option_value_description` SET `option_value_id` = '" . (int)$option_value_id . "', `language_id` = '" . (int)$language['language_id'] . "', `option_id` = '" . (int)$option_id . "', `name` = '" . $this->db->escape($name) . "'"
++						);
++					}
++				}
++			},
+ 		];
+ 	}
+ 
+diff --git a/panel/view/template/catalog/product_form.twig b/panel/view/template/catalog/product_form.twig
+index b4c4094..307a23d 100644
+--- a/panel/view/template/catalog/product_form.twig
++++ b/panel/view/template/catalog/product_form.twig
+@@ -171,6 +171,16 @@
+                     <div id="error-model" class="invalid-feedback"></div>
+                   </div>
+                 </div>
++                <div class="row mb-3">
++                  <label for="input-condition" class="col-sm-2 col-form-label">{{ entry_condition }}</label>
++                  <div class="col-sm-10">
++                    <select name="condition" id="input-condition" class="form-select">
++                      <option value="new"{% if condition != 'used' %} selected{% endif %}>{{ text_condition_new }}</option>
++                      <option value="used"{% if condition == 'used' %} selected{% endif %}>{{ text_condition_used }}</option>
++                    </select>
++                    <div class="form-text">{{ help_condition }}</div>
++                  </div>
++                </div>
+                 <div class="row mb-3">
+                   <label class="col-sm-2 col-form-label">{{ entry_product_code }}</label>
+                   <div class="col-sm-10">
