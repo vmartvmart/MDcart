@@ -25,8 +25,11 @@ class Register extends \MDcart\System\Engine\Controller {
 		$data['config_checkout_payment_address'] = $this->config->get('config_checkout_payment_address');
 		$data['config_checkout_guest'] = ($this->config->get('config_checkout_guest') && !$this->config->get('config_customer_price') && !$this->cart->hasDownload() && !$this->cart->hasSubscription());
 		$data['config_file_max_size'] = ((int)$this->config->get('config_file_max_size') * 1024 * 1024);
-		$data['config_telephone_display'] = $this->config->get('config_telephone_display');
-		$data['config_telephone_required'] = $this->config->get('config_telephone_required');
+
+		// The field must actually be shown whenever it's going to be
+		// required - see isTelephoneNeeded()'s docblock for why.
+		$data['config_telephone_display'] = $this->config->get('config_telephone_display') || $this->isTelephoneNeeded();
+		$data['config_telephone_required'] = $this->config->get('config_telephone_required') || $this->isTelephoneNeeded();
 
 		$data['shipping_required'] = $this->cart->hasShipping();
 
@@ -310,7 +313,7 @@ class Register extends \MDcart\System\Engine\Controller {
 				}
 			}
 
-			if ($this->config->get('config_telephone_required') && !oc_validate_length($post_info['telephone'], 3, 32)) {
+			if (($this->config->get('config_telephone_required') || $this->isTelephoneNeeded()) && !oc_validate_length($post_info['telephone'], 3, 32)) {
 				$json['error']['telephone'] = $this->language->get('error_telephone');
 			}
 
@@ -729,5 +732,22 @@ class Register extends \MDcart\System\Engine\Controller {
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
+	}
+
+	/**
+	 * Whether some feature elsewhere in the store actually needs the
+	 * customer to have a phone number on file, regardless of the separate
+	 * config_telephone_display/config_telephone_required store settings -
+	 * OTP login/registration (IPPanel) and DigiPay both do. See the
+	 * identical method in account/register.php and account/edit.php.
+	 *
+	 * @return bool
+	 */
+	private function isTelephoneNeeded(): bool {
+		$otp_enabled = (bool)($this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender'));
+
+		$digipay_enabled = (bool)($this->config->get('payment_digipay_client_id') && $this->config->get('payment_digipay_client_secret') && $this->config->get('payment_digipay_username') && $this->config->get('payment_digipay_password'));
+
+		return $otp_enabled || $digipay_enabled;
 	}
 }

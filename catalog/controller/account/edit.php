@@ -42,8 +42,11 @@ class Edit extends \MDcart\System\Engine\Controller {
 		$data['error_upload_size'] = sprintf($this->language->get('error_upload_size'), $this->config->get('config_file_max_size'));
 
 		$data['config_file_max_size'] = ((int)$this->config->get('config_file_max_size') * 1024 * 1024);
-		$data['config_telephone_display'] = $this->config->get('config_telephone_display');
-		$data['config_telephone_required'] = $this->config->get('config_telephone_required');
+
+		// The field must actually be shown whenever it's going to be
+		// required - see isTelephoneNeeded()'s docblock for why.
+		$data['config_telephone_display'] = $this->config->get('config_telephone_display') || $this->isTelephoneNeeded();
+		$data['config_telephone_required'] = $this->config->get('config_telephone_required') || $this->isTelephoneNeeded();
 
 		$data['save'] = $this->url->link('account/edit.save', 'language=' . $this->config->get('config_language') . '&customer_token=' . $this->session->data['customer_token']);
 
@@ -135,7 +138,7 @@ class Edit extends \MDcart\System\Engine\Controller {
 				$json['error']['warning'] = $this->language->get('error_exists');
 			}
 
-			if ($this->config->get('config_telephone_required') && !oc_validate_length($post_info['telephone'], 3, 32)) {
+			if (($this->config->get('config_telephone_required') || $this->isTelephoneNeeded()) && !oc_validate_length($post_info['telephone'], 3, 32)) {
 				$json['error']['telephone'] = $this->language->get('error_telephone');
 			}
 
@@ -181,5 +184,26 @@ class Edit extends \MDcart\System\Engine\Controller {
 
 		$this->response->addHeader('Content-Type: application/json');
 		$this->response->setOutput(json_encode($json));
+	}
+
+	/**
+	 * Whether some feature elsewhere in the store actually needs the
+	 * customer to have a phone number on file, regardless of the separate
+	 * config_telephone_display/config_telephone_required store settings -
+	 * OTP login/registration (IPPanel) and DigiPay both do. If either is
+	 * on, the field must be both visible and required here, even for an
+	 * existing account created before that feature existed - otherwise a
+	 * customer who needs to add one (e.g. to pay by DigiPay) has nowhere
+	 * to. Confirmed live 2026-09. See the identical method in
+	 * account/register.php and checkout/register.php.
+	 *
+	 * @return bool
+	 */
+	private function isTelephoneNeeded(): bool {
+		$otp_enabled = (bool)($this->config->get('other_ippanel_otp_status') && $this->config->get('other_ippanel_status') && $this->config->get('other_ippanel_api_key') && $this->config->get('other_ippanel_sender'));
+
+		$digipay_enabled = (bool)($this->config->get('payment_digipay_client_id') && $this->config->get('payment_digipay_client_secret') && $this->config->get('payment_digipay_username') && $this->config->get('payment_digipay_password'));
+
+		return $otp_enabled || $digipay_enabled;
 	}
 }
