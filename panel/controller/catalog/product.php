@@ -684,6 +684,12 @@ class Product extends \MDcart\System\Engine\Controller {
 			$data['model'] = '';
 		}
 
+		if (!empty($product_info)) {
+			$data['condition'] = $product_info['condition'];
+		} else {
+			$data['condition'] = 'new';
+		}
+
 		// Product Identifiers
 		$this->load->model('catalog/identifier');
 
@@ -1213,6 +1219,7 @@ class Product extends \MDcart\System\Engine\Controller {
 			'master_id'           => 0,
 			'product_description' => [],
 			'model'               => '',
+			'condition'           => 'new',
 			'product_code'        => [],
 			'location'            => '',
 			'variant'             => [],

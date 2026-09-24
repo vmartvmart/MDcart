@@ -969,6 +969,82 @@ class SystemUpdate extends \MDcart\System\Engine\Model {
 					}
 				}
 			},
+
+			// Simple per-product "new"/"used" badge, shown to the customer
+			// and picked by the admin on every product's Data tab. This is
+			// deliberately just a display attribute (one product = one
+			// condition) - see condition_option_seed below for the separate
+			// "this product comes in BOTH new and used, at two different
+			// prices with two separately tracked stock counts" case.
+			'product_condition' => function (): void {
+				if (!$this->columnExists('product', 'condition')) {
+					$this->db->query("ALTER TABLE `" . DB_PREFIX . "product` ADD COLUMN `condition` enum('new','used') NOT NULL DEFAULT 'new' AFTER `model`");
+				}
+			},
+
+			// Seeds a reusable global "Condition" (وضعیت) product option -
+			// type=radio, with "New"/"Used" (نو/کارکرده) values - for
+			// products that need to sell BOTH a new and a used unit at two
+			// different prices with two independently tracked stock counts.
+			// Every option VALUE already carries its own independent
+			// price/price_prefix/quantity/subtract (oc_product_option_value)
+			// - core, unmodified OpenCart functionality - so attaching this
+			// ready-made option from Catalog > Products > [product] >
+			// Options is all that's needed; no new price/stock-tracking
+			// code was written for this. Guarded by an existing-name check
+			// (rather than just relying on the migration key, which only
+			// prevents THIS code from re-running) so re-running it after a
+			// hand-rollback doesn't create a duplicate.
+			'condition_option_seed' => function (): void {
+				$existing = $this->db->query(
+					"SELECT `option_id` FROM `" . DB_PREFIX . "option_description` WHERE `name` = 'Condition'"
+				);
+
+				if ($existing->num_rows) {
+					return;
+				}
+
+				$languages = $this->db->query("SELECT `language_id`, `code` FROM `" . DB_PREFIX . "language`")->rows;
+
+				$this->db->query("INSERT INTO `" . DB_PREFIX . "option` SET `type` = 'radio', `sort_order` = '0'");
+
+				$option_id = $this->db->getLastId();
+
+				$option_names = [
+					'fa'    => 'وضعیت',
+					'us'    => 'Condition',
+					'fr-fr' => 'État',
+				];
+
+				foreach ($languages as $language) {
+					$name = $option_names[$language['code']] ?? $option_names['us'];
+
+					$this->db->query(
+						"INSERT INTO `" . DB_PREFIX . "option_description` SET `option_id` = '" . (int)$option_id . "', `language_id` = '" . (int)$language['language_id'] . "', `name` = '" . $this->db->escape($name) . "'"
+					);
+				}
+
+				$values = [
+					['fa' => 'نو', 'us' => 'New', 'fr-fr' => 'Neuf'],
+					['fa' => 'کارکرده', 'us' => 'Used', 'fr-fr' => 'Occasion'],
+				];
+
+				foreach ($values as $sort_order => $value_names) {
+					$this->db->query(
+						"INSERT INTO `" . DB_PREFIX . "option_value` SET `option_id` = '" . (int)$option_id . "', `image` = '', `sort_order` = '" . (int)($sort_order + 1) . "'"
+					);
+
+					$option_value_id = $this->db->getLastId();
+
+					foreach ($languages as $language) {
+						$name = $value_names[$language['code']] ?? $value_names['us'];
+
+						$this->db->query(
+							"INSERT INTO `" . DB_PREFIX . "option_value_description` SET `option_value_id` = '" . (int)$option_value_id . "', `language_id` = '" . (int)$language['language_id'] . "', `option_id` = '" . (int)$option_id . "', `name` = '" . $this->db->escape($name) . "'"
+						);
+					}
+				}
+			},
 		];
 	}
 

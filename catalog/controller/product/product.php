@@ -261,6 +261,7 @@ class Product extends \MDcart\System\Engine\Controller {
 
 			$data['manufacturers'] = $this->url->link('product/manufacturer.info', 'language=' . $this->config->get('config_language') . '&manufacturer_id=' . $product_info['manufacturer_id']);
 			$data['model'] = $product_info['model'];
+			$data['condition'] = $product_info['condition'] ?? 'new';
 
 			$data['product_codes'] = [];
 

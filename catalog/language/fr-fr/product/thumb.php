@@ -2,3 +2,4 @@
 // Texte
 $_['text_price'] = 'Prix:';
 $_['text_tax']   = 'Hors taxes:';
+$_['text_condition_used'] = 'Occasion';

@@ -26,7 +26,7 @@
           </div>
         {% endif %}
         <div class="col-sm">
-          <h1>{{ heading_title }}</h1>
+          <h1>{{ heading_title }}{% if condition == 'used' %} <span class="badge text-bg-secondary align-middle">{{ text_condition_used }}</span>{% endif %}</h1>
           <ul class="list-unstyled">
             {% if manufacturer %}
               <li>{{ text_manufacturer }} <a href="{{ manufacturers }}">{{ manufacturer }}</a></li>
@@ -113,20 +113,27 @@
                     {% endif %}
 
                     {% if option.type == 'radio' %}
+                      {# Rendered as a Bootstrap button group (input type=radio
+                         with the .btn-check class, hidden, paired with a
+                         <label class="btn">) rather than plain radio dots -
+                         reads as a set of clickable buttons, e.g. for a
+                         "Condition: New / Used" choice with its own price
+                         and stock per value (see the product_condition and
+                         condition_option_seed migrations). #}
                       <div class="mb-3{% if option.required %} required{% endif %}">
                         <label class="form-label">{{ option.name }}</label>
-                        <div id="input-option-{{ option.product_option_id }}">
+                        <div id="input-option-{{ option.product_option_id }}" class="btn-group flex-wrap" role="group">
                           {% for option_value in option.product_option_value %}
-                            <div class="form-check">
-                              <input type="radio" name="option[{{ option.product_option_id }}]" value="{{ option_value.product_option_value_id }}" id="input-option-value-{{ option_value.product_option_value_id }}" class="form-check-input"/>
-                              <label for="input-option-value-{{ option_value.product_option_value_id }}" class="form-check-label">
-                                {% if option_value.image %}
-                                  <img src="{{ option_value.image }}" alt="{{ option_value.name }} {% if option_value.price %}{{ option_value.price_prefix }} {{ option_value.price }}{% endif %}" class="img-thumbnail"/>{% endif %}
-                                {{ option_value.name }}
-                                {% if option_value.price %}
-                                  ({{ option_value.price_prefix }}{{ option_value.price }})
-                                {% endif %}</label>
-                            </div>
+                            <input type="radio" name="option[{{ option.product_option_id }}]" value="{{ option_value.product_option_value_id }}" id="input-option-value-{{ option_value.product_option_value_id }}" class="btn-check" autocomplete="off"/>
+                            <label for="input-option-value-{{ option_value.product_option_value_id }}" class="btn btn-outline-secondary">
+                              {% if option_value.image %}
+                                <img src="{{ option_value.image }}" alt="{{ option_value.name }} {% if option_value.price %}{{ option_value.price_prefix }} {{ option_value.price }}{% endif %}" class="img-thumbnail d-block mx-auto mb-1"/>
+                              {% endif %}
+                              {{ option_value.name }}
+                              {% if option_value.price %}
+                                ({{ option_value.price_prefix }}{{ option_value.price }})
+                              {% endif %}
+                            </label>
                           {% endfor %}
                         </div>
                         <div id="error-option-{{ option.product_option_id }}" class="invalid-feedback"></div>

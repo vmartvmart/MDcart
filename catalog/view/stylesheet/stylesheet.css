@@ -609,6 +609,23 @@ footer h5 {
    and common.js's ocSyncCartBadge(). Anchored to the icon's own <a>
    (given "position-relative" in the template) rather than the <li>, so it
    sits right at the icon's corner regardless of the list item's padding. */
+/* Product thumbnail "Used" badge (see product/thumb.twig) - a small
+   corner ribbon over the image, shown only for condition == 'used' so a
+   normal (new) product's thumbnail is unchanged. `.product-thumb .image`
+   needs position:relative as the positioning context; that class has no
+   other positioning rule today so this is safe to add here rather than
+   in a theme file. */
+.product-thumb .image {
+  position: relative;
+}
+
+.product-thumb .condition-badge {
+  position: absolute;
+  top: .5rem;
+  inset-inline-start: .5rem;
+  z-index: 1;
+}
+
 /* Checkout > payment method list (see payment_method.twig) - was plain
    small Bootstrap .form-check text with no visual identifier per gateway,
    flagged as too hard to read. Each row is now a full clickable card with
