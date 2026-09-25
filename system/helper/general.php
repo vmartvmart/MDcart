@@ -210,6 +210,50 @@ function oc_persian_digits(string $string): string {
 	]);
 }
 
+/**
+ * The reverse of oc_persian_digits() - converts Persian (۰-۹) and
+ * Arabic-Indic (٠-٩) digit characters to plain ASCII digits (0-9).
+ *
+ * Iranian customers very commonly type numeric input (mobile numbers,
+ * card numbers, etc.) on a Persian-language keyboard, which produces one
+ * of these digit forms instead of plain ASCII ones - visually identical
+ * to a "normal" number, but PHP's \d/\D (and any string digit check) only
+ * recognize ASCII 0-9, so raw input must be converted through this first.
+ * Confirmed 2026-09 as the root cause of DigiPay silently rejecting a
+ * customer-entered mobile number that "looked" valid - see
+ * extension/iranian_gateways/catalog/controller/payment/digipay.php's
+ * normalizeCellNumber() and catalog/model/account/customer.php's
+ * normalizeTelephone(), both of which now call this first.
+ *
+ * @param string $string
+ *
+ * @return string
+ */
+function oc_latin_digits(string $string): string {
+	return strtr($string, [
+		'۰' => '0',
+		'۱' => '1',
+		'۲' => '2',
+		'۳' => '3',
+		'۴' => '4',
+		'۵' => '5',
+		'۶' => '6',
+		'۷' => '7',
+		'۸' => '8',
+		'۹' => '9',
+		'٠' => '0',
+		'١' => '1',
+		'٢' => '2',
+		'٣' => '3',
+		'٤' => '4',
+		'٥' => '5',
+		'٦' => '6',
+		'٧' => '7',
+		'٨' => '8',
+		'٩' => '9'
+	]);
+}
+
 function oc_jdate(string $format, ?int $timestamp = null): string {
 	if ($timestamp === null) {
 		$timestamp = time();

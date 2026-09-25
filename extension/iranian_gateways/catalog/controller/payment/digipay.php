@@ -260,7 +260,11 @@ class Digipay extends \MDcart\System\Engine\Controller {
 	 * @return string
 	 */
 	private function normalizeCellNumber(string $telephone): string {
-		$digits = preg_replace('/\D/', '', $telephone) ?? '';
+		// Convert Persian/Arabic-Indic digits (common on Iranian keyboards)
+		// to ASCII first - \D would otherwise strip them out entirely,
+		// silently turning a real-looking number into an empty/garbled one.
+		// See oc_latin_digits()'s docblock for how this was found.
+		$digits = preg_replace('/\D/', '', oc_latin_digits($telephone)) ?? '';
 
 		if (str_starts_with($digits, '0098')) {
 			$digits = substr($digits, 4);
