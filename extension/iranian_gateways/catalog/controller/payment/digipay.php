@@ -237,8 +237,16 @@ class Digipay extends \MDcart\System\Engine\Controller {
 	 * @return \MDcart\System\Library\Extension\IranianGateways\Digipay
 	 */
 	private function getClient(): \MDcart\System\Library\Extension\IranianGateways\Digipay {
-		$this->load->library('extension/iranian_gateways/digipay');
-
+		// Deliberately NOT using $this->load->library(...) here - the
+		// framework's Loader::library()/Factory::library() always
+		// instantiates the class with the args it was given (none, if any
+		// weren't explicitly passed through), and Digipay's constructor
+		// below requires 4 mandatory arguments - calling load->library()
+		// first (as this used to) fatals immediately with "Too few
+		// arguments... at least 4 expected", before this method ever
+		// reaches its own, correctly-parameterized `new` below. Referencing
+		// the class by its fully-qualified name is enough to trigger PHP's
+		// own autoloader - no separate load->library() call is needed.
 		return new \MDcart\System\Library\Extension\IranianGateways\Digipay(
 			(string)$this->config->get('payment_digipay_client_id'),
 			(string)$this->config->get('payment_digipay_client_secret'),
